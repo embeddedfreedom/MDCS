@@ -115,7 +115,7 @@ def main():
     pygame.init()
     display = [1200, 800]
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL | RESIZABLE)
-    pygame.display.set_caption("Furuta Pendulum Visualizer")
+    pygame.display.set_caption("Furuta Pendulum Animation")
     glClearColor(0.82, 0.82, 0.85, 1.0) 
     glEnable(GL_DEPTH_TEST)
     

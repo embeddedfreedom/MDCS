@@ -53,7 +53,7 @@ class SerialWorker(QtCore.QObject):
 class TelemetryDash(QtWidgets.QMainWindow):
     def __init__(self, port):
         super().__init__()
-        self.setWindowTitle("Multi-Channel Telemetry Monitor (1kHz)")
+        self.setWindowTitle("Furuta Pendulum Telemetry")
         self.resize(1200, 750)
 
         self.time_data = np.zeros(MAX_SAMPLES)

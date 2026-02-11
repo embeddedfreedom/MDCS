@@ -112,7 +112,7 @@ def main():
     pygame.init()
     display = [1200, 800]
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL | RESIZABLE)
-    pygame.display.set_caption("DC Motor Inverted Pendulum - Visualizer")
+    pygame.display.set_caption("DC Motor with pendulum - Animation")
     
     glClearColor(0.85, 0.85, 0.88, 1.0)
     glEnable(GL_DEPTH_TEST)

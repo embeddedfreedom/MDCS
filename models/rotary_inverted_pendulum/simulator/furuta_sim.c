@@ -29,22 +29,6 @@ Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 #define SPIKE_PROBABILITY      2000   // 1 in 2000 chance per 50us
 #define PWM_NOISE_STRENGTH     0.25f  // Volts
 
-/*
-The socat commands to create 2 separate bridges one for the renderer and another for the 
-graph generator
-
-# 1. Kill old attempts
-pkill -9 socat
-rm -f /home/dipto/sim_3d /home/dipto/sim_graph
-
-# 2. Port for the 3D App
-socat PTY,raw,echo=0,link=/home/dipto/sim_3d PTY,raw,echo=0,link=/home/dipto/sim_3d_in &
-
-# 3. Port for the Grapher
-socat PTY,raw,echo=0,link=/home/dipto/sim_graph PTY,raw,echo=0,link=/home/dipto/sim_graph_in &
-*/
-
-
 
 void normalize_angle(float *angle) {
     while (*angle >  PI) *angle -= 2.0f * PI;
@@ -220,11 +204,11 @@ int main() {
 
         if (key == 's' || key == 'S') {
             runLoop = true;
-            printf("\n>> Loop ENABLED\n");
+            printf("\n>> COMPENSATOR ENABLED\n");
         } 
         else if (key == 't' || key == 'T') {
             runLoop = false;
-            printf("\n>> Loop DISABLED (Skipping)\n");
+            printf("\n>> COMPENSATOR DISABLED\n");
         } 
         else if (key == 'q' || key == 'Q') {
             printf("\nExiting...\n");
@@ -246,7 +230,14 @@ int main() {
 
         float active_pwm = pwm;
         #if NOISE_PWM_VIBRATION
-        active_pwm += ((float)rand() / RAND_MAX - 0.5f) * PWM_NOISE_STRENGTH;
+        if (runLoop == true) {
+                active_pwm += ((float)rand() / RAND_MAX - 0.5f) * PWM_NOISE_STRENGTH;
+            }
+            else if (runLoop == false)
+            {
+                 active_pwm = 0;   
+            }
+        
         #endif
 
         rk4_step(&s, active_pwm, dir, dt, &p);

@@ -119,11 +119,11 @@ int main() {
 
         if (key == 's' || key == 'S') {
             runLoop = true;
-            printf("\n>> Compensator ENABLED\n");
+            printf("\n>> COMPENSATOR ENABLED\n");
         } 
         else if (key == 't' || key == 'T') {
             runLoop = false;
-            printf("\n>> Compensator DISABLED (Skipping)\n");
+            printf("\n>> COMPENSATOR DISABLED\n");
         } 
         else if (key == 'q' || key == 'Q') {
             printf("\nExiting...\n");

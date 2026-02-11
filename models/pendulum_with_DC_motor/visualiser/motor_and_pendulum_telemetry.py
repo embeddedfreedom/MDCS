@@ -53,7 +53,7 @@ class SerialWorker(QtCore.QObject):
 class TelemetryDash(QtWidgets.QMainWindow):
     def __init__(self, port):
         super().__init__()
-        self.setWindowTitle("Real-Time Telemetry & System Monitor")
+        self.setWindowTitle("DC Motor with Pendulum Real-Time Telemetry")
         self.resize(1200, 750)
 
         # Buffers and Sync
