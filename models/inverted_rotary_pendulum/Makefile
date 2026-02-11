@@ -1,3 +1,7 @@
+# Copyright (c) 2026 Diptopal Basu (embeddedfreedom)
+# Licensed under the MIT License
+# https://opensource.org/licenses/MIT
+
 # Path from models/inverted_rotary_pendulum/
 ROOT = ../..
 # Define the specific directory for this project's output

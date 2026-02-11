@@ -20,7 +20,7 @@ To enrich the student experience further, the project includes a **High-Fidelit
 
 It utilizes a **high-precision timing super-loop** to ensure the control logic feels close to a bare-metal microcontroller environment. To handle general-purpose OS jitter, the framework utilizes a **lockstep architecture**. The physics solver and compensator are synchronized; if the OS introduces a scheduling delay, the entire simulation "pauses" until the next cycle. This ensures that the **mathematical timing** remains perfectly consistent at 1,000 Hz, regardless of background CPU load.
 
-![](/home/dipto/.var/app/com.github.marktext.marktext/config/marktext/images/2026-02-10-17-22-24-general_architecture.drawio.png)
+![Diagram](images/general_architecture.png)
 
 #### 1.1 Modeling Fidelity & Abstractions
 
