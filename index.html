@@ -244,6 +244,8 @@
             .mission-headline { font-size: 1.4rem; }
             .fidelity-grid { grid-template-columns: 1fr; gap: 20px; }
             .github-btn { width: 100%; text-align: center; }
+            /* Horizontal Scroll for Tables */
+            .spec-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         }
     </style>
 </head>
@@ -288,7 +290,7 @@
                 
                 <p>This simulator upgrades that journey by utilizing <strong>State-Space Control Theory</strong>, allowing students to move beyond Transfer Functions and interact directly with the "Source Code" of physics. By reframing <strong>LQR</strong> not as an abstract algorithm, but as an optimized way to tune the "PID Intuition" — this project bridges the divide between academic math and hardware reality.</p> 
                 
-                <p style="margin-bottom:0;">Supported by a <strong>high-fidelity 20kHz simulation</strong> that bypasses the friction of Z-transforms, students don't just learn the <em>how</em> of the equations; they experience the <em>why</em> of the hardware. This is the same language used by industry leaders, transforming abstract matrices into the tangible movement of a 200g cart fighting gravity and providing the vital context needed to turn academic theory into professional mastery.</p>
+                <p style="bottom:0;">Supported by a <strong>high-fidelity 20kHz simulation</strong> that bypasses the friction of Z-transforms, students don't just learn the <em>how</em> of the equations; they experience the <em>why</em> of the hardware. This is the same language used by industry leaders, transforming abstract matrices into the tangible movement of a 200g cart fighting gravity and providing the vital context needed to turn academic theory into professional mastery.</p>
             </div>
             
             <p>This project provides a <b>Hardware-Emulated</b> environment—a Software-in-the-Loop (SIL) Digital Twin that faithfully models an inverted pendulum using Lagrangian mechanics. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk.</p>
@@ -320,7 +322,7 @@
                 </p>
                 <p>
                     <strong>2. DC Motor with Inverse Pendulum:</strong> 
-                    A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( 180^\circ \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
+                    A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( 180^\circ \le \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
                 </p>
             </div>
 
