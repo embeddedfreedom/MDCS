@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/os/freertos/include",
+                "${workspaceFolder}/os/freertos/portable/ThirdParty/GCC/Posix",
+                "${workspaceFolder}/hal/cmsis_dsp/Include",
+                "${workspaceFolder}/src/inverted_rotary_pendulum_physics",
+                "${workspaceFolder}/src/inverted_rotary_pendulum_compensator"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

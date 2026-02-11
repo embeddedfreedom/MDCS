@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Pendulum",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/rotary_pendulum_lab",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            /* This line is the magic: it triggers the 'make' task automatically */
+            "preLaunchTask": "Build Project", 
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
