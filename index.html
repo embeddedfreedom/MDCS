@@ -294,15 +294,15 @@
                 <p style="bottom:0;">Supported by a <strong>high-fidelity 20kHz simulation</strong> that bypasses the friction of Z-transforms, students don't just learn the <em>how</em> of the equations; they experience the <em>why</em> of the hardware. This is the same language used by industry leaders, transforming abstract matrices into the tangible movement of a 200g cart fighting gravity and providing the vital context needed to turn academic theory into professional mastery.</p>
             </div>
             
-            <p>This project provides a <b>Hardware-Emulated</b> environment—a Software-in-the-Loop (SIL) Digital Twin that faithfully models an inverted pendulum using Lagrangian mechanics. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk.</p>
+            <p>This project provides a <b>Hardware-Emulated</b> environment—a Software-in-the-Loop (SIL) Digital Twin that faithfully models systems using Lagrangian mechanics. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk.</p>
             
-            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, we provide a bench-like environment that challenges you to solve real-world problems like sensor jitter and encoder drift.</p>
+            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift.</p>
 
             <p>
                 The framework is completely <b>configurable</b>; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only <b>~40 KB</b> (minus the visualizer), it's incredibly lean. By writing your compensator in <b>native C</b>, you get a real feel for how industrial control actually works—managing <b>fixed-step timing</b> and <b>deterministic loops</b> rather than just dragging blocks in a GUI.
             </p>
             
-            <p>The SIL project is built for any <b>Linux Desktop</b>. It utilizes a <b>high-precision timing super-loop</b> to ensure the control logic feels close to a bare-metal microcontroller environment. To handle general-purpose OS jitter, the framework utilizes a <b>lockstep architecture</b>. The physics solver and compensator are synchronized; if the OS introduces a scheduling delay, the entire simulation "pauses" until the next cycle. This ensures that the <b>mathematical timing</b> remains perfectly consistent at 1,000 Hz, regardless of background CPU load.</p>
+            <p>The SIL project is built for any <b>Linux Desktop</b>. It utilizes a <b>high-precision timing super-loop</b> to ensure the control logic feels close to a bare-metal microcontroller environment. To handle general-purpose OS jitter, the framework utilizes a <b>lockstep architecture</b>. The physics solver and compensator are synchronized; if the OS introduces a scheduling delay, the entire simulation "pauses" until the next cycle. This ensures that the <b>mathematical timing</b> remains nearly consistent at 1,000 Hz, regardless of background CPU load.</p>
         </div>
 
         <div class="hero-container">
@@ -318,7 +318,7 @@
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Available Models</h2>
             <div style="margin: 20px 0;">
                 <p>
-                    <strong>1. Inverted Rotary Pendulum:</strong> 
+                    <strong>1. Rotary Inverted Pendulum:</strong> 
                     This high-fidelity Furuta Pendulum Digital Twin utilizes a 20kHz RK4 physics engine and full Lagrangian mechanics to simulate complex multi-body dynamics, bridging the gap between theoretical state-space control and embedded system reality. Stabilized by an aggressive LQR controller tuned with a high-priority \( Q \) matrix (\( Q_{pend}=100 \)) to overcome a simulated 0.4V motor deadzone, the system maintains the unstable \( \pi \) equilibrium through precise, high-gain restorative torques. Unlike idealized models, this platform explicitly emulates hardware non-linearities—including quadrature encoder jitter, missing pulses, and discrete 1kHz compensator timing—to provide a rigorous environment for stress-testing robust industrial control laws. The integration of a real-time visualizer and a C-based SIL loop ensures that every micro-correction is both mathematically optimal and physically faithful to the constraints of DC motor actuation and sensor noise.
                 </p>
                 <p>
@@ -423,7 +423,7 @@
         </div>
 
         <footer>
-            <div class="footer-line">EMBEDDEDFREEDOM.DEV // 2026</div>
+            <div class="footer-line">COPYRIGHT © 2026 EMBEDDEDFREEDOM.DEV // MIT LICENSE</div>
             <div class="footer-line">
                 CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a>
             </div>
