@@ -232,6 +232,13 @@ int main() {
         #if NOISE_PWM_VIBRATION
         if (runLoop == true) {
                 active_pwm += ((float)rand() / RAND_MAX - 0.5f) * PWM_NOISE_STRENGTH;
+                // SATURATION FIX: Prevent the value from going outside [0, 1]
+                if (active_pwm > 1.0f){
+                     active_pwm = 1.0f;
+                }
+                if (active_pwm < 0.0f) {
+                 active_pwm = 0.0f;
+               }
             }
             else if (runLoop == false)
             {
