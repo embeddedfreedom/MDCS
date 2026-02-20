@@ -1,3 +1,6 @@
+#Ignore the top level build directory
+/build/
+
 # Python
 __pycache__/
 *.py[cod]
