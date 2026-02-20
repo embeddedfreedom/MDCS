@@ -28,7 +28,7 @@ To enrich the student experience further, the project includes a **High-Fidelit
 
 It utilizes a **high-precision timing super-loop** to ensure the control logic feels close to a bare-metal microcontroller environment. To handle general-purpose OS jitter, the framework utilizes a **lockstep architecture**. The physics solver and compensator are synchronized; if the OS introduces a scheduling delay, the entire simulation "pauses" until the next cycle. This ensures that the **mathematical timing** remains perfectly consistent at 1,000 Hz, regardless of background CPU load.
 
-![Diagram](images/general_architecture.png)
+![Diagram](https://res.cloudinary.com/dgoduwqyc/image/upload/v1771587456/general_architecture_uxeclc.png)
 
 #### 1.1 Modeling Fidelity & Abstractions
 
@@ -310,4 +310,4 @@ The simulator includes a 2D heads-up display (HUD) overlaid on the 3D scene.
 
 - **UI:** The visualizer includes a toggle to switch between Radians and Degrees.
 
-#### 
+# 
