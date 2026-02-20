@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmbeddedFreedom | MDCS Dashboard</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --ef-blue: #087ea4;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --nav-bg: rgba(255, 255, 255, 0.75); 
+            --title-bg: rgba(0, 0, 0, 0.75);
+            --neon-green: #00ff00;
+        }
+
+        body {
+            margin: 0; padding: 0; min-height: 100vh;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: url('https://res.cloudinary.com/dgoduwqyc/image/upload/v1771587456/scifi_hlb7kx.png') no-repeat center center fixed;
+            background-size: cover; background-color: #0f172a; 
+            color: #1a1a1a; line-height: 1.6;
+        }
+
+        /* Navigation & Hover Dropdown */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px) saturate(180%); 
+            border-bottom: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 0 40px; box-sizing: border-box; z-index: 1000;
+        }
+
+        .brand-terminal { 
+            font-family: 'Courier New', monospace; 
+            font-weight: 700; 
+            display: flex; 
+            align-items: center; 
+            margin-right: 20px;
+            white-space: nowrap;
+        }
+        .led { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; margin-right: 12px; box-shadow: 0 0 8px var(--neon-green); }
+
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .model-select-trigger {
+            background: rgba(255, 255, 255, 0.3); 
+            border: 1px solid rgba(0,0,0,0.1); 
+            border-radius: 4px;
+            padding: 5px 15px; 
+            font-weight: 700; 
+            font-size: 0.75rem; 
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 4px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .dropdown-content a:hover { background-color: rgba(8, 126, 164, 0.1); }
+        .dropdown-container:hover .dropdown-content { display: block; }
+        .dropdown-container:hover .model-select-trigger { background: rgba(255, 255, 255, 0.5); }
+
+        main { max-width: 1400px; width: 100%; margin: 0 auto; padding: 110px 0 60px; }
+
+        .title-block, .hero-container, .glass-card, footer {
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+
+        /* Title Block with Dual Videos */
+        .title-block {
+            background: var(--title-bg); backdrop-filter: blur(15px);
+            padding: 30px 45px; border-radius: 4px;
+            margin-bottom: 40px; border-left: 12px solid var(--ef-blue);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        .title-content { flex: 1; }
+        .title-content h1 { color: #fff; font-size: 3rem; margin: 0; font-weight: 900; }
+        .title-content p { color: #fff; opacity: 0.8; font-size: 1.1rem; margin: 5px 0 0 0; }
+
+        .video-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .title-video-wrap {
+            width: 200px;
+            height: 80px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 0 15px rgba(8, 126, 164, 0.3);
+        }
+        .title-video-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Hero Container Modified for 2x2 Image Grid */
+        .hero-container {
+            background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border);
+            padding: 10px; border-radius: 20px; margin-bottom: 40px;
+            backdrop-filter: blur(15px);
+        }
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .screenshot-grid img {
+            width: 100%;
+            display: block;
+            border-radius: 0; /* Forced rectangular */
+        }
+
+        .glass-card {
+            background: var(--glass-bg); backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 20px; padding: 45px; margin-bottom: 30px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .mission-headline { font-size: 2.1rem; font-weight: 900; line-height: 1.2; color: #000; margin-bottom: 25px; }
+        .mission-subline { color: var(--ef-blue); display: block; margin-top: 10px; font-size: 1.6rem; }
+
+        .theory-bridge-summary {
+            border-left: 4px solid var(--ef-blue);
+            padding: 20px 25px;
+            background: rgba(8, 126, 164, 0.04);
+            border-radius: 0 12px 12px 0;
+            margin: 30px 0;
+            font-size: 1.05rem;
+        }
+
+        .spec-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .spec-table td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+
+        .noise-pill { background: #1e293b; color: #fff; padding: 5px 12px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; margin: 4px; display: inline-block; }
+
+        /* XP Style Deep Green 3D Square Button */
+        .github-btn { 
+            display: inline-block; 
+            padding: 14px 40px;
+            margin-top: 30px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 4px; 
+            border: 1px solid #1a5a1a;
+            background: linear-gradient(to bottom, #4db54d 0%, #389c38 10%, #2d832d 45%, #1e6b1e 50%, #145a14 100%);
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 4px 6px rgba(0, 0, 0, 0.3), 0 2px 0 #0d3d0d;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box; /* Fix for mobile width overflow */
+        }
+
+        .github-btn:hover {
+            background: linear-gradient(to bottom, #5ed05e 0%, #45af45 10%, #379737 45%, #287e28 50%, #1a6b1a 100%);
+            transform: translateY(-1px);
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7), 0 6px 12px rgba(0, 0, 0, 0.4), 0 2px 0 #0d3d0d;
+        }
+
+        .github-btn:active {
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5), 0 0px 0 transparent;
+            background: #145a14;
+        }
+
+        .diagram-img { width: 100%; height: auto; border-radius: 12px; margin-top: 20px; border: 1px solid rgba(0,0,0,0.1); }
+
+        .fidelity-section { margin-top: 40px; padding: 25px; background: rgba(8, 126, 164, 0.05); border-radius: 12px; border: 1px solid rgba(8, 126, 164, 0.2); }
+        .fidelity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 15px; }
+        .fidelity-item h4 { margin: 0 0 10px 0; color: var(--ef-blue); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        .fidelity-item p { font-size: 0.88rem; margin: 0; color: #334155; }
+
+        /* Footer Matched to Title Bar Visibility */
+        footer { 
+            background: var(--title-bg); 
+            backdrop-filter: blur(15px); 
+            text-align: center; 
+            color: #fff; 
+            padding: 40px 20px; 
+            border-radius: 4px; 
+            border-left: 12px solid var(--ef-blue); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
+            font-size: 0.8rem; 
+            letter-spacing: 2px;
+            margin-top: 60px;
+        }
+
+        .footer-line a { color: var(--ef-blue); text-decoration: none; font-weight: 700; }
+
+        @media (max-width: 1024px) {
+            .title-block { flex-direction: column; align-items: flex-start; }
+            .video-group { width: 100%; justify-content: flex-start; }
+            .title-video-wrap { width: 48%; }
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 15px; }
+            .brand-terminal { font-size: 0.8rem; margin-right: 10px; }
+            .led { margin-right: 6px; }
+            main { padding-top: 90px; }
+            .title-content h1 { font-size: 1.8rem; }
+            .title-video-wrap { width: 100%; height: 60px; }
+            .glass-card { padding: 20px; }
+            .mission-headline { font-size: 1.4rem; }
+            .fidelity-grid { grid-template-columns: 1fr; gap: 20px; }
+            .github-btn { width: 100%; text-align: center; padding: 14px 20px; } /* Corrected width and padding */
+            /* Horizontal Scroll for Tables */
+            .spec-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand-terminal"><div class="led"></div> EMBEDDEDFREEDOM.DEV</div>
+        <div class="dropdown-container">
+            <div class="model-select-trigger">MDCS ▼</div>
+            <div class="dropdown-content">
+                <a href="#">MDCS (ACTIVE)</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="title-block">
+          <div class="title-content">
+           <h1>MDCS</h1>
+              <p>Modular Dynamics Control Suite</p>
+         </div>
+       </section>
+
+        <div class="glass-card">
+            <div class="mission-headline">
+                Stop learning Control Systems in a vacuum.
+                <span class="mission-subline">&gt; Code the math. Control the hardware. Bridge the gap.</span>
+            </div>
+            
+            <p>During mechanical, electrical, and electronic engineering education, students are rarely exposed to a <b>physical control systems bench</b>. Most learning is confined to abstract simulation environments like MATLAB and Simulink, leaving a massive gap between the idealized model and industrial firmware reality.</p>
+
+            <div class="theory-bridge-summary">
+                <p style="margin-top:0;">Traditional control education often leaves students stranded in a <strong>"Classical Gap,"</strong> mastering Root Locus and Bode plots for simple systems that fail when confronted with the multi-variable complexity of a Cart-Pole or Furuta Pendulum.</p> 
+                
+                <p>This simulator upgrades that journey by utilizing <strong>State-Space Control Theory</strong>, allowing students to move beyond Transfer Functions and interact directly with the "Source Code" of physics. By reframing <strong>LQR</strong> not as an abstract algorithm, but as an optimized way to tune the "PID Intuition" — this project bridges the divide between academic math and hardware reality.</p> 
+                
+                <p style="bottom:0;">Supported by a <strong>high-fidelity 20kHz simulation</strong> that bypasses the friction of Z-transforms, students don't just learn the <em>how</em> of the equations; they experience the <em>why</em> of the hardware. This is the same language used by industry leaders, transforming abstract matrices into the tangible movement of a 200g cart fighting gravity and providing the vital context needed to turn academic theory into professional mastery.</p>
+            </div>
+            
+            <p>This project provides a <b>Hardware-Emulated</b> environment—a Software-in-the-Loop (SIL) Digital Twin that faithfully models systems using Lagrangian mechanics. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk.</p>
+            
+            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift.</p>
+
+            <p>
+                The framework is completely <b>configurable</b>; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only <b>~40 KB</b> (minus the visualizer), it's incredibly lean. By writing your compensator in <b>native C</b>, you get a real feel for how industrial control actually works—managing <b>fixed-step timing</b> and <b>deterministic loops</b> rather than just dragging blocks in a GUI.
+            </p>
+            
+            <p>The SIL project is built for <b>Linux Desktop</b> environments and utilizes a <b>high-precision timing super-loop</b> to emulate a bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a <b>lockstep architecture</b> where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve <b>temporal determinism</b>. The system implements a <b>self-healing absolute timeline</b> that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock. By monitoring the 1ms compensator interval in real-time and triggering alerts for deviations over 5%, the system ensures <b>mathematical integrity</b> at 1,000 Hz, maintaining seamless visual realism regardless of background CPU load.</p>
+        </div>
+
+
+<div class="glass-card" style="padding: 20px; margin-top: 20px;">
+    <h2 style="color: #000; border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0; margin-bottom: 20px;">
+        Dynamic Response Visualizations
+    </h2>
+    
+    <div style="display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap;">
+        
+        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+            <video autoplay muted loop playsinline style="width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover;">
+                <source src="https://res.cloudinary.com/dgoduwqyc/video/upload/v1771587587/flash2_mpv72y.mkv" type="video/mp4">
+            </video>
+        </div>
+
+        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+            <video autoplay muted loop playsinline style="width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover;">
+                <source src="https://res.cloudinary.com/dgoduwqyc/video/upload/v1771587429/flash1_dtkszw.mp4" type="video/mp4">
+            </video>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+        <div class="glass-card">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Available Models</h2>
+            <div style="margin: 20px 0;">
+                <p>
+                    <strong>1. Rotary Inverted Pendulum:</strong> 
+                    This high-fidelity Furuta Pendulum Digital Twin utilizes a 20kHz RK4 physics engine and full Lagrangian mechanics to simulate complex multi-body dynamics, bridging the gap between theoretical state-space control and embedded system reality. Stabilized by an aggressive LQR controller tuned with a high-priority \( Q \) matrix (\( Q_{pend}=100 \)) to overcome a simulated 0.4V motor deadzone, the system maintains the unstable \( \pi \) equilibrium through precise, high-gain restorative torques. Unlike idealized models, this platform explicitly emulates hardware non-linearities—including quadrature encoder jitter, missing pulses, and discrete 1kHz compensator timing—to provide a rigorous environment for stress-testing robust industrial control laws. The integration of a real-time visualizer and a C-based SIL loop ensures that every micro-correction is both mathematically optimal and physically faithful to the constraints of DC motor actuation and sensor noise.
+                </p>
+                <p>
+                    <strong>2. DC Motor with Inverse Pendulum:</strong> 
+                    A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( 180^\circ \le \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
+                </p>
+            </div>
+
+            <h3 style="margin-top:25px; font-size: 0.9rem; color: var(--ef-blue); text-transform: uppercase;">Hardware Noise Emulation</h3>
+            <p style="font-size: 0.9rem; margin-top: 10px;">The MDCS environment simulates common industrial hardware non-linearities to ensure control laws are robust against real-world interference:</p>
+            <div style="margin-top: 10px;">
+                <span class="noise-pill">NOISE_PWM_VIBRATION</span>
+                <span class="noise-pill">NOISE_SENSOR_JITTER</span>
+                <span class="noise-pill">NOISE_MISSING_PULSES</span>
+                <span class="noise-pill">NOISE_ENCODER_SPIKE</span>
+            </div>
+
+            <a href="https://github.com/embeddedfreedom/MDCS/tree/master" class="github-btn" target="_blank" rel="noopener noreferrer">Clone from GitHub</a>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Project Demonstration</h2>
+            <p>Watch the full setup and walkthrough of the Modular Dynamics Control Suite (MDCS) in action.</p>
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 0; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <iframe 
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+                src="https://www.youtube-nocookie.com/embed/eaQ9mskr6E8" 
+                title="MDCS (Modular Dynamics Control Suite) Setup and Walkthrough" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+           </iframe>
+           </div>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Ecosystem Positioning</h2>
+            <p>While research-grade tools like MATLAB or Gazebo are essential for high-level robotics, this simulator focuses on the <b>Firmware-Logic Bridge</b>.</p>
+            
+            <table class="spec-table">
+                <thead>
+                    <tr style="font-weight: bold; color: var(--ef-blue);">
+                        <td>Approach</td>
+                        <td>Ideal For</td>
+                        <td>Cost</td>
+                        <td>Focus</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><b>Theoretical (Python/Scilab)</b></td>
+                    <td>Math & Plotting</td>
+                    <td>Free</td>
+                    <td>Pure Analytics</td>
+                </tr>
+                <tr>
+                    <td><b>Heavyweight (Simulink)</b></td>
+                    <td>Industrial Research</td>
+                    <td>Proprietary</td>
+                    <td>System Modeling</td>
+                </tr>
+                <tr>
+                    <td><b>Robotics (ROS/Gazebo)</b></td>
+                    <td>Navigation/Physics</td>
+                    <td>Free</td>
+                    <td>High-level AI</td>
+                </tr>
+                <tr style="background: rgba(8, 126, 164, 0.1);">
+                    <td><b>Firmware SIL (This Project)</b></td>
+                    <td><b>Bare-metal C Logic</b></td>
+                    <td><b>Free (40KB)</b></td>
+                    <td><b>The Control Loop</b></td>
+                </tr>
+            </table>
+            
+            <p style="margin-top: 20px; font-style: italic; font-size: 0.9rem;">
+                "The goal isn't to replace the giants—it's to give you a lightweight, transparent environment where you can master the C code that actually drives the motors."
+            </p>
+            
+            <hr style="opacity: 0.1; margin: 25px 0;">
+            <p style="font-size: 0.85rem; color: #475569; line-height: 1.4;">
+                <strong style="color: var(--ef-blue);">TECHNICAL ASSUMPTIONS:</strong> <br>
+                To maintain a lightweight footprint, this solver assumes <b>rigid-body dynamics</b> and utilizes a <b>linear friction model</b>. Motor <b>induction effects</b> are not considered to simplify the electromechanical coupling.
+            </p>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">System Block Diagram</h2>
+            <p>High-level architectural overview of the SIL control loop and emulated hardware interfaces.</p>
+            <img src="https://res.cloudinary.com/dgoduwqyc/image/upload/v1771587456/general_architecture_uxeclc.png" alt="System Block Diagram" class="diagram-img">
+
+            <div class="fidelity-section">
+                <h3 style="margin-top: 0; color: var(--ef-blue); font-size: 1.1rem;">Modeling Fidelity & Abstractions</h3>
+                <p style="font-size: 0.9rem; color: #334155; margin-bottom: 15px;">Bridging the digital-to-physical gap with intentional modeling choices:</p>
+                
+                <div class="fidelity-grid">
+                     <div class="fidelity-item">
+                        <h4>Actuator (PWM)</h4>
+                        <p>
+                            Utilizes a <b>Mean Value Model</b> where the compensator returns a <b>normalized duty cycle</b>. While the 20kHz loop successfully simulates high-frequency <b>quadrature pulses</b>, simulating raw <b>PWM square waves</b> would require a separate, significantly faster execution mechanism to maintain resolution. To avoid unnecessary architectural complexity, the system bypasses pulse-width modulation simulation and returns the <b>PWM value directly</b> as a continuous control signal, ensuring high-fidelity torque calculation without the overhead of high-speed switching logic.
+
+                        </p>
+                    </div>
+                    <div class="fidelity-item">
+                        <h4>Sensors (Encoders)</h4>
+                        <p>
+                            Explicitly modeled as <b>Discrete Quadrature Pulses (A/B)</b>. This forces the compensator to manage quantization error and velocity jitter. Absolute positioning is verified via <b>Z-Index</b> latching at the \( 0^\circ \) (Down) reference point.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card" style="padding: 30px; margin-top: 40px; border-top: 4px solid var(--ef-blue);">
+            <h3 style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--ef-blue); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800;">Development Methodology</h3>
+            <p style="font-size: 0.9rem; color: #334155; margin: 0; line-height: 1.6; opacity: 0.9;">
+                This project represents an <strong>AI-augmented engineering workflow</strong>. While I architected the core mechanical framework, 20kHz physics/1kHz control timing constraints, and coordinate sign conventions, Gemini (Google) was utilized to assist in the symbolic expansion of the Lagrangian and Jacobian matrices, as well as the boilerplate generation of the Pygame visualizer, PyQtGraph plotter, and LQR solver.
+            </p>
+        </div>
+
+        <footer>
+            <div class="footer-line">COPYRIGHT © 2026 EMBEDDEDFREEDOM.DEV // MIT LICENSE</div>
+            <div class="footer-line">
+                CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a>
+            </div>
+            <div class="footer-line">
+                WATCH ON YOUTUBE: <a href="https://youtube.com/@electronicsacademy2d2e29" target="_blank">ELECTRONICS ACADEMY</a>
+            </div>
+        </footer>
+    </main>
+</body>
+</html>

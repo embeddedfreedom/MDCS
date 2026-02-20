@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Documentation & Images
+.marktext/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
