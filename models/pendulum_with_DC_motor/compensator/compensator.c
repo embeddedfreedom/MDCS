@@ -36,6 +36,8 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
     // 2. State Estimation
     const float COUNT_TO_RAD = (2.0f * PI / 4096.0f);
     float t = (float)dec_pend.count * COUNT_TO_RAD;
+    // The value of 0.001 here is necessary, for the 20:1 plant where the dt is 50 micro seconds
+    // this value must be 20 times that
     float d_raw = (t - t_prev) / 0.001f;
     t_prev = t;
 

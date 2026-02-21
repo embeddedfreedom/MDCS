@@ -52,6 +52,8 @@ float run_compensator_cycle(EncoderBus *bus, FurutaParams *p, int *motor_dir) {
     float t2 = (float)dec_pend.count * COUNT_TO_RAD;
     
     // 2. Raw Velocity (No filtering to avoid Phase Lag)
+    // The value of 0.001 here is necessary, for the 20:1 plant where the dt is 50 micro seconds
+    // this value must be 20 times that
     float d1 = (t1 - t1_prev) / 0.001f;
     float d2 = (t2 - t2_prev) / 0.001f;
     t1_prev = t1; 

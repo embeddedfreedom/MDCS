@@ -101,6 +101,7 @@ int main() {
     e_pend.prev_angle = cum_theta;
     
     float dt = 0.00005f; // 20kHz
+    //Change the path values as per your directory structure, modify the socat command accordingly
     int sim_3d_in = open("/home/dipto/sim_3d_in", O_WRONLY | O_NONBLOCK);
     int sim_graph_in = open("/home/dipto/sim_graph_in", O_WRONLY | O_NONBLOCK);
     
