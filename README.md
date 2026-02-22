@@ -16,7 +16,7 @@ Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 
 Before setting up the local environment, you can explore the system architecture and see the controllers in action via the official project resources:
 
-- **Dashboard:** [embeddedfreedom.dev](https://www.google.com/search?q=https://embeddedfreedom.dev) — *A web-based overview of the MDCS models, system specifications, and ecosystem positioning.*
+- **Dashboard:** [embeddedfreedom.dev](https://www.embeddedfreedom.dev) — *A web-based overview of the MDCS models, system specifications, and ecosystem positioning.*
 
 - **Video Walkthrough:** [MDCS Setup & Demonstration](https://youtu.be/eaQ9mskr6E8) — *A 7-minute guide covering the SIL loop, telemetry plotter interaction, and 3D OpenGL visualization.*
 
