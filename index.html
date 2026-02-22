@@ -298,16 +298,19 @@
 
 
 <div class="glass-card" style="padding: 20px; margin-top: 20px;">
-    <h2 style="color: #000; border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0; margin-bottom: 15px;">
-        Dynamic Response Visualizations
-    </h2>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="color: #000; margin: 0;">Dynamic Response Visualizations</h2>
+        <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border: 1px solid #cbd5e1;">
+            Simulation Replay
+        </span>
+    </div>
 
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
         <p style="font-size: 0.8rem; color: #64748b; margin: 0; font-style: italic;">
-            Note: If the videos do not render, please refresh the page to re-initialize the player.
+            Note: These are <strong>screen recordings</strong> of the MDCS environment. If videos do not render, please refresh.
         </p>
         <button onclick="window.location.reload()" style="background: none; border: 1px solid rgba(8, 126, 164, 0.3); color: var(--ef-blue); padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
-            Refresh Page
+            Refresh
         </button>
     </div>
     
@@ -319,7 +322,6 @@
                 allow="autoplay; encrypted-media">
             </iframe>
         </div>
-
         <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15); aspect-ratio: 16/9; position: relative; background: #000;">
             <iframe 
                 src="https://www.youtube.com/embed/OSTYHuD7X-0?autoplay=1&mute=1&loop=1&playlist=OSTYHuD7X-0&controls=0&modestbranding=1&rel=0" 
