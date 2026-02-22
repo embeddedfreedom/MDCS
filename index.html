@@ -290,7 +290,7 @@
             <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift.</p>
 
             <p>
-                The framework is completely <b>configurable</b>; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only <b>~40 KB</b> (minus the visualizer), it's incredibly lean. By writing your compensator in <b>native C</b>, you get a real feel for how industrial control actually works—managing <b>fixed-step timing</b> and <b>deterministic loops</b> rather than just dragging blocks in a GUI.
+                The framework is completely <b>configurable</b>; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only <b>~20 KB</b> (minus the visualizer), it's incredibly lean. By writing your compensator in <b>native C</b>, you get a real feel for how industrial control actually works—managing <b>fixed-step timing</b> and <b>deterministic loops</b> rather than just dragging blocks in a GUI.
             </p>
             
             <p>The SIL project is built for <b>Linux Desktop</b> environments and utilizes a <b>high-precision timing super-loop</b> to emulate a bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a <b>lockstep architecture</b> where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve <b>temporal determinism</b>. The system implements a <b>self-healing absolute timeline</b> that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock maintaining seamless visual realism regardless of background CPU load.</p>
@@ -400,7 +400,7 @@
                 <tr style="background: rgba(8, 126, 164, 0.1);">
                     <td><b>Firmware SIL (This Project)</b></td>
                     <td><b>Bare-metal C Logic</b></td>
-                    <td><b>Free (40KB)</b></td>
+                    <td><b>Free (~20KB)</b></td>
                     <td><b>The Control Loop</b></td>
                 </tr>
             </table>
