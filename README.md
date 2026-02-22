@@ -26,7 +26,7 @@ MDCS provides a **Hardware-Emulated** environment—a Software-in-the-Loop (SI
 
 To enrich the student experience further, the project includes a **High-Fidelity 3D Visualizer** and **Real-Time Telemetry Graphs**. By mimicking noisy feedback and hardware signals, MDCS provides a bench-like environment that challenges you to solve real-world problems like sensor jitter and encoder drift.
 
-It utilizes a **high-precision timing super-loop** to ensure the control logic feels close to a bare-metal microcontroller environment. To handle general-purpose OS jitter, the framework utilizes a **lockstep architecture**. The physics solver and compensator are synchronized; if the OS introduces a scheduling delay, the entire simulation "pauses" until the next cycle. This ensures that the **mathematical timing** remains perfectly consistent at 1,000 Hz, regardless of background CPU load.
+The SIL project is built for **Linux Desktop** environments and utilizes a **high-precision timing super-loop** to emulate a bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a **lockstep architecture** where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve **temporal determinism**. The system implements a **self-healing absolute timeline** that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock maintaining seamless visual realism regardless of background CPU load.
 
 ![Diagram](general_architecture.png)
 
