@@ -89,7 +89,7 @@ pip3 install pyserial numpy pyside6 pyqtgraph pygame PyOpenGL
 
 The project is organized into modular directories. For specific mathematical proofs, control theory diagrams, and stability analysis, refer to the **`docs/`** folder.
 
-### 📁 `models/[model_name]/`
+**📁 models/[model_name]/**
 
 Each experimental setup (e.g., rotary_inverted_pendulum) contains the following sub-directories:
 
