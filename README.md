@@ -16,7 +16,7 @@ Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 
 Before setting up the local environment, you can explore the system architecture and see the controllers in action via the official project resources:
 
-- **Live Dashboard:** [embeddedfreedom.dev](https://www.google.com/search?q=https://embeddedfreedom.dev) — *An interactive web-based overview of the MDCS models, system specifications, and ecosystem positioning.*
+- **Dashboard:** [embeddedfreedom.dev](https://www.google.com/search?q=https://embeddedfreedom.dev) — *A web-based overview of the MDCS models, system specifications, and ecosystem positioning.*
 
 - **Video Walkthrough:** [MDCS Setup & Demonstration](https://youtu.be/eaQ9mskr6E8) — *A 7-minute guide covering the SIL loop, telemetry plotter interaction, and 3D OpenGL visualization.*
 
@@ -85,31 +85,31 @@ pip3 install pyserial numpy pyside6 pyqtgraph pygame PyOpenGL
 
 ---
 
-## 3. Project Structure & Documentation
+## 3. Project Structure
 
 The project is organized into modular directories. For specific mathematical proofs, control theory diagrams, and stability analysis, refer to the **`docs/`** folder.
 
-### 📁 `docs/`
-
-This folder contains the theoretical foundation of the project:
-
-- **Model Derivations:** Full Lagrangian or Newtonian derivations of the equations of motion (EOM) for each system.
-
-- **Design Diagrams:** Includes the **System Block Diagrams**. These visualize the control architecture, showing how sensor data is filtered, passed through the compensator, and converted into actuator commands (Torque/Voltage).
-
----
-
 ### 📁 `models/[model_name]/`
 
-Each experimental setup (e.g., Inverted Pendulum, Ball and Beam) contains the following sub-directories:
+Each experimental setup (e.g., rotary_inverted_pendulum) contains the following sub-directories:
 
-- **`compensator/`**: **Start Here.** Contains the actual control law and signal processing logic. This is the primary area for student modification.
+- **`compensator/`**:  Contains the actual control law and signal processing logic. This is the primary area for student modification.
 
 - **`simulator/`**: The core physics engine. It runs at **20kHz** to ensure high-fidelity integration and numerical stability.
 
-- **`visualiser/`**: The Python suite you’ve been using. Includes the 1kHz real-time plotter and the OpenGL 3D rendering environment.
+- **`visualiser/`**: Includes the 1kHz real-time plotter and the OpenGL 3D rendering environment.
+
+- **docs/**  :This folder contains the theoretical foundation of the project:
+  
+  - **Model Derivations:** Full Lagrangian or Newtonian derivations of the equations of motion (EOM) for each system.
+  
+  - **Design Diagrams:** Includes the **System Block Diagrams**. These visualize the control architecture, showing how sensor data is filtered, passed through the compensator, and converted into actuator commands (Torque/Voltage).
 
 - **`Makefile`**: Every model folder includes a Makefile. Simply run `make` to compile the compensator and simulator into a single executable binary.
+
+**📁 build/  :** Contains the binary for the plant after compiling. This directory has subdirectories with the respective model names under which the compiled binaries get created after make.
+
+**📁 framework/  :** This contains common utilities like the encoder and decoder for the Quadrature pulses (in the codecs directory) and the keypress detect (in the common directory) applications. 
 
 ---
 
@@ -251,7 +251,7 @@ The Telemetry plotter is a high-frequency (1kHz) data visualization and logging 
 
 - **Radians/Degrees Toggle:** The plotter features a real-time conversion engine. Toggling this will instantly convert the angular data (Theta and Theta_Dot) on the fly without interrupting the data stream.
 
-#### 5.3 3D System Simulator: Technical Manual
+#### 5.3 3D System Simulator Operational Manual
 
 Start the simulator: Run the Python script to see the system in action:
 
