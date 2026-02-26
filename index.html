@@ -406,6 +406,12 @@
                     <td>Free</td>
                     <td>High-level AI</td>
                 </tr>
+                <tr>
+                    <td><b>Acausal (OpenModelica)</b></td>
+                    <td>Multi-Domain Physics</td>
+                    <td>Free</td>
+                    <td>Complex Systems</td>
+                </tr>
                 <tr style="background: rgba(8, 126, 164, 0.1);">
                     <td><b>Firmware SIL (This Project)</b></td>
                     <td><b>Bare-metal C Logic</b></td>
@@ -413,6 +419,16 @@
                     <td><b>The Control Loop</b></td>
                 </tr>
             </table>
+
+            <div style="background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.85rem; border: 1px dashed rgba(8, 126, 164, 0.3);">
+                <strong style="color: var(--ef-blue);">TERMINOLOGY NOTE:</strong> 
+                <strong>Acausal</strong> modeling (OpenModelica) uses <em>declarative</em> equations to describe how physical components exchange energy, hiding the mathematical
+                derivation from the user. 
+                In contrast, <strong>MDCS</strong> (This Project) uses <strong>Causal/Procedural</strong> logic, mirroring how an 
+                <strong>embedded processor</strong> executes code line-by-line. This forces the engineer to master the 
+                exact relationship between <strong>Torque, State, and Time</strong>.
+            </div>
+
             
             <p style="margin-top: 20px; font-style: italic; font-size: 0.9rem;">
                 "The goal isn't to replace the giants—it's to give you a lightweight, transparent environment where you can master the C code that actually drives the motors."
