@@ -306,7 +306,7 @@ The simulator includes a 2D heads-up display (HUD) overlaid on the 3D scene.
 
 - **Arm Range:** $0$ to $\pm 180^\circ$.
 
-- **Data Format:** Arduino 6-set packet (Radians in case if furuta model). Value 1 = Arm, Value 2 = Pendulum.
+- **Data Format:** Tab-Delimited Fixed-Precision ASCII Stream (6-set packet of Radian values in case if furuta model). Value 1 = Arm, Value 2 = Pendulum.
 
 - **UI:** The visualizer includes a toggle to switch between Radians and Degrees.
 
