@@ -441,7 +441,7 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
             <hr style="opacity: 0.1; margin: 25px 0;">
             <p style="font-size: 0.85rem; color: #475569; line-height: 1.4;">
                 <strong style="color: var(--ef-blue);">TECHNICAL ASSUMPTIONS:</strong> <br>
-                To maintain a lightweight footprint, this solver assumes <b>rigid-body dynamics</b> and utilizes a <b>linear friction model</b>. Motor <b>induction effects</b> are not considered to simplify the electromechanical coupling.
+                The simulation utilizes an <b>RK4 (4th Order Runge-Kutta)</b> solver capable of <b>sustained, prolonged execution</b> without catastrophic numerical divergence. To maintain a lightweight footprint, this solver assumes <b>rigid-body dynamics</b> and utilizes a <b>linear friction model</b>. Motor <b>induction effects</b> are not considered to simplify the electromechanical coupling.
             </p>
         </div>
 
