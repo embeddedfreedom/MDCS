@@ -28,13 +28,11 @@ To enrich the student experience further, the project includes a **High-Fidelit
 
 The framework is completely **configurable**; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only **~20 KB** (minus the visualizers and the external shared libraries), it's incredibly lean. By writing your compensator in **native C**, you get a real feel for how industrial control actually works—managing **fixed-step timing** and **deterministic loops** rather than just dragging blocks in a GUI.
 
-
-
 The **core physics engine** is optimized for single-thread execution to ensure deterministic timing, mirroring bare-metal microcontroller behavior. Meanwhile, the **visualization layer** utilizes asynchronous threading to handle UI rendering without blocking the 20kHz data stream. This decoupled architecture ensures high-fidelity physics even when running on standard consumer-grade x86 hardware without the overhead of heavy simulation suites.
 
-<p>The SIL project is built for <b>Linux Desktop</b> environments and utilizes a <b>high-precision timing super-loop</b> to emulate a 
-<b>Real-Time</b> 
-bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a <b>lockstep architecture</b> where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve <b>temporal determinism</b>. The system implements a <b>self-healing absolute timeline</b> that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.</p>
+The SIL project is built for **Linux Desktop** environments and utilizes a **high-precision timing super-loop** to emulate a **Real-Time** bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a **lockstep architecture** where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve **temporal determinism**. The system implements a **self-healing absolute timeline** that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.
+
+
 
 ![Diagram](general_architecture.png)
 
