@@ -284,8 +284,12 @@
                 
                 <p style="bottom:0;">Supported by a <strong>high-fidelity 20kHz simulation</strong> that bypasses the friction of Z-transforms, students don't just learn the <em>how</em> of the equations; they experience the <em>why</em> of the hardware. This is the same language used by industry leaders, transforming abstract matrices into the tangible movement of a 200g cart fighting gravity and providing the vital context needed to turn academic theory into professional mastery.</p>
             </div>
-            
-            <p>This project provides a <b>Hardware-Emulated</b> environment—a Software-in-the-Loop (SIL) Digital Twin that faithfully models a system using <b>Lagrangian mechanics</b> and the <b>RK4 solver</b>. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk. It utilizes <b>C</b>, the industry standard for embedded systems, ensuring the transition from simulation to real hardware is seamless.</p>
+
+            <p style="font-size: 0.95rem; color: #1a1a1a; line-height: 1.6; margin-bottom: 25px;">
+    MDCS provides a 
+    <span style="display: inline-block; border: 3px solid #087ea4; padding: 0 4px; border-radius: 3px; font-weight: 600; color: #087ea4; vertical-align: middle;">Real-Time</span> 
+    <strong>Hardware-Emulated environment—a Software-in-the-Loop (SIL) Digital Twin</strong> that faithfully models a system using Lagrangian mechanics and the RK4 solver. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk. It utilizes C, the industry standard for embedded systems, ensuring the transition from simulation to real hardware is seamless.
+</p>
             
             <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift.</p>
 
@@ -297,7 +301,10 @@
 The <b>core physics engine</b> is optimized for single-thread execution to ensure deterministic timing, mirroring bare-metal microcontroller behavior. Meanwhile, the <b>visualization layer</b> utilizes asynchronous threading to handle UI rendering without blocking the 20kHz data stream. This decoupled architecture ensures high-fidelity physics even when running on standard consumer-grade x86 hardware without the overhead of heavy simulation suites.
 </p>
             
-            <p>The SIL project is built for <b>Linux Desktop</b> environments and utilizes a <b>high-precision timing super-loop</b> to emulate a bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a <b>lockstep architecture</b> where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve <b>temporal determinism</b>. The system implements a <b>self-healing absolute timeline</b> that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock maintaining seamless visual realism regardless of background CPU load.</p>
+           <p>The SIL project is built for <b>Linux Desktop</b> environments and utilizes a <b>high-precision timing super-loop</b> to emulate a 
+<b>Real-Time</b> 
+bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a <b>lockstep architecture</b> where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve <b>temporal determinism</b>. The system implements a <b>self-healing absolute timeline</b> that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.</p>
+
         </div>
 
 
@@ -443,8 +450,8 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 <strong style="color: var(--ef-blue);">TECHNICAL ASSUMPTIONS:</strong> <br>
                 The simulation utilizes an <b>RK4 (4th Order Runge-Kutta)</b> solver capable of <b>sustained, prolonged execution</b> without catastrophic numerical divergence. To maintain a lightweight footprint, this solver assumes <b>rigid-body dynamics</b> and utilizes a <b>linear friction model</b>. Motor <b>induction effects</b> are not considered to simplify the electromechanical coupling. 
                 <br><br>
-                <strong>Note: Modifying physical parameters (mass, dimensions) alters the system's dynamic matrices, creating 
-    <span style="display: inline-block; border: 3px solid var(--ef-blue); padding: 0 4px; border-radius: 3px; font-weight: 600;">novel control problem</span> 
+                <strong>Note: Modifying physical parameters (mass, dimensions) alters the system's dynamic matrices, introducing 
+    <span style="border: 3px solid var(--ef-blue); padding: 0 4px; border-radius: 3px; font-weight: 600;">novel control challenges</span> 
     to solve. LQR gains tuned for the default configuration must be re-derived to ensure stability.</strong>
 </p>
             </p>
