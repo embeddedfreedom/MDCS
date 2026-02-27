@@ -287,7 +287,7 @@
 
             <p style="font-size: 0.95rem; color: #1a1a1a; line-height: 1.6; margin-bottom: 25px;">
     MDCS provides a 
-    <span style="display: inline-block; border: 3px solid #087ea4; padding: 0 4px; border-radius: 3px; font-weight: 600; color: #087ea4; vertical-align: middle;">Real-Time</span> 
+    <span style="display: inline-block; border: 3px solid #087ea4; padding: 0 4px; border-radius: 3px; font-weight: 600; color: #087ea4; vertical-align: middle;">Real-Time (Soft)</span> 
     <strong>Hardware-Emulated environment—a Software-in-the-Loop (SIL) Digital Twin</strong> that faithfully models a system using Lagrangian mechanics and the RK4 solver. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk. It utilizes C, the industry standard for embedded systems, ensuring the transition from simulation to real hardware is seamless.
 </p>
             
@@ -302,7 +302,7 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
 </p>
             
            <p>The SIL project is built for <b>Linux Desktop</b> environments and utilizes a <b>high-precision timing super-loop</b> to emulate a 
-<b>Real-Time</b> 
+<b>Real-Time (Soft)</b> 
 bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a <b>lockstep architecture</b> where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve <b>temporal determinism</b>. The system implements a <b>self-healing absolute timeline</b> that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.</p>
 
         </div>
