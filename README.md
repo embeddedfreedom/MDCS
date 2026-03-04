@@ -103,7 +103,7 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 
 - **`visualiser/`**: Includes the 1kHz real-time plotter and the OpenGL 3D rendering environment.
 
-- **docs/**  :This folder contains the theoretical foundation of the project:
+- **`docs/`**  :This folder contains the theoretical foundation of the project:
   
   - **Model Derivations:** Full Lagrangian or Newtonian derivations of the equations of motion (EOM) for each system.
   
