@@ -105,9 +105,9 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 
 - **`docs/`**  :This folder contains the theoretical foundation of the project:
   
-  - **Model Derivations:** Full Lagrangian or Newtonian derivations of the equations of motion (EOM) for each system.
+  - **`Model Derivations:`** Full Lagrangian or Newtonian derivations of the equations of motion (EOM) for each system.
   
-  - **Design Diagrams:** Includes the **System Block Diagrams**. These visualize the control architecture, showing how sensor data is filtered, passed through the compensator, and converted into actuator commands (Torque/Voltage).
+  - **`Design Diagrams:`** Includes the **System Block Diagrams**. These visualize the control architecture, showing how sensor data is filtered, passed through the compensator, and converted into actuator commands (Torque/Voltage).
 
 - **`Makefile`**: Every model folder includes a Makefile. Simply run `make` to compile the compensator and simulator into a single executable binary.
 
