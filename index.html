@@ -260,6 +260,32 @@
             .github-btn { width: 100%; text-align: center; padding: 14px 20px; } 
             .spec-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         }
+
+        /* Styling for the Course Card */
+        .course-card {
+            background: linear-gradient(135deg, rgba(8, 126, 164, 0.1) 0%, rgba(255, 255, 255, 0.8) 100%);
+            border-left: 12px solid #ef4444; /* Red to match YouTube branding */
+        }
+
+        .yt-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #ef4444;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            margin-top: 15px;
+        }
+
+        .yt-link-btn:hover {
+            background: #cc0000;
+        }
     </style>
 </head>
 <body>
@@ -498,6 +524,24 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
             <h3 style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--ef-blue); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800;">Development Methodology</h3>
             <p style="font-size: 0.9rem; color: #334155; margin: 0; line-height: 1.6; opacity: 0.9;">
                 This project represents an <strong>AI-augmented engineering workflow</strong>. While I architected the core mechanical framework, 20kHz physics/1kHz control timing constraints, and coordinate sign conventions, Gemini (Google) was utilized to assist in the symbolic expansion of the Lagrangian and Jacobian matrices, as well as the boilerplate generation of the Pygame visualizer, PyQtGraph plotter, and LQR solver.
+            </p>
+        </div>
+
+        <div class="glass-card course-card">
+            <h2 style="margin-top: 0; color: #000;">Beyond Simulation: Master the Silicon</h2>
+            <p>
+                The <strong>MDCS</strong> simulator focuses on the control loop, but true <strong>Embedded Freedom</strong> requires mastering the hardware itself. 
+            </p>
+            <p>
+                For students who want to go deeper into the "physics" of microcontrollers—including Linker Scripts, Startup Code, and Bare-Metal Peripheral Drivers—I have released a comprehensive <strong>24-Hour Cortex-M4 Deep Dive</strong>.
+            </p>
+            
+            <a href="https://www.youtube.com/watch?v=qGjXrxINHjM&list=PLP-Zmfw303elthmURjWCOrXQvIDaKJFk3" class="yt-link-btn" target="_blank">
+                <span>▶</span> View the 24-Hour Course on YouTube
+            </a>
+            
+            <p style="font-size: 0.85rem; color: #334155; margin-top: 25px; font-style: italic; font-weight: 600; border-top: 1px solid rgba(8, 126, 164, 0.2); padding-top: 15px;">
+                Recommended by the r/embedded community as a standard reference for bare-metal ARM development.
             </p>
         </div>
 
