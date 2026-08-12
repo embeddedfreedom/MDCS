@@ -1,6 +1,17 @@
-Copyright (c) 2026 Diptopal Basu (embeddedfreedom)
+Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
-Licensed under the MIT License
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 
@@ -150,7 +161,7 @@ socat PTY,raw,echo=0,link=/home/dipto/sim_graph PTY,raw,echo=0,link=/home/dipto/
 ls -l /home/dipto/sim_3d /home/dipto/sim_graph
 ```
 
-In ideal situations, step b above should be run only. Steps a and c should be followed during troubleshooting. This step must me started before starting the simulator, plotter or the visualiser. If not done, and the front end appears non responsive, start the applications again. No need to redo the socat commands. 
+In ideal situations, step b above should be run only. Steps a and c should be followed during troubleshooting. This step must be started before starting the simulator, plotter or the visualiser. If not done, and the front end appears non responsive, start the applications again. No need to redo the socat commands. 
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
