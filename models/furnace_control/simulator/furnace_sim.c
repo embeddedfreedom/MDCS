@@ -234,7 +234,10 @@ int main() {
                 pwm1 = 0.0f;
                 pwm2 = 0.0f;
             }
-            
+
+            s.u1 = pwm1;
+            s.u2 = pwm2;
+
             // Stream telemetry: <T1  T2  u1  u2  q12  Tamb>
             if (sim_3d_in >= 0 && sim_graph_in >= 0) {
                 char buf[192]; 
