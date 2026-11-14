@@ -1,6 +1,4 @@
-/*
-Encoder-Decoder Logic - Generates and decodes quadrature pulses
-
+/* 
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
 This program is free software: you can redistribute it and/or modify
@@ -15,8 +13,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
 */
 
 /**
@@ -111,6 +107,68 @@ void encoder_init(Encoder *e) {
 void decoder_init(Decoder *d) {
     d->prev_state = 0;
     d->count = 0;
+}
+
+/* =========================
+   High-resolution encoder (20-bit)
+   ========================= */
+
+void encoder20_init(Encoder20 *e) {
+    e->prev_angle = 0.0;
+    e->remainder  = 0.0;
+    e->quad_state = 0;
+}
+
+void decoder20_init(Decoder20 *d) {
+    d->prev_state = 0;
+    d->count = 0;
+}
+
+void encoder20_process_angle(Encoder20 *e,
+                             double angle,
+                             int *out_states,
+                             int *num_states)
+{
+    double delta = angle - e->prev_angle;
+    e->prev_angle = angle;
+
+    e->remainder += delta;
+
+    double pulse_count = e->remainder / ENCODER20_DEG_PER_COUNT;
+    int pulses = (int)pulse_count;
+
+    /* Preserve the fractional count for the next call. */
+    e->remainder -= (double)pulses * ENCODER20_DEG_PER_COUNT;
+
+    *num_states = 0;
+    if (pulses == 0) return;
+
+    int direction = (pulses > 0) ? 1 : -1;
+    int abs_pulses = abs(pulses);
+
+    for (int i = 0; i < abs_pulses; i++) {
+        if (*num_states >= ENCODER20_MAX_STATES_PER_CALL) break;
+
+        if (direction > 0) {
+            e->quad_state = (e->quad_state + 1) & 0x3;
+        } else {
+            e->quad_state = (e->quad_state + 3) & 0x3;
+        }
+
+        out_states[(*num_states)++] = phase_to_gray[e->quad_state];
+    }
+}
+
+void decoder20_process(Decoder20 *d, int new_state)
+{
+    if (new_state < 0 || new_state > 3) return;
+
+    d->count += quad_table[d->prev_state][new_state];
+    d->prev_state = new_state;
+
+    /* Keep the 20-bit count inside +/-180 degrees. */
+    while (d->count >  ENCODER20_DECODER_WRAP - 1) d->count -= ENCODER20_COUNTS_PER_REV;
+    while (d->count < -ENCODER20_DECODER_WRAP)     d->count += ENCODER20_COUNTS_PER_REV;
 }
 
 

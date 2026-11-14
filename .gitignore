@@ -1,6 +1,9 @@
 #Ignore the top level build directory
 /build/
 
+# Agent instructions (local, not shared)
+AGENTS.md
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,4 +1,4 @@
-/*
+/* 
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
 This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 */
 
 #include <math.h>
@@ -91,6 +89,11 @@ float run_compensator_cycle(EncoderBus *bus, FurutaParams *p, int *motor_dir) {
         float k4 = 7.33f;  
 
         u = (k1 * angle_err) + (k2 * d2) + (k3 * t1) + (k4 * d1);
+
+        // Deadzone Compensation, still under test so commenting for now
+        // if (fabsf(u) > 0.01f) {
+        //     u += (u > 0) ? p->deadzone : -p->deadzone;
+        // }
         
         // Soften the center to prevent high-frequency noise vibration
         if (fabsf(angle_err) < 0.03f) {
@@ -111,7 +114,7 @@ float run_compensator_cycle(EncoderBus *bus, FurutaParams *p, int *motor_dir) {
         // Centering force to keep the arm from wandering
         u -= 12.0f * t1; 
     }
-
+   
     // 4. Output Processing
     if (u > p->Vmax) u = p->Vmax;
     if (u < -p->Vmax) u = -p->Vmax;

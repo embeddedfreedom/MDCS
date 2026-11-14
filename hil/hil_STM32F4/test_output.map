@@ -1,0 +1,225 @@
+
+There are no discarded input sections
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x08000000         0x00080000         xr
+SRAM             0x20000000         0x00020000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD /tmp/ccdzE8dG.o
+LOAD /tmp/ccB4Syrh.o
+LOAD /tmp/ccbsAY8t.o
+LOAD /tmp/cc2B60Jb.o
+LOAD /tmp/cckgiG9A.o
+LOAD /tmp/ccyOVQnh.o
+LOAD /tmp/ccHvvqiT.o
+START GROUP
+LOAD /usr/local/software/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/libgcc.a
+LOAD /usr/local/software/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libg.a
+LOAD /usr/local/software/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc.a
+END GROUP
+
+.text           0x08000000     0x13ab
+                0x08000000                        _text = .
+ *(.isr_vector)
+ .isr_vector    0x08000000      0x198 /tmp/ccbsAY8t.o
+                0x08000000                g_pfnVectors
+ *(.text)
+ .text          0x08000198      0x138 /tmp/ccdzE8dG.o
+                0x08000198                main
+                0x080001dc                USART1_DMA_Send_Packet
+                0x0800023c                I2C1_OLED_DMA_Flush
+ .text          0x080002d0      0x880 /tmp/ccB4Syrh.o
+                0x080002d0                PLL_Init_84MHZ_faulty
+                0x080003ec                PLL_Init_84MHZ
+                0x08000550                delay
+                0x08000572                enable_systick
+                0x080005d8                configure_EXTI0_PortA0
+                0x08000664                configure_user_button
+                0x080006c0                enable_LEDs
+                0x08000710                blink_LED
+                0x08000724                toggle_LED
+                0x0800074c                initialise_FPU
+                0x08000780                I2C1_init
+                0x0800088c                USART1_DMA_RX_Init
+                0x080009b0                USART1_DMA_TX_Init
+                0x08000a88                I2C1_DMA_OLED_Init
+ .text          0x08000b50       0x80 /tmp/ccbsAY8t.o
+                0x08000b50                ResetISR
+ .text          0x08000bd0      0x1fc /tmp/cc2B60Jb.o
+                0x08000bd0                USART1_init
+                0x08000ca8                USART2_init
+                0x08000d68                UART_putchar
+                0x08000d9c                UART_getchar
+ .text          0x08000dcc      0x3a8 /tmp/cckgiG9A.o
+                0x0800112c                printm
+                0x0800114c                sprintf
+ .text          0x08001174      0x134 /tmp/ccyOVQnh.o
+                0x08001174                SysTick_Handler
+                0x080011b0                EXTI0_Handler
+                0x08001224                DMA2_Stream5_IRQHandler
+ .text          0x080012a8       0xf2 /tmp/ccHvvqiT.o
+                0x080012a8                Extract_HostToMcuPacket
+                0x0800132a                Write_McuToHostPacket
+ *(.rodata)
+ *fill*         0x0800139a        0x2 
+ .rodata        0x0800139c        0x8 /tmp/ccdzE8dG.o
+                0x0800139c                test1
+                0x080013a0                test2
+ .rodata        0x080013a4        0x7 /tmp/cckgiG9A.o
+                0x080013ab                        _etext = .
+
+.glue_7         0x080013ac        0x0
+ .glue_7        0x080013ac        0x0 linker stubs
+
+.glue_7t        0x080013ac        0x0
+ .glue_7t       0x080013ac        0x0 linker stubs
+
+.vfp11_veneer   0x080013ac        0x0
+ .vfp11_veneer  0x080013ac        0x0 linker stubs
+
+.v4_bx          0x080013ac        0x0
+ .v4_bx         0x080013ac        0x0 linker stubs
+
+.iplt           0x080013ac        0x0
+ .iplt          0x080013ac        0x0 /tmp/ccdzE8dG.o
+
+.rel.dyn        0x080013ac        0x0
+ .rel.iplt      0x080013ac        0x0 /tmp/ccdzE8dG.o
+
+.data           0x20000000        0x8 load address 0x080013ab
+                0x20000000                        _data = .
+ *(.data*)
+ .data          0x20000000        0x4 /tmp/ccdzE8dG.o
+                0x20000000                EP2_polling_rate
+ .data          0x20000004        0x0 /tmp/ccB4Syrh.o
+ .data          0x20000004        0x4 /tmp/ccbsAY8t.o
+                0x20000004                dst
+ .data          0x20000008        0x0 /tmp/cc2B60Jb.o
+ .data          0x20000008        0x0 /tmp/cckgiG9A.o
+ .data          0x20000008        0x0 /tmp/ccyOVQnh.o
+ .data          0x20000008        0x0 /tmp/ccHvvqiT.o
+                0x20000008                        _edata = .
+
+.igot.plt       0x20000008        0x0 load address 0x080013b4
+ .igot.plt      0x20000008        0x0 /tmp/ccdzE8dG.o
+
+.bss            0x20000008     0x210e load address 0x080013b4
+                0x20000008                        _bss = .
+ *(.bss*)
+ .bss           0x20000008      0x430 /tmp/ccdzE8dG.o
+                0x20000008                rx_dma_buffer
+                0x20000014                tx_dma_buffer
+                0x20000020                oled_buffer
+                0x20000424                hil_watchdog_counter
+                0x20000428                compensator_enabled
+                0x20000429                compensator_synced
+                0x2000042c                test3
+                0x20000430                test4
+                0x20000434                test5
+ .bss           0x20000438      0x428 /tmp/ccB4Syrh.o
+                0x2000085c                just_a_random_variable
+ .bss           0x20000860      0x824 /tmp/ccbsAY8t.o
+ .bss           0x20001084      0x422 /tmp/cc2B60Jb.o
+ *fill*         0x200014a6        0x2 
+ .bss           0x200014a8      0x422 /tmp/cckgiG9A.o
+ *fill*         0x200018ca        0x2 
+ .bss           0x200018cc      0x428 /tmp/ccyOVQnh.o
+ .bss           0x20001cf4      0x422 /tmp/ccHvvqiT.o
+ *(COMMON)
+                0x20002116                        _ebss = .
+OUTPUT(test_build.out elf32-littlearm)
+LOAD linker stubs
+
+.debug_info     0x00000000     0x267e
+ .debug_info    0x00000000      0x3dc /tmp/ccdzE8dG.o
+ .debug_info    0x000003dc     0x1045 /tmp/ccB4Syrh.o
+ .debug_info    0x00001421      0x239 /tmp/ccbsAY8t.o
+ .debug_info    0x0000165a      0x593 /tmp/cc2B60Jb.o
+ .debug_info    0x00001bed      0x3e1 /tmp/cckgiG9A.o
+ .debug_info    0x00001fce      0x3c3 /tmp/ccyOVQnh.o
+ .debug_info    0x00002391      0x2ed /tmp/ccHvvqiT.o
+
+.debug_abbrev   0x00000000      0xaf1
+ .debug_abbrev  0x00000000      0x163 /tmp/ccdzE8dG.o
+ .debug_abbrev  0x00000163      0x209 /tmp/ccB4Syrh.o
+ .debug_abbrev  0x0000036c      0x14a /tmp/ccbsAY8t.o
+ .debug_abbrev  0x000004b6      0x158 /tmp/cc2B60Jb.o
+ .debug_abbrev  0x0000060e      0x195 /tmp/cckgiG9A.o
+ .debug_abbrev  0x000007a3      0x1fb /tmp/ccyOVQnh.o
+ .debug_abbrev  0x0000099e      0x153 /tmp/ccHvvqiT.o
+
+.debug_aranges  0x00000000       0xe0
+ .debug_aranges
+                0x00000000       0x20 /tmp/ccdzE8dG.o
+ .debug_aranges
+                0x00000020       0x20 /tmp/ccB4Syrh.o
+ .debug_aranges
+                0x00000040       0x20 /tmp/ccbsAY8t.o
+ .debug_aranges
+                0x00000060       0x20 /tmp/cc2B60Jb.o
+ .debug_aranges
+                0x00000080       0x20 /tmp/cckgiG9A.o
+ .debug_aranges
+                0x000000a0       0x20 /tmp/ccyOVQnh.o
+ .debug_aranges
+                0x000000c0       0x20 /tmp/ccHvvqiT.o
+
+.debug_line     0x00000000      0xeea
+ .debug_line    0x00000000      0x156 /tmp/ccdzE8dG.o
+ .debug_line    0x00000156      0x5d0 /tmp/ccB4Syrh.o
+ .debug_line    0x00000726       0xde /tmp/ccbsAY8t.o
+ .debug_line    0x00000804      0x1ae /tmp/cc2B60Jb.o
+ .debug_line    0x000009b2      0x312 /tmp/cckgiG9A.o
+ .debug_line    0x00000cc4      0x10b /tmp/ccyOVQnh.o
+ .debug_line    0x00000dcf      0x11b /tmp/ccHvvqiT.o
+
+.debug_str      0x00000000      0xc3d
+ .debug_str     0x00000000      0xc3d /tmp/ccdzE8dG.o
+                                0x2d4 (size before relaxing)
+ .debug_str     0x00000c3d      0x86d /tmp/ccB4Syrh.o
+ .debug_str     0x00000c3d      0x213 /tmp/ccbsAY8t.o
+ .debug_str     0x00000c3d      0x3d4 /tmp/cc2B60Jb.o
+ .debug_str     0x00000c3d      0x1c0 /tmp/cckgiG9A.o
+ .debug_str     0x00000c3d      0x2c7 /tmp/ccyOVQnh.o
+ .debug_str     0x00000c3d      0x23f /tmp/ccHvvqiT.o
+
+.comment        0x00000000       0x45
+ .comment       0x00000000       0x45 /tmp/ccdzE8dG.o
+                                 0x46 (size before relaxing)
+ .comment       0x00000045       0x46 /tmp/ccB4Syrh.o
+ .comment       0x00000045       0x46 /tmp/ccbsAY8t.o
+ .comment       0x00000045       0x46 /tmp/cc2B60Jb.o
+ .comment       0x00000045       0x46 /tmp/cckgiG9A.o
+ .comment       0x00000045       0x46 /tmp/ccyOVQnh.o
+ .comment       0x00000045       0x46 /tmp/ccHvvqiT.o
+
+.ARM.attributes
+                0x00000000       0x32
+ .ARM.attributes
+                0x00000000       0x32 /tmp/ccdzE8dG.o
+ .ARM.attributes
+                0x00000032       0x32 /tmp/ccB4Syrh.o
+ .ARM.attributes
+                0x00000064       0x32 /tmp/ccbsAY8t.o
+ .ARM.attributes
+                0x00000096       0x32 /tmp/cc2B60Jb.o
+ .ARM.attributes
+                0x000000c8       0x32 /tmp/cckgiG9A.o
+ .ARM.attributes
+                0x000000fa       0x32 /tmp/ccyOVQnh.o
+ .ARM.attributes
+                0x0000012c       0x32 /tmp/ccHvvqiT.o
+
+.debug_frame    0x00000000      0x5f4
+ .debug_frame   0x00000000       0x7c /tmp/ccdzE8dG.o
+ .debug_frame   0x0000007c      0x240 /tmp/ccB4Syrh.o
+ .debug_frame   0x000002bc       0x7c /tmp/ccbsAY8t.o
+ .debug_frame   0x00000338       0xb0 /tmp/cc2B60Jb.o
+ .debug_frame   0x000003e8      0x134 /tmp/cckgiG9A.o
+ .debug_frame   0x0000051c       0x78 /tmp/ccyOVQnh.o
+ .debug_frame   0x00000594       0x60 /tmp/ccHvvqiT.o

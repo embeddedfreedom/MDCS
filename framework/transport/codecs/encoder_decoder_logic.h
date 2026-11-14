@@ -1,6 +1,4 @@
-/*
-Encoder-Decoder Logic
-
+/* 
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
 This program is free software: you can redistribute it and/or modify
@@ -15,8 +13,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
+#ifndef ENCODER_DECODER_LOGIC_H
+#define ENCODER_DECODER_LOGIC_H
 
 #include <stdint.h>
 #include <unistd.h>
@@ -68,4 +68,33 @@ void encoder_process_angle(Encoder *e,
                            int *out_states,
                            int *num_states);
 
-void decoder_process(Decoder *d, int new_state); 
+void decoder_process(Decoder *d, int new_state);
+
+/* =========================
+   High-resolution encoder (20-bit)
+   ========================= */
+#define ENCODER20_COUNTS_PER_REV 1048576
+#define ENCODER20_DEG_PER_COUNT (360.0 / (double)ENCODER20_COUNTS_PER_REV)
+#define ENCODER20_DECODER_WRAP (ENCODER20_COUNTS_PER_REV / 2)
+#define ENCODER20_MAX_STATES_PER_CALL 4096
+
+typedef struct {
+    double prev_angle;
+    double remainder;
+    int    quad_state;
+} Encoder20;
+
+typedef struct {
+    int prev_state;
+    int count;
+} Decoder20;
+
+void encoder20_init(Encoder20 *e);
+void decoder20_init(Decoder20 *d);
+void encoder20_process_angle(Encoder20 *e,
+                             double angle,
+                             int *out_states,
+                             int *num_states);
+void decoder20_process(Decoder20 *d, int new_state);
+
+#endif 

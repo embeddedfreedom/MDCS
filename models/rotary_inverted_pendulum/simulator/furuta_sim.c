@@ -1,4 +1,4 @@
-/*
+/* 
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
 This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 */
 
 #include <time.h> // Ensure this is included at the top
@@ -32,7 +30,7 @@ Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 #define PI 3.14159265358979323846f
 
 // --- NOISE TOGGLES (1=ON, 0=OFF) ---
-#define NOISE_PWM_VIBRATION    1  // Voltage fluctuations
+#define NOISE_PWM_VIBRATION    0  // Voltage fluctuations disabled for SIL/HIL parity
 #define NOISE_SENSOR_JITTER    1  // Mechanical vibration (high freq)
 #define NOISE_MISSING_PULSES   1  // Optical disk skips (causes drift)
 #define NOISE_ENCODER_SPIKE    1  // Stray electrical pulses (causes drift)
@@ -57,6 +55,9 @@ static const uint8_t phase_to_gray[4] = {
     0b10  // 3: Channel B falls
 };
 
+//Keeping this global because this key is ised by the compensator for disconnect the simulator 
+bool runloop;
+
 /**
  * @brief Computes the state derivatives for the Furuta Pendulum.
  * * This follows the verified Full Rigid Body Derivation.
@@ -77,7 +78,7 @@ void compute_derivatives(const FurutaState *x, float motor_pwm, int motor_dir, c
 
     // --- PWM Dead Zone Logic ---
     // Real motors often need ~0.3V to 0.8V just to start turning
-    float deadzone = 0.4f; // Set this based on your motor's "stiction"
+    float deadzone = p->deadzone; // Uses parameter defined in FurutaParams
 
     if (fabsf(V_requested) > deadzone) {
         // If we are outside the dead zone, we subtract the 'dead' portion 
@@ -171,7 +172,7 @@ EncoderBus bus = {{0}, 0, 0, false,
 int main() {
     
     char key;
-    bool runLoop = false;
+    runloop = false;
     FurutaParams p = { .M1=0.12f, .M2=0.15f, .M3=0.05f, .L1=0.2f, .L2=0.4f, .L3=0.2f, 
                        .r1=0.01f, .r2=0.01f, .r3=0.01f, .shaft_radius=0.005f, .shaft_mass=0.06f,
                        .b1=0.008f, .b2=0.001f, .g=9.81f, .kt=0.12f, .kb=0.12f, .Vmax=12.0f, .R=2.5f,
@@ -214,14 +215,14 @@ int main() {
 
     while(1) {
         // Check if a key has been pressed
-        char key = get_keypress();
+        key = get_keypress();
 
         if (key == 's' || key == 'S') {
-            runLoop = true;
+            runloop = true;
             printf("\n>> COMPENSATOR CONNECTED\n");
         } 
         else if (key == 't' || key == 'T') {
-            runLoop = false;
+            runloop = false;
             printf("\n>> COMPENSATOR DISCONNECTED\n");
         } 
         else if (key == 'q' || key == 'Q') {
@@ -244,7 +245,7 @@ int main() {
 
         float active_pwm = pwm;
         #if NOISE_PWM_VIBRATION
-        if (runLoop == true) {
+        if (runloop == true) {
                 active_pwm += ((float)rand() / RAND_MAX - 0.5f) * PWM_NOISE_STRENGTH;
                 // SATURATION FIX: Prevent the value from going outside [0, 1]
                 if (active_pwm > 1.0f){
@@ -254,7 +255,7 @@ int main() {
                  active_pwm = 0.0f;
                }
             }
-            else if (runLoop == false)
+            else if (runloop == false)
             {
                  active_pwm = 0;   
             }
@@ -323,19 +324,23 @@ int main() {
             double elapsed_ms = (current_time.tv_sec - last_comp_time.tv_sec) * 1000.0 +
                                 (current_time.tv_nsec - last_comp_time.tv_nsec) / 1000000.0;
             
+            // Static counter to throttle print frequency (e.g., print at most once every ~200ms)
+            static int print_throttle = 0;                    
             if (elapsed_ms > 1.05 || elapsed_ms < 0.95) {
-                printf("Timing Jitter Alert: Cycle took %.4f ms\n", elapsed_ms);
+                printf("\rTiming Jitter Alert: Cycle took %.4f ms     \r", elapsed_ms);
+                if (++print_throttle > 200) { 
+                    printf("\rTiming Jitter Alert: Cycle took %.4f ms     \r", elapsed_ms);
+                    fflush(stdout); // Force immediate flush to prevent buffer locking
+                    print_throttle = 0;
+                }
             }
             last_comp_time = current_time;
             // --- TIMING CHECK END ---
 
-            // printf("THE ARM ANGLE IN MAIN %f\n", s.theta1 * (180.0f/PI));
-            // printf("THE PENDULUM ANGLE IN MAIN %f\n", s.theta2 * (180.0f/PI));
-            if (runLoop == true) {
-                //printf("Within Compensator loop");
+            if (runloop == true) {
                 pwm = run_compensator_cycle(&bus, &p, &dir);
             }
-            else if (runLoop == false)
+            else if (runloop == false)
             {
                  pwm = 0;   
             }

@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "STM32 Debug (Flywheel Position)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "stlink",
+            "serverpath": "/home/dipto/st/stm32cubeide_2.2.0/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.linux64_2.2.500.202604010938/tools/bin/ST-LINK_gdbserver",
+            "executable": "/home/dipto/Desktop/MDCS_Backup/MDCS/build/flywheel_control/position/MDCS_HIL.out",
+            "device": "STM32F411xE",
+            "preLaunchCommands": [
+                       "set output-radix 16"
+                                 ],
+            "gdbPath": "gdb-multiarch",
+            "runToEntryPoint": "main"
+        }
+    ]
+}

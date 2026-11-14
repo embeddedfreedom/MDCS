@@ -1,4 +1,4 @@
-/*
+/* 
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
 This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 */
 
 #include <stdio.h>
@@ -98,9 +96,12 @@ void rk4_step(PendulumState *x, float pwm, int dir, float dt, const PendulumPara
 
 EncoderBus bus = {0}; // Using your MAX_BUS_STATES structure
 
+// Global flag shared with the HIL compensator (set true via 's' key,
+// false via 't' key or on HIL connection loss)
+bool runloop = false;
+
 int main() {
     char key;
-    bool runLoop = false;
     PendulumParams p = { .M1=0.2f, .L1=0.3f, .r3=0.01f, 
                          .motor_shaft_radius=0.005f, .motor_shaft_mass=0.06f,
                          .b1=0.008f, .g=9.81f, .kt=0.12f, .kb=0.12f, 
@@ -132,11 +133,11 @@ int main() {
         char key = get_keypress();
 
         if (key == 's' || key == 'S') {
-            runLoop = true;
+            runloop = true;
             printf("\n>> COMPENSATOR CONNECTED\n");
         } 
         else if (key == 't' || key == 'T') {
-            runLoop = false;
+            runloop = false;
             printf("\n>> COMPENSATOR DISCONNECTED\n");
         } 
         else if (key == 'q' || key == 'Q') {
@@ -154,7 +155,7 @@ int main() {
         float prev_theta = s.theta;
         float active_pwm = pwm;
         #if NOISE_PWM_VIBRATION
-        if (runLoop == true) {
+        if (runloop == true) {
                 active_pwm += ((float)rand() / RAND_MAX - 0.5f) * PWM_NOISE_STRENGTH;
                 // SATURATION FIX: Prevent the value from going outside [0, 1]
                 if (active_pwm > 1.0f){
@@ -164,7 +165,7 @@ int main() {
                  active_pwm = 0.0f;
                }
             }
-            else if (runLoop == false)
+            else if (runloop == false)
             {
                  active_pwm = 0;   
             }
@@ -233,11 +234,10 @@ int main() {
                 write(sim_graph_in, buf, n);
             }
 
-            if (runLoop == true) {
-                //printf("Within Compensator loop");
+            if (runloop == true) {
                 pwm = run_compensator_cycle(&bus, &p, &dir);
             }
-            else if (runLoop == false)
+            else if (runloop == false)
             {
                  pwm = 0;   
             }

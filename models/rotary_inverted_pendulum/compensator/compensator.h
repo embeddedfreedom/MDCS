@@ -1,4 +1,4 @@
-/*
+/* 
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
 
 This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Pendulum Controller: 1kHz Compensator / 20kHz Simulation
 */
 
 #ifndef COMPENSATOR_H
