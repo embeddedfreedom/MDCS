@@ -414,16 +414,22 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Available Models</h2>
             <div style="margin: 20px 0;">
                 <p>
-                    <strong>1. Rotary Inverted Pendulum:</strong> 
+                    <strong>1. Rotary Inverted Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
                     This high-fidelity Furuta Pendulum Digital Twin utilizes a 20kHz RK4 physics engine and full Lagrangian mechanics to simulate complex multi-body dynamics, bridging the gap between theoretical state-space control and embedded system reality. Stabilized by an aggressive LQR controller tuned with a high-priority \( Q \) matrix (\( Q_{pend}=100 \)) to overcome a simulated 0.4V motor deadzone, the system maintains the unstable \( \pi \) equilibrium through precise, high-gain restorative torques. Unlike idealized models, this platform explicitly emulates hardware non-linearities—including quadrature encoder jitter, missing pulses, and discrete 1kHz compensator timing—to provide a rigorous environment for stress-testing robust industrial control laws. The integration of a real-time visualizer and a C-based SIL loop ensures that every micro-correction is both mathematically optimal and physically faithful to the constraints of DC motor actuation and sensor noise.
                 </p>
                 <p>
-                    <strong>2. DC Motor with Inverse Pendulum:</strong> 
+                    <strong>2. DC Motor with Inverse Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
                     A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( 180^\circ \le \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
                 </p>
+                <p>
+                    <strong>3. Flywheel with DC Motor:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    A DC motor driving a fixed-weight steel disc. The position profile tracks a setpoint angle using LQR control, while the speed profile regulates angular velocity with PI + feedforward control. The 20-bit quadrature encoder provides high-resolution angle measurement, with Z-pulse drift compensation at revolution boundaries. Supports two HIL profiles: position and speed.
+                </p>
+                <p>
+                    <strong>4. Furnace Control:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    A 2×2 coupled thermal LQI system modeling two coupled heat slabs with heater inputs. Regulates two independent temperature zones using PWM duty cycle outputs in \([0, 1]\). The MCU runs a dual-output LQI compensator running at 1 kHz over USB CDC.
+                </p>
             </div>
-
-            <h3 style="margin-top:25px; font-size: 0.9rem; color: var(--ef-blue); text-transform: uppercase;">Hardware Noise Emulation</h3>
             <p style="font-size: 0.9rem; margin-top: 10px;">The MDCS environment simulates common industrial hardware non-linearities to ensure control laws are robust against real-world interference:</p>
             <div style="margin-top: 10px;">
                 <span class="noise-pill">NOISE_PWM_VIBRATION</span>
@@ -433,6 +439,125 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
             </div>
 
             <a href="https://github.com/embeddedfreedom/MDCS/tree/master" class="github-btn" target="_blank" rel="noopener noreferrer">Clone from GitHub</a>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Hardware-in-the-Loop (HIL)</h2>
+            <p style="font-size: 0.95rem; color: #334155;">
+                MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411RE</b> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
+            </p>
+
+            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
+            <div style="overflow-x: auto; margin: 15px 0;">
+                <table class="spec-table">
+                    <thead>
+                        <tr style="font-weight: bold; color: var(--ef-blue);">
+                            <td>Host → MCU</td>
+                            <td>MCU → Host</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">sync 0xAA 0x55 \| float v1 \| float v2 \| uint8 cmd \| uint8 XOR</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">sync 0x55 0xAA \| float out1 \| float out2 \| uint8 status \| uint8 XOR</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Model → Payload Mapping</h3>
+            <div style="overflow-x: auto; margin: 15px 0;">
+                <table class="spec-table">
+                    <thead>
+                        <tr style="font-weight: bold; color: var(--ef-blue);">
+                            <td>Model</td>
+                            <td>Host→MCU (sensor values)</td>
+                            <td>MCU→host (control output)</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Furuta</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">arm angle, pendulum angle</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">signed motor voltage (out1), pendulum angle echo (out2)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Pendulum</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">pendulum angle (v1), v2 = 0</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">signed motor voltage (out1)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Flywheel</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">wrapped flywheel angle (v1), v2 = 0</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">signed motor voltage (out1)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Furnace</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">measured T1, T2</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">PWM duty 1, PWM duty 2 (both [0, 1])</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Build & Flash</h3>
+            <div style="background: rgba(8, 126, 164, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--ef-blue); margin: 15px 0;">
+                <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Build HIL:</strong><br>
+                <code>make -f Makefile_HIL</code> (pendulum, furnace)<br>
+                <code>make -f Makefile_HIL position</code> / <code>make -f Makefile_HIL speed</code> (flywheel)</p>
+                <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Flash MCU:</strong><br>
+                <code>flash &lt;model&gt;/MDCS_HIL.bin</code> to your MCU via USB CDC</p>
+            </div>
+
+            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">MCU Compensator Laws</h3>
+            <div style="overflow-x: auto; margin: 15px 0;">
+                <table class="spec-table">
+                    <thead>
+                        <tr style="font-weight: bold; color: var(--ef-blue);">
+                            <td>Model</td>
+                            <td>MCU Law</td>
+                            <td>Control Law</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Furuta</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">compensator_STM32F411.c</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">LQR+I + energy swing-up</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Pendulum</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">compensator_STM32F411.c</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">LQR+I / energy swing-up</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Flywheel Position</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">compensator_STM32F411.c</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Position LQI</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Flywheel Speed</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">compensator_STM32F411.c</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Speed PI + feedforward</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace; font-size: 0.85rem;">Furnace</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">compensator_hil_STM32F4.c</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">2×2 thermal LQI, dual PWM</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Bare-Metal Firmware Rules</h3>
+            <ul style="font-size: 0.85rem; color: #334155; line-height: 1.6;">
+                <li>No <code>-lm</code>, no newlib syscalls, single-precision FPU only</li>
+                <li>No <code>double</code>, no <code>M_PI</code>, no unsuffixed decimal literals</li>
+                <li>No libm calls</li>
+                <li>FPU: <code>fpv4-sp-d16</code>, hard-float ABI</li>
+                <li>Firmware rules list <code>.c</code> sources only — after editing a header, force a rebuild with <code>make -B -f Makefile_HIL</code> or delete <code>MDCS_HIL.out</code></li>
+                <li><code>EXTRA_CFLAGS</code> is not a make dependency — stale firmware can persist if defines change without cleaning</li>
+            </ul>
         </div>
 
         <div class="glass-card">
@@ -573,8 +698,12 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
             </p>
         </div>
 
+
         <footer>
-            <div class="footer-line">COPYRIGHT © 2026 EMBEDDEDFREEDOM.DEV // GPLv3 LICENSE</div>
+            <div class="footer-line">COPYRIGHT © 2026 EMBEDDEDFREEDOM.DEV</div>
+            <div class="footer-line">
+                <strong>Licenses:</strong> <a href="LICENSE-GPLv3">GPLv3</a> (SIL &amp; main source) • <a href="LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators) • <a href="LICENSES/LGPL-2.1.txt">LGPLv2.1</a> (printm.c)
+            </div>
             <div class="footer-line">
                 CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a>
             </div>
