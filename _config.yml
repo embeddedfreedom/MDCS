@@ -1,0 +1,10 @@
+# Jekyll configuration for MDCS website
+exclude:
+  - tinyusb-master/
+  - build/
+  - .git/
+  - .gitignore
+  - .opencode/
+  - .vscode/
+
+exclude_from_server_process: true
