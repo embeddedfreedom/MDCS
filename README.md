@@ -573,6 +573,21 @@ The firmware runs all variants of the STM32F411 family. The USB CDC stack itself
 
 Verify the target crystal frequency before building; an 8 MHz HSE is assumed throughout.
 
+#### TIM3 PWM Pin Assignment
+
+The STM32F411 firmware uses TIM3 for hardware PWM output. Pin assignments:
+
+| Model | Timer | Channel | Pin | Alternate Function | Output |
+|-------|-------|---------|-----|-------------------|--------|
+| Furuta | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
+| Pendulum | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
+| Flywheel (position) | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
+| Flywheel (speed) | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
+| Furnace | TIM3 | CH1 | PA6 | AF2 | Heater 1 PWM duty |
+| Furnace | TIM3 | CH2 | PA7 | AF2 | Heater 2 PWM duty |
+
+**Note:** All models use TIM3. The furnace uses both TIM3_CH1 (PA6) and TIM3_CH2 (PA7) for its two independent heater PWMs. TIM4 is **not** configured for PWM output in any model — it only appears in the interrupt vector table as an unused default handler.
+
 ## 7. System Specifications & Logic
 
 - **Timing:** 20kHz Simulation Loop | 1kHz Compensator.
