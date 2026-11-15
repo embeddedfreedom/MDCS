@@ -138,6 +138,7 @@ def check_stlink_for_hil(profile):
         print("\n" + "=" * 60)
         print("ERROR: Failed to flash firmware to STM32.")
         print(flash.stderr or flash.stdout)
+        print("Check your connection and retry.")
         print("=" * 60 + "\n")
         sys.exit(1)
 
