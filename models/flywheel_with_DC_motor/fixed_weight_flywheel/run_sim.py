@@ -107,10 +107,11 @@ def check_stlink_for_hil(profile):
 
     print(f"\nFlashing firmware to STM32: {bin_path}")
     flash = subprocess.run(
-        ["st-flash", "--reset", "write", bin_path, "0x08000000"],
+        ["st-flash", "write", bin_path, "0x08000000"],
         capture_output=True, text=True
     )
-    if flash.returncode != 0:
+    flash_ok = (flash.returncode == 0) or ("Flash written and verified" in flash.stdout) or ("jolly good" in flash.stdout)
+    if not flash_ok:
         print("\n" + "=" * 60)
         print("ERROR: Failed to flash firmware to STM32.")
         print(flash.stderr or flash.stdout)
@@ -119,7 +120,7 @@ def check_stlink_for_hil(profile):
         print("=" * 60 + "\n")
         sys.exit(1)
 
-    print("Firmware flashed successfully.\n")
+    print("Firmware flashed successfully. (Press the board's RESET button if the new firmware does not start.)\n")
 
 
 def main():
