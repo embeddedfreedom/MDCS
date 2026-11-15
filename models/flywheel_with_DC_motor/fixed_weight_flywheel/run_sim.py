@@ -98,15 +98,22 @@ def check_stlink_for_hil(profile):
     # Give the ST-LINK a moment to settle after probing
     time.sleep(1.0)
 
-    # Flash the firmware to the MCU
+    # Build HIL firmware if the .bin is missing
     bin_path = HIL_BIN_PATHS[profile]
     if not os.path.exists(bin_path):
-        print("\n" + "=" * 60)
-        print(f"ERROR: Firmware binary not found: {bin_path}")
-        print("Build the HIL firmware first:")
-        print(f"    make -f Makefile_HIL {profile}")
-        print("=" * 60 + "\n")
-        sys.exit(1)
+        print(f"\nFirmware binary not found: {bin_path}")
+        print(f"Building with: make -f Makefile_HIL {profile}")
+        result = subprocess.run(["make", "-f", "Makefile_HIL", profile], cwd=MODEL_DIR)
+        if result.returncode != 0:
+            print("\n" + "=" * 60)
+            print("ERROR: HIL firmware build failed!")
+            print("=" * 60 + "\n")
+            sys.exit(1)
+        if not os.path.exists(bin_path):
+            print("\n" + "=" * 60)
+            print(f"ERROR: Build completed but {bin_path} was not created.")
+            print("=" * 60 + "\n")
+            sys.exit(1)
 
     print(f"\nFlashing firmware to STM32: {bin_path}")
     flash = subprocess.run(
@@ -115,6 +122,9 @@ def check_stlink_for_hil(profile):
     )
     flash_ok = (flash.returncode == 0) or ("Flash written and verified" in flash.stdout) or ("jolly good" in flash.stdout)
     if not flash_ok:
+        # --reset reboots the board and USB disconnects; wait for re-enumeration
+        print("Waiting for target to re-enumerate after reset...")
+        time.sleep(3.0)
         # Fallback: try without --reset
         print("Retrying flash without --reset...")
         flash = subprocess.run(
