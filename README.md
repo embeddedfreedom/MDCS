@@ -694,7 +694,7 @@ MDCS uses multiple licenses depending on the component:
 
 ## 9. Quick Run with `run_sim.py`
 
-Each model folder includes a `run_sim.py` script that automates: **build → socat bridges → simulator → visualizers**. Run it from inside the model directory.
+Each model folder includes a `run_sim.py` script that automates: **build → flash → socat bridges → simulator → visualizers**. Run it from inside the model directory.
 
 ### Usage
 
