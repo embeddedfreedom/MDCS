@@ -71,18 +71,19 @@ The `socat` configuration used in this suite creates a specific set of virtual s
 
 Several paths are hardcoded in this repository. **You must change them to match your machine/user before building or running anything:**
 
-| What | Hardcoded value | Where to change |
-|------|-----------------|-----------------|
-| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`) |
-| `run_sim.py` paths (all models) | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in` | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
-| HIL serial port | `/dev/ttyACM0` | `compensator/compensator_hil.c`, Python visualizers |
-| Socat links inside Python files | `/home/dipto/sim_3d`, `/home/dipto/sim_graph` | `visualiser/*_telemetry.py`, `visualiser/*_animation.py` |
-| VS Code `launch.json` (all models + hil) | `/home/dipto/st/.../ST-LINK_gdbserver`, `/home/dipto/Desktop/MDCS_Backup/MDCS/build/.../MDCS_HIL.out` | `.vscode/launch.json` (and `.vscode/launch.position.json`, `launch.speed.json` for flywheel) |
-| HIL test defaults | `/dev/ttyUSB0` | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c` |
+| What                                     | Hardcoded value                                                                                       | Where to change                                                                                                                                                                                 |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Socat PTY links (3D + graph)             | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in`    | C simulator source (`simulator/*.c`)                                                                                                                                                            |
+| `run_sim.py` paths (all models)          | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in`    | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
+| HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c`, Python visualizers                                                                                                                                             |
+| Socat links inside Python files          | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`                                                         | `visualiser/*_telemetry.py`, `visualiser/*_animation.py`                                                                                                                                        |
+| VS Code `launch.json` (all models + hil) | `/home/dipto/st/.../ST-LINK_gdbserver`, `/home/dipto/Desktop/MDCS_Backup/MDCS/build/.../MDCS_HIL.out` | `.vscode/launch.json` (and `.vscode/launch.position.json`, `launch.speed.json` for flywheel)                                                                                                    |
+| HIL test defaults                        | `/dev/ttyUSB0`                                                                                        | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c`                                                                                                        |
 
 **If you do not update these, the simulator will write telemetry to the wrong PTY files, the Python visualizers will read from the wrong serial ports, VS Code debugging will point to the wrong binary, and nothing will appear to work.**
 
 The paths must match **exactly** between:
+
 1. The `socat` commands you run,
 2. The C source files (simulator/compensator),
 3. `run_sim.py` for your chosen model,
@@ -160,12 +161,12 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 
 **Supported Models:**
 
-| Model | SIL (`make`) | HIL (`make -f Makefile_HIL`) | Notes |
-|-------|-------------|------------------------------|-------|
-| Furuta (`rotary_inverted_pendulum`) | ✅ | ✅ | Working reference — untouched. HIL outputs to `build/furuta/`. |
-| Pendulum (`pendulum_with_DC_motor`) | ✅ | ✅ | Angle-only host→MCU link. HIL outputs to `build/inverted_pendulum/`. |
-| Flywheel (`flywheel_with_DC_motor/fixed_weight_flywheel`) | ✅ (`make position\|speed`) | ✅ (`make -f Makefile_HIL position\|speed`) | Multi-profile: separate position/speed MCU laws and build folders. |
-| Furnace (`furnace_control`) | ✅ | ✅ | 2×2 thermal LQI, dual PWM outputs. HIL outputs to `build/furnace_control/`. |
+| Model                                                     | SIL (`make`)               | HIL (`make -f Makefile_HIL`)               | Notes                                                                       |
+| --------------------------------------------------------- | -------------------------- | ------------------------------------------ | --------------------------------------------------------------------------- |
+| Furuta (`rotary_inverted_pendulum`)                       | ✅                          | ✅                                          | Working reference — untouched. HIL outputs to `build/furuta/`.              |
+| Pendulum (`pendulum_with_DC_motor`)                       | ✅                          | ✅                                          | Angle-only host→MCU link. HIL outputs to `build/inverted_pendulum/`.        |
+| Flywheel (`flywheel_with_DC_motor/fixed_weight_flywheel`) | ✅ (`make position\|speed`) | ✅ (`make -f Makefile_HIL position\|speed`) | Multi-profile: separate position/speed MCU laws and build folders.          |
+| Furnace (`furnace_control`)                               | ✅                          | ✅                                          | 2×2 thermal LQI, dual PWM outputs. HIL outputs to `build/furnace_control/`. |
 
 --- 
 
@@ -185,12 +186,12 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 
 Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
-| Model | Gain derivation |
-|---|---|
-| Furuta | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (p. 11); reproduces all four checked-in gains |
-| Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned |
+| Model    | Gain derivation                                                                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (p. 11); reproduces all four checked-in gains                     |
+| Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned                                 |
 | Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
-| Furnace | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies |
+| Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies                                          |
 
 ---
 
@@ -396,12 +397,12 @@ The simulator includes a 2D heads-up display (HUD) overlaid on the 3D scene.
 
 **Script names by model** (run from inside the model directory):
 
-| Model | Telemetry plotter | 3D simulator |
-|---|---|---|
-| Furuta | `visualiser/furuta_telemetry.py` | `visualiser/furuta_animation.py` |
+| Model    | Telemetry plotter                            | 3D simulator                                 |
+| -------- | -------------------------------------------- | -------------------------------------------- |
+| Furuta   | `visualiser/furuta_telemetry.py`             | `visualiser/furuta_animation.py`             |
 | Pendulum | `visualiser/motor_and_pendulum_telemetry.py` | `visualiser/motor_and_pendulum_animation.py` |
 | Flywheel | `visualiser/motor_and_flywheel_telemetry.py` | `visualiser/motor_and_flywheel_animation.py` |
-| Furnace | `visualiser/furnace_telemetry.py` | `visualiser/furnace_animation.py` |
+| Furnace  | `visualiser/furnace_telemetry.py`            | `visualiser/furnace_animation.py`            |
 
 **NOTE:** The simulator and plotter can be started in any order, any one can also be started if the other is not required. This will not affect the visuals at all.
 
@@ -419,12 +420,12 @@ Fixed **12-byte** frames with XOR checksum:
 
 3 ms poll timeout per cycle.
 
-| Model | Host→MCU | MCU→host |
-|-------|----------|----------|
-| Furuta | arm angle, pendulum angle | signed motor voltage (`out1`), pendulum angle echo (`out2`) |
-| Pendulum | pendulum angle in `v1`, `v2 = 0` | signed motor voltage in `out1` |
-| Flywheel | wrapped flywheel angle in `v1`, `v2 = 0` | signed motor voltage in `out1` |
-| Furnace | measured `T1`, `T2` | PWM duty 1, PWM duty 2 (both `[0, 1]`) |
+| Model    | Host→MCU                                 | MCU→host                                                    |
+| -------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Furuta   | arm angle, pendulum angle                | signed motor voltage (`out1`), pendulum angle echo (`out2`) |
+| Pendulum | pendulum angle in `v1`, `v2 = 0`         | signed motor voltage in `out1`                              |
+| Flywheel | wrapped flywheel angle in `v1`, `v2 = 0` | signed motor voltage in `out1`                              |
+| Furnace  | measured `T1`, `T2`                      | PWM duty 1, PWM duty 2 (both `[0, 1]`)                      |
 
 The shared adapter calls `run_compensator_cycle_HIL(v1, v2)` by default. With `-DHIL_TWO_OUTPUTS` (furnace only) it calls `run_compensator_cycle_HIL_dual(v1, v2, &out1, &out2)`; otherwise `out2 = v2`.
 
@@ -433,33 +434,43 @@ The shared adapter calls `run_compensator_cycle_HIL(v1, v2)` by default. With `-
 From the model directory:
 
 **Furuta:**
+
 ```bash
 make -f Makefile_HIL
 ```
+
 Host: `build/furuta/furuta_sim_hil` | Firmware: `build/furuta/MDCS_HIL.out/.bin`
 
 **Pendulum:**
+
 ```bash
 make -f Makefile_HIL
 ```
+
 Host: `build/inverted_pendulum/inverted_pendulum_sim_hil` | Firmware: `build/inverted_pendulum/MDCS_HIL.out/.bin`
 
 **Flywheel (position):**
+
 ```bash
 make -f Makefile_HIL position
 ```
+
 Host+Firmware: `build/flywheel_control/position/flywheel_hil_sim` + `MDCS_HIL.out/.bin`
 
 **Flywheel (speed):**
+
 ```bash
 make -f Makefile_HIL speed
 ```
+
 Host+Firmware: `build/flywheel_control/speed/flywheel_hil_sim` + `MDCS_HIL.out/.bin`
 
 **Furnace:**
+
 ```bash
 make -f Makefile_HIL
 ```
+
 Host: `build/furnace_control/furnace_sim_hil` | Firmware: `build/furnace_control/MDCS_HIL.out/.bin` (built with `-DHIL_TWO_OUTPUTS`)
 
 ### 6.3 Flashing Firmware
@@ -474,13 +485,13 @@ Flash that file to the start of the STM32F411 flash, **`0x08000000`**. There is 
 
 Each model (and each flywheel profile) produces its own firmware because the compensator law is compiled in, so always flash the `.bin` that sits next to the host binary you are about to run:
 
-| Model | Binary to flash |
-|---|---|
-| Furuta | `build/furuta/MDCS_HIL.bin` |
-| Pendulum | `build/inverted_pendulum/MDCS_HIL.bin` |
+| Model               | Binary to flash                                |
+| ------------------- | ---------------------------------------------- |
+| Furuta              | `build/furuta/MDCS_HIL.bin`                    |
+| Pendulum            | `build/inverted_pendulum/MDCS_HIL.bin`         |
 | Flywheel (position) | `build/flywheel_control/position/MDCS_HIL.bin` |
-| Flywheel (speed) | `build/flywheel_control/speed/MDCS_HIL.bin` |
-| Furnace | `build/furnace_control/MDCS_HIL.bin` |
+| Flywheel (speed)    | `build/flywheel_control/speed/MDCS_HIL.bin`    |
+| Furnace             | `build/furnace_control/MDCS_HIL.bin`           |
 
 #### Option A — `st-flash` (stlink-tools)
 
@@ -538,12 +549,12 @@ Press **S** to enable the compensator, **T** to disable, **Q** to quit.
 
 Probing the MCU directly, with setpoints 75/75 °C, shows the law running on the chip and not on the host:
 
-| Sent T1 / T2 | PWM1 / PWM2 returned | Why |
-|---|---|---|
-| 25.0 / 25.0 | 1.0000 / 1.0000 | 50 °C below setpoint — `Kx ≈ 20.8` saturates both heaters |
-| 74.0 / 74.0 | 1.0000 / 1.0000 | 1 °C below setpoint is still enough to saturate |
-| 75.0 / 75.0 | 0.8333 / 0.7454 | zero error → exactly the feedforward `pwm_sp` |
-| 76.0 / 76.0 | 0.0000 / 0.0000 | above setpoint → heaters off |
+| Sent T1 / T2 | PWM1 / PWM2 returned | Why                                                       |
+| ------------ | -------------------- | --------------------------------------------------------- |
+| 25.0 / 25.0  | 1.0000 / 1.0000      | 50 °C below setpoint — `Kx ≈ 20.8` saturates both heaters |
+| 74.0 / 74.0  | 1.0000 / 1.0000      | 1 °C below setpoint is still enough to saturate           |
+| 75.0 / 75.0  | 0.8333 / 0.7454      | zero error → exactly the feedforward `pwm_sp`             |
+| 76.0 / 76.0  | 0.0000 / 0.0000      | above setpoint → heaters off                              |
 
 Every reply carried `status = 0x01` (running) and a valid XOR checksum.
 
@@ -577,16 +588,16 @@ Verify the target crystal frequency before building; an 8 MHz HSE is assumed thr
 
 The STM32F411 firmware uses TIM3 for hardware PWM output. Pin assignments:
 
-| Model | Timer | Channel | Pin | Alternate Function | Output |
-|-------|-------|---------|-----|-------------------|--------|
-| Furuta | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
-| Pendulum | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
-| Flywheel (position) | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
-| Flywheel (speed) | TIM3 | CH1 | PA6 | AF2 | Signed motor voltage |
-| Furnace | TIM3 | CH1 | PA6 | AF2 | Heater 1 PWM duty |
-| Furnace | TIM3 | CH2 | PA7 | AF2 | Heater 2 PWM duty |
+| Model               | Timer | Channel | Pin | Alternate Function | Output               |
+| ------------------- | ----- | ------- | --- | ------------------ | -------------------- |
+| Furuta              | TIM3  | CH1     | PA6 | AF2                | Signed motor voltage |
+| Pendulum            | TIM3  | CH1     | PA6 | AF2                | Signed motor voltage |
+| Flywheel (position) | TIM3  | CH1     | PA6 | AF2                | Signed motor voltage |
+| Flywheel (speed)    | TIM3  | CH1     | PA6 | AF2                | Signed motor voltage |
+| Furnace             | TIM3  | CH1     | PA6 | AF2                | Heater 1 PWM duty    |
+| Furnace             | TIM3  | CH2     | PA7 | AF2                | Heater 2 PWM duty    |
 
-**Note:** All models use TIM3. The furnace uses both TIM3_CH1 (PA6) and TIM3_CH2 (PA7) for its two independent heater PWMs. TIM4 is **not** configured for PWM output in any model — it only appears in the interrupt vector table as an unused default handler.
+**Note:** All models use TIM3. The furnace uses both TIM3_CH1 (PA6) and TIM3_CH2 (PA7) for its two independent heater PWMs. 
 
 ## 7. System Specifications & Logic
 
@@ -606,15 +617,15 @@ The STM32F411 firmware uses TIM3 for hardware PWM output. Pin assignments:
 
 MDCS uses multiple licenses depending on the component:
 
-| Component | License | File |
-|-----------|---------|------|
-| Root README, AGENTS.md, LICENSE-GPLv3 | GPLv3 | `LICENSE-GPLv3` |
-| All model source (`*.c`, `*.h`, `*.py`, `Makefile`, `Makefile_HIL`) | GPLv3 | `LICENSE-GPLv3` |
-| Framework (`framework/`) | GPLv3 | `LICENSE-GPLv3` |
-| HIL shared firmware (`hil/hil_STM32F4/`) | MIT | `LICENSE-MIT` |
-| MCU compensators (`compensator_STM32F411.c`) | MIT | `LICENSE-MIT` |
-| `tinyusb-master/` (vendored stack) | MIT | `tinyusb-master/` |
-| `printm.c` (printf implementation) | LGPLv2.1 | `LICENSES/LGPL-2.1.txt` |
+| Component                                                           | License  | File                    |
+| ------------------------------------------------------------------- | -------- | ----------------------- |
+| Root README, AGENTS.md, LICENSE-GPLv3                               | GPLv3    | `LICENSE-GPLv3`         |
+| All model source (`*.c`, `*.h`, `*.py`, `Makefile`, `Makefile_HIL`) | GPLv3    | `LICENSE-GPLv3`         |
+| Framework (`framework/`)                                            | GPLv3    | `LICENSE-GPLv3`         |
+| HIL shared firmware (`hil/hil_STM32F4/`)                            | MIT      | `LICENSE-MIT`           |
+| MCU compensators (`compensator_STM32F411.c`)                        | MIT      | `LICENSE-MIT`           |
+| `tinyusb-master/` (vendored stack)                                  | MIT      | `tinyusb-master/`       |
+| `printm.c` (printf implementation)                                  | LGPLv2.1 | `LICENSES/LGPL-2.1.txt` |
 
 - **`LICENSE-GPLv3`** — GPLv3, the primary license for MDCS source code.
 - **`LICENSE-MIT`** — MIT License, applies to HIL firmware and MCU compensator files.
@@ -660,22 +671,22 @@ python3 run_sim.py --help             # Show usage help
 
 ### Model-specific commands
 
-| Model | Command (from inside model dir) | Output |
-|-------|--------------------------------|--------|
-| Furuta | `python3 run_sim.py` | `build/furuta/furuta_sim` |
-| Furuta HIL | `python3 run_sim.py --hil` | `build/furuta/furuta_sim_hil` + firmware |
-| Furuta HIL (no flash) | `python3 run_sim.py --hil-no-flash` | `build/furuta/furuta_sim_hil` + firmware |
-| Pendulum | `python3 run_sim.py` | `build/inverted_pendulum/inverted_pendulum_sim` |
-| Pendulum HIL | `python3 run_sim.py --hil` | `build/inverted_pendulum/inverted_pendulum_sim_hil` + firmware |
-| Pendulum HIL (no flash) | `python3 run_sim.py --hil-no-flash` | `build/inverted_pendulum/inverted_pendulum_sim_hil` + firmware |
-| Flywheel position | `python3 run_sim.py position` | `build/flywheel_control/flywheel_position_sim` |
-| Flywheel speed | `python3 run_sim.py speed` | `build/flywheel_control/flywheel_speed_sim` |
-| Flywheel HIL position | `python3 run_sim.py --hil position` | `build/flywheel_control/position/` + firmware |
-| Flywheel HIL speed | `python3 run_sim.py --hil speed` | `build/flywheel_control/speed/` + firmware |
-| Flywheel HIL (no flash) | `python3 run_sim.py --hil-no-flash position\|speed` | `build/flywheel_control/{position,speed}/` + firmware |
-| Furnace | `python3 run_sim.py` | `build/furnace_control/furnace_sim` |
-| Furnace HIL | `python3 run_sim.py --hil` | `build/furnace_control/furnace_sim_hil` + firmware |
-| Furnace HIL (no flash) | `python3 run_sim.py --hil-no-flash` | `build/furnace_control/furnace_sim_hil` + firmware |
+| Model                   | Command (from inside model dir)                     | Output                                                         |
+| ----------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
+| Furuta                  | `python3 run_sim.py`                                | `build/furuta/furuta_sim`                                      |
+| Furuta HIL              | `python3 run_sim.py --hil`                          | `build/furuta/furuta_sim_hil` + firmware                       |
+| Furuta HIL (no flash)   | `python3 run_sim.py --hil-no-flash`                 | `build/furuta/furuta_sim_hil` + firmware                       |
+| Pendulum                | `python3 run_sim.py`                                | `build/inverted_pendulum/inverted_pendulum_sim`                |
+| Pendulum HIL            | `python3 run_sim.py --hil`                          | `build/inverted_pendulum/inverted_pendulum_sim_hil` + firmware |
+| Pendulum HIL (no flash) | `python3 run_sim.py --hil-no-flash`                 | `build/inverted_pendulum/inverted_pendulum_sim_hil` + firmware |
+| Flywheel position       | `python3 run_sim.py position`                       | `build/flywheel_control/flywheel_position_sim`                 |
+| Flywheel speed          | `python3 run_sim.py speed`                          | `build/flywheel_control/flywheel_speed_sim`                    |
+| Flywheel HIL position   | `python3 run_sim.py --hil position`                 | `build/flywheel_control/position/` + firmware                  |
+| Flywheel HIL speed      | `python3 run_sim.py --hil speed`                    | `build/flywheel_control/speed/` + firmware                     |
+| Flywheel HIL (no flash) | `python3 run_sim.py --hil-no-flash position\|speed` | `build/flywheel_control/{position,speed}/` + firmware          |
+| Furnace                 | `python3 run_sim.py`                                | `build/furnace_control/furnace_sim`                            |
+| Furnace HIL             | `python3 run_sim.py --hil`                          | `build/furnace_control/furnace_sim_hil` + firmware             |
+| Furnace HIL (no flash)  | `python3 run_sim.py --hil-no-flash`                 | `build/furnace_control/furnace_sim_hil` + firmware             |
 
 ### Controls during runtime
 
