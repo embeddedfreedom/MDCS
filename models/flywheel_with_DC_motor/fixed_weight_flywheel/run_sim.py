@@ -148,16 +148,18 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     use_hil = "--hil" in sys.argv
 
-    if use_hil and not args:
+    if not args:
         print("\n" + "=" * 60)
-        print("ERROR: HIL mode requires a profile parameter.")
+        print("ERROR: A profile parameter is required.")
         print("Usage:")
+        print("  python3 run_sim.py position")
+        print("  python3 run_sim.py speed")
         print("  python3 run_sim.py --hil position")
         print("  python3 run_sim.py --hil speed")
         print("=" * 60 + "\n")
         sys.exit(1)
 
-    profile = args[0] if args else "position"
+    profile = args[0]
     if profile not in ("position", "speed"):
         print(f"Invalid profile: {profile}. Use 'position' or 'speed'.")
         sys.exit(1)
