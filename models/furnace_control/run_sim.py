@@ -139,9 +139,8 @@ def main():
     binary = HIL_BINARY if use_hil else SIM_BINARY
     make_cmd = ["make", "-f", "Makefile_HIL"] if use_hil else ["make"]
 
-    # Build if binary missing
-    if not os.path.exists(binary):
-        print(f"Binary not found: {binary}")
+    # Build: always rebuild for HIL (host + firmware), SIL only if missing
+    if use_hil or not os.path.exists(binary):
         print(f"Building with: {' '.join(make_cmd)}")
         result = subprocess.run(make_cmd, cwd=MODEL_DIR)
         if result.returncode != 0:

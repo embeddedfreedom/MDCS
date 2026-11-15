@@ -173,11 +173,9 @@ def main():
     print(f"Profile: {profile}")
     print(f"Mode: {'HIL' if use_hil else 'SIL'}")
     print(f"Binary: {binary}")
-    print(f"Binary exists: {os.path.exists(binary)}")
 
-    # Build if binary missing
-    if not os.path.exists(binary):
-        print(f"Binary not found: {binary}")
+    # Build: always rebuild for HIL (host + firmware), SIL only if missing
+    if use_hil or not os.path.exists(binary):
         print(f"Building with: {' '.join(make_cmd)}")
         result = subprocess.run(make_cmd, cwd=MODEL_DIR)
         if result.returncode != 0:
