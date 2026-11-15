@@ -146,12 +146,21 @@ def check_stlink_for_hil(profile):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    use_hil = "--hil" in sys.argv
+
+    if use_hil and not args:
+        print("\n" + "=" * 60)
+        print("ERROR: HIL mode requires a profile parameter.")
+        print("Usage:")
+        print("  python3 run_sim.py --hil position")
+        print("  python3 run_sim.py --hil speed")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
     profile = args[0] if args else "position"
     if profile not in ("position", "speed"):
         print(f"Invalid profile: {profile}. Use 'position' or 'speed'.")
         sys.exit(1)
-
-    use_hil = "--hil" in sys.argv
 
     if use_hil:
         check_stlink_for_hil(profile)
