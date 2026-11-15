@@ -616,26 +616,32 @@ Navigate to the model directory and run:
 
 ```bash
 python3 run_sim.py           # SIL build + run
-python3 run_sim.py --hil     # HIL build + run (flash MCU first!)
+python3 run_sim.py --hil     # HIL build + flash MCU + run
+python3 run_sim.py --hil-no-flash  # HIL build only (flash MCU yourself)
+python3 run_sim.py --help    # Show usage help
 ```
 
 For flywheel (multi-profile), specify the profile:
 
 ```bash
-python3 run_sim.py position  # SIL position build + run
-python3 run_sim.py speed     # SIL speed build + run
-python3 run_sim.py --hil position   # HIL position build + run (flash MCU first!)
-python3 run_sim.py --hil speed      # HIL speed build + run (flash MCU first!)
+python3 run_sim.py position           # SIL position build + run
+python3 run_sim.py speed              # SIL speed build + run
+python3 run_sim.py --hil position     # HIL position build + flash + run
+python3 run_sim.py --hil speed        # HIL speed build + flash + run
+python3 run_sim.py --hil-no-flash position   # HIL position build only
+python3 run_sim.py --hil-no-flash speed      # HIL speed build only
+python3 run_sim.py --help             # Show usage help
 ```
 
 ### What the script does
 
-1. **Builds** the model (only if the binary is missing)
-2. **Creates socat bridges** (`/home/dipto/sim_3d`, `/home/dipto/sim_graph`) if they don't already exist
-3. **Launches the simulator binary** (SIL or HIL)
-4. **Launches both visualizers** (3D animation + telemetry plotter)
-5. **Runs in foreground** until you press `Ctrl+C`
-6. **Cleans up** — kills all processes and socat bridges on exit
+1. **Builds** the model (always rebuilds — host binary for SIL, host + firmware for HIL)
+2. **Flashes firmware** to STM32 via `st-flash` (HIL mode with `--hil` only; skipped with `--hil-no-flash`)
+3. **Creates socat bridges** (`/home/dipto/sim_3d`, `/home/dipto/sim_graph`) if they don't already exist
+4. **Launches the simulator binary** (SIL or HIL)
+5. **Launches both visualizers** (3D animation + telemetry plotter)
+6. **Runs in foreground** until you press `Ctrl+C`
+7. **Cleans up** — kills all processes and socat bridges on exit
 
 ### Model-specific commands
 
@@ -643,14 +649,18 @@ python3 run_sim.py --hil speed      # HIL speed build + run (flash MCU first!)
 |-------|--------------------------------|--------|
 | Furuta | `python3 run_sim.py` | `build/furuta/furuta_sim` |
 | Furuta HIL | `python3 run_sim.py --hil` | `build/furuta/furuta_sim_hil` + firmware |
+| Furuta HIL (no flash) | `python3 run_sim.py --hil-no-flash` | `build/furuta/furuta_sim_hil` + firmware |
 | Pendulum | `python3 run_sim.py` | `build/inverted_pendulum/inverted_pendulum_sim` |
 | Pendulum HIL | `python3 run_sim.py --hil` | `build/inverted_pendulum/inverted_pendulum_sim_hil` + firmware |
+| Pendulum HIL (no flash) | `python3 run_sim.py --hil-no-flash` | `build/inverted_pendulum/inverted_pendulum_sim_hil` + firmware |
 | Flywheel position | `python3 run_sim.py position` | `build/flywheel_control/flywheel_position_sim` |
 | Flywheel speed | `python3 run_sim.py speed` | `build/flywheel_control/flywheel_speed_sim` |
 | Flywheel HIL position | `python3 run_sim.py --hil position` | `build/flywheel_control/position/` + firmware |
 | Flywheel HIL speed | `python3 run_sim.py --hil speed` | `build/flywheel_control/speed/` + firmware |
+| Flywheel HIL (no flash) | `python3 run_sim.py --hil-no-flash position\|speed` | `build/flywheel_control/{position,speed}/` + firmware |
 | Furnace | `python3 run_sim.py` | `build/furnace_control/furnace_sim` |
 | Furnace HIL | `python3 run_sim.py --hil` | `build/furnace_control/furnace_sim_hil` + firmware |
+| Furnace HIL (no flash) | `python3 run_sim.py --hil-no-flash` | `build/furnace_control/furnace_sim_hil` + firmware |
 
 ### Controls during runtime
 
@@ -661,8 +671,11 @@ python3 run_sim.py --hil speed      # HIL speed build + run (flash MCU first!)
 
 ### Important notes
 
-- **HIL mode:** Flash the MCU firmware to the STM32F411 board *before* running `--hil`. Use `st-flash` or any other programmer with the `MDCS_HIL.bin` from `build/<model>/` — see [§6.3 Flashing Firmware](#63-flashing-firmware).
+- **HIL mode (`--hil`):** Builds host + firmware, flashes MCU via `st-flash`, then runs. Requires an STM32F411 on `/dev/ttyACM0` with `st-flash` installed. See [§6.3 Flashing Firmware](#63-flashing-firmware).
+- **HIL no-flash (`--hil-no-flash`):** Builds host + firmware only, skips flashing. Use your own programmer (OpenOCD, STM32CubeProgrammer, J-Link, etc.) to flash `MDCS_HIL.bin`, then run the host binary.
+- **Help (`--help`, `-h`):** Prints usage information and exits.
 - **Socat bridges:** The script reuses existing bridges if they already exist; otherwise it creates new ones. You do not need to start socat manually.
 - **Working directory:** Always run `run_sim.py` from *inside* the model directory.
+- **Build:** Always rebuilds on every run — no need for `make clean` between changes.
 
 # 

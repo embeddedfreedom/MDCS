@@ -145,7 +145,39 @@ def check_stlink_for_hil(profile):
     print("Firmware flashed successfully. (Press the board's RESET button if the new firmware does not start.)\n")
 
 
+def print_help():
+    print("""
+MDCS Flywheel with DC Motor - run_sim.py
+
+Usage:
+  python3 run_sim.py position           # SIL position build + run
+  python3 run_sim.py speed              # SIL speed build + run
+  python3 run_sim.py --hil position     # HIL position build + flash + run
+  python3 run_sim.py --hil speed        # HIL speed build + flash + run
+  python3 run_sim.py --hil-no-flash position   # HIL position build only
+  python3 run_sim.py --hil-no-flash speed      # HIL speed build only
+  python3 run_sim.py --help             # Show this help message
+
+Options:
+  --hil <profile>       Build HIL host + STM32 firmware, flash MCU, run simulator
+  --hil-no-flash <profile>   Build HIL host + STM32 firmware only, skip flashing
+  --help, -h            Show this help message and exit
+
+Profiles:
+  position   Position tracking control (LQI)
+  speed      Speed regulation control (PI + feedforward)
+
+The HIL mode requires an STM32F411 on /dev/ttyACM0 with st-flash installed.
+Press 'S' in the simulator terminal to enable the compensator.
+Press 'T' to disable, 'Q' to quit, Ctrl+C to stop everything.
+""")
+    sys.exit(0)
+
+
 def main():
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print_help()
+
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     use_hil = "--hil" in sys.argv
     hil_no_flash = "--hil-no-flash" in sys.argv

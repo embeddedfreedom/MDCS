@@ -130,7 +130,32 @@ def check_stlink_for_hil():
     print("Firmware flashed successfully. (Press the board's RESET button if the new firmware does not start.)\n")
 
 
+def print_help():
+    print("""
+MDCS Furnace Control - run_sim.py
+
+Usage:
+  python3 run_sim.py              # SIL build + run
+  python3 run_sim.py --hil        # HIL build + flash MCU + run
+  python3 run_sim.py --hil-no-flash  # HIL build only (skip flashing)
+  python3 run_sim.py --help       # Show this help message
+
+Options:
+  --hil            Build HIL host + STM32 firmware, flash MCU, run simulator
+  --hil-no-flash   Build HIL host + STM32 firmware only, skip flashing
+  --help, -h       Show this help message and exit
+
+The HIL mode requires an STM32F411 on /dev/ttyACM0 with st-flash installed.
+Press 'S' in the simulator terminal to enable the compensator.
+Press 'T' to disable, 'Q' to quit, Ctrl+C to stop everything.
+""")
+    sys.exit(0)
+
+
 def main():
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print_help()
+
     use_hil = "--hil" in sys.argv
     hil_no_flash = "--hil-no-flash" in sys.argv
 
