@@ -7,7 +7,8 @@ Press Ctrl+C to stop everything.
 
 Usage:
     python3 run_sim.py              # SIL build + run
-    python3 run_sim.py --hil        # HIL build + run (flash MCU first!)
+    python3 run_sim.py --hil        # HIL build + flash + run
+    python3 run_sim.py --hil-no-flash  # HIL build only (flash MCU yourself)
 """
 
 import subprocess
@@ -130,9 +131,20 @@ def check_stlink_for_hil():
 
 def main():
     use_hil = "--hil" in sys.argv
+    hil_no_flash = "--hil-no-flash" in sys.argv
 
-    binary = HIL_BINARY if use_hil else SIM_BINARY
-    make_cmd = ["make", "-f", "Makefile_HIL"] if use_hil else ["make"]
+    if hil_no_flash:
+        binary = HIL_BINARY
+        make_cmd = ["make", "-f", "Makefile_HIL"]
+        do_flash = False
+    elif use_hil:
+        binary = HIL_BINARY
+        make_cmd = ["make", "-f", "Makefile_HIL"]
+        do_flash = True
+    else:
+        binary = SIM_BINARY
+        make_cmd = ["make"]
+        do_flash = False
 
     # Build: always rebuild (host + firmware for HIL, host for SIL)
     print(f"Building with: {' '.join(make_cmd)}")
@@ -141,8 +153,8 @@ def main():
         print("Build failed!")
         sys.exit(1)
 
-    # If HIL requested, check st-link and flash firmware
-    if use_hil:
+    # If HIL requested with flashing, check st-link and flash firmware
+    if do_flash:
         check_stlink_for_hil()
 
     # Check if socat bridges already exist

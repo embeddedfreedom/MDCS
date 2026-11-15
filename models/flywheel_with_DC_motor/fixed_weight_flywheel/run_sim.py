@@ -8,8 +8,10 @@ Press Ctrl+C to stop everything.
 Usage:
     python3 run_sim.py              # SIL position build + run
     python3 run_sim.py speed        # SIL speed build + run
-    python3 run_sim.py --hil        # HIL position build + run (flash MCU first!)
-    python3 run_sim.py --hil speed  # HIL speed build + run (flash MCU first!)
+    python3 run_sim.py --hil        # HIL position build + flash + run
+    python3 run_sim.py --hil speed  # HIL speed build + flash + run
+    python3 run_sim.py --hil-no-flash position   # HIL position build only (flash MCU yourself)
+    python3 run_sim.py --hil-no-flash speed      # HIL speed build only (flash MCU yourself)
 """
 
 import subprocess
@@ -145,6 +147,7 @@ def check_stlink_for_hil(profile):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     use_hil = "--hil" in sys.argv
+    hil_no_flash = "--hil-no-flash" in sys.argv
 
     if not args:
         print("\n" + "=" * 60)
@@ -154,6 +157,8 @@ def main():
         print("  python3 run_sim.py speed")
         print("  python3 run_sim.py --hil position")
         print("  python3 run_sim.py --hil speed")
+        print("  python3 run_sim.py --hil-no-flash position")
+        print("  python3 run_sim.py --hil-no-flash speed")
         print("=" * 60 + "\n")
         sys.exit(1)
 
@@ -162,11 +167,24 @@ def main():
         print(f"Invalid profile: {profile}. Use 'position' or 'speed'.")
         sys.exit(1)
 
-    binary = HIL_BINARIES[profile] if use_hil else SIM_BINARIES[profile]
-    make_cmd = ["make", "-f", "Makefile_HIL", profile] if use_hil else ["make", profile]
+    if hil_no_flash:
+        binary = HIL_BINARIES[profile]
+        make_cmd = ["make", "-f", "Makefile_HIL", profile]
+        do_flash = False
+        mode = "HIL (no flash)"
+    elif use_hil:
+        binary = HIL_BINARIES[profile]
+        make_cmd = ["make", "-f", "Makefile_HIL", profile]
+        do_flash = True
+        mode = "HIL"
+    else:
+        binary = SIM_BINARIES[profile]
+        make_cmd = ["make", profile]
+        do_flash = False
+        mode = "SIL"
 
     print(f"Profile: {profile}")
-    print(f"Mode: {'HIL' if use_hil else 'SIL'}")
+    print(f"Mode: {mode}")
     print(f"Binary: {binary}")
 
     # Build: always rebuild (host + firmware for HIL, host for SIL)
@@ -176,8 +194,8 @@ def main():
         print("Build failed!")
         sys.exit(1)
 
-    # If HIL requested, check st-link and flash firmware
-    if use_hil:
+    # If HIL requested with flashing, check st-link and flash firmware
+    if do_flash:
         check_stlink_for_hil(profile)
 
     # Check if socat bridges already exist
