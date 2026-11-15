@@ -73,7 +73,8 @@ Several paths are hardcoded in this repository. **You must change them to match 
 
 | What | Hardcoded value | Where to change |
 |------|-----------------|-----------------|
-| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`), `run_sim.py` |
+| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`) |
+| `run_sim.py` paths (all models) | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in` | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
 | HIL serial port | `/dev/ttyACM0` | `compensator/compensator_hil.c`, Python visualizers |
 | Socat links inside Python files | `/home/dipto/sim_3d`, `/home/dipto/sim_graph` | `visualiser/*_telemetry.py`, `visualiser/*_animation.py` |
 
@@ -81,8 +82,9 @@ Several paths are hardcoded in this repository. **You must change them to match 
 
 The paths must match **exactly** between:
 1. The `socat` commands you run,
-2. The C source files (simulator/compensator), and
-3. The Python visualizer files.
+2. The C source files (simulator/compensator),
+3. `run_sim.py` for your chosen model, and
+4. The Python visualizer files.
 
 If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` and replace them with your own paths.
 
@@ -222,7 +224,8 @@ Several paths are hardcoded in this repository. **You must change them to match 
 
 | What | Hardcoded value | Where to change |
 |------|-----------------|-----------------|
-| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`), `run_sim.py` |
+| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`) |
+| `run_sim.py` paths (all models) | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in` | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
 | HIL serial port | `/dev/ttyACM0` | `compensator/compensator_hil.c`, Python visualizers |
 | Socat links inside Python files | `/home/dipto/sim_3d`, `/home/dipto/sim_graph` | `visualiser/*_telemetry.py`, `visualiser/*_animation.py` |
 
@@ -230,8 +233,9 @@ Several paths are hardcoded in this repository. **You must change them to match 
 
 The paths must match **exactly** between:
 1. The `socat` commands you run,
-2. The C source files (simulator/compensator), and
-3. The Python visualizer files.
+2. The C source files (simulator/compensator),
+3. `run_sim.py` for your chosen model, and
+4. The Python visualizer files.
 
 If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` and replace them with your own paths.
 
