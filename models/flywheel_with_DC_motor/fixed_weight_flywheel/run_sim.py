@@ -95,6 +95,9 @@ def check_stlink_for_hil(profile):
         print("=" * 60 + "\n")
         sys.exit(1)
 
+    # Give the ST-LINK a moment to settle after probing
+    time.sleep(1.0)
+
     # Flash the firmware to the MCU
     bin_path = HIL_BIN_PATHS[profile]
     if not os.path.exists(bin_path):
@@ -107,10 +110,18 @@ def check_stlink_for_hil(profile):
 
     print(f"\nFlashing firmware to STM32: {bin_path}")
     flash = subprocess.run(
-        ["st-flash", "write", bin_path, "0x08000000"],
+        ["st-flash", "--reset", "write", bin_path, "0x08000000"],
         capture_output=True, text=True
     )
     flash_ok = (flash.returncode == 0) or ("Flash written and verified" in flash.stdout) or ("jolly good" in flash.stdout)
+    if not flash_ok:
+        # Fallback: try without --reset
+        print("Retrying flash without --reset...")
+        flash = subprocess.run(
+            ["st-flash", "write", bin_path, "0x08000000"],
+            capture_output=True, text=True
+        )
+        flash_ok = (flash.returncode == 0) or ("Flash written and verified" in flash.stdout) or ("jolly good" in flash.stdout)
     if not flash_ok:
         print("\n" + "=" * 60)
         print("ERROR: Failed to flash firmware to STM32.")
