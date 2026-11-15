@@ -133,9 +133,6 @@ def check_stlink_for_hil():
 def main():
     use_hil = "--hil" in sys.argv
 
-    if use_hil:
-        check_stlink_for_hil()
-
     binary = HIL_BINARY if use_hil else SIM_BINARY
     make_cmd = ["make", "-f", "Makefile_HIL"] if use_hil else ["make"]
 
@@ -145,6 +142,10 @@ def main():
     if result.returncode != 0:
         print("Build failed!")
         sys.exit(1)
+
+    # If HIL requested, check st-link and flash firmware
+    if use_hil:
+        check_stlink_for_hil()
 
     # Check if socat bridges already exist
     bridges_exist = all(os.path.exists(f) for f in [SIM_3D, SIM_3D_IN, SIM_GRAPH, SIM_GRAPH_IN])
