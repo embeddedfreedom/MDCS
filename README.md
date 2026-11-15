@@ -226,7 +226,7 @@ Expected output: `arm-none-eabi-gcc (GNU Toolchain for the Arm Architecture 13.3
 
 **Note:** The cross-toolchain is used by `Makefile_HIL` to compile the STM32F411 firmware (`MDCS_HIL.out/.bin`). SIL builds (`make`) use the host compiler and do not require it.
 
-Debugger configuration and flashing steps are intentionally left open — configure `st-flash`, OpenOCD, or ST-LINK utilities as needed for your hardware setup.
+Flashing the resulting image is covered in [§6.3 Flashing Firmware](#63-flashing-firmware) — `st-flash`, OpenOCD, STM32CubeProgrammer or any tool of your choice, as long as the `.bin` lands at `0x08000000`.
 
 #### Step 3: Compilation
 
@@ -425,13 +425,65 @@ Host: `build/furnace_control/furnace_sim_hil` | Firmware: `build/furnace_control
 
 ### 6.3 Flashing Firmware
 
-Flash the compiled `MDCS_HIL.bin` firmware image onto the STM32F411 via your preferred programmer (ST-LINK, OpenOCD, J-Link, etc.). Use the `.bin` artifact produced by `Makefile_HIL`:
+`Makefile_HIL` links and then converts the ELF to a raw binary:
 
 ```
 build/<model>/MDCS_HIL.bin
 ```
 
-Flash to the MCU start address (0x08000000). Debugger configuration and flashing steps are intentionally left open — configure `st-flash`, OpenOCD, or ST-LINK utilities as needed for your hardware setup.
+Flash that file to the start of the STM32F411 flash, **`0x08000000`**. There is no bootloader offset — `startup_gcc.c` puts the vector table there via `MDCS_HIL.ld`.
+
+Each model (and each flywheel profile) produces its own firmware because the compensator law is compiled in, so always flash the `.bin` that sits next to the host binary you are about to run:
+
+| Model | Binary to flash |
+|---|---|
+| Furuta | `build/furuta/MDCS_HIL.bin` |
+| Pendulum | `build/inverted_pendulum/MDCS_HIL.bin` |
+| Flywheel (position) | `build/flywheel_control/position/MDCS_HIL.bin` |
+| Flywheel (speed) | `build/flywheel_control/speed/MDCS_HIL.bin` |
+| Furnace | `build/furnace_control/MDCS_HIL.bin` |
+
+#### Option A — `st-flash` (stlink-tools)
+
+Works with the on-board ST-LINK of the Discovery kit and with a standalone ST-LINK dongle:
+
+```bash
+sudo apt install stlink-tools          # Debian/Ubuntu
+st-flash --reset write build/<model>/MDCS_HIL.bin 0x08000000
+```
+
+#### Option B — OpenOCD
+
+```bash
+openocd -f interface/stlink.cfg -f target/stm32f4x.cfg \
+        -c "program build/<model>/MDCS_HIL.bin 0x08000000 verify reset exit"
+```
+
+On older OpenOCD releases the adapter config is named `interface/stlink-v2.cfg`.
+
+#### Option C — STM32CubeProgrammer
+
+CLI:
+
+```bash
+STM32_Programmer_CLI -c port=SWD -w build/<model>/MDCS_HIL.bin 0x08000000 -Rst
+```
+
+GUI: connect over SWD (SWDIO, SWCLK, GND, 3V3), open the `.bin`, set the start address to `0x08000000`, then **Download**.
+
+#### Option D — your own tool
+
+The list above is just a starting point. `pyocd`, a J-Link, `dfu-util` (only if the ROM bootloader is enabled), an IDE's download button, or any programmer that can write a raw binary to an absolute address will all work. **Students are free to use whatever flashing tool they already know** — nothing in the firmware or in the host simulator depends on how the image gets onto the chip.
+
+If your tool asks for an address, it is always `0x08000000`. If it asks for a format, the file is a raw `.bin`, not an ELF or a hex file (use `MDCS_HIL.out` if you want the ELF for debugging, `MDCS_HIL.bin` for flashing).
+
+#### After flashing
+
+- The board reboots and enumerates as a USB CDC device: `ls -l /dev/ttyACM0`.
+- `dmesg | tail` should show the CDC ACM attach.
+- The HIL host binary opens `/dev/ttyACM0` at 921600 baud, so the port must be free and the user must be in the `dialout` group.
+
+If `/dev/ttyACM0` never appears, the usual cause is the clock setup: the firmware assumes an **8 MHz HSE** crystal. A board with a different crystal needs the PLL factors in `PLL_Init_84MHz()` adjusted (see §6.6).
 
 ### 6.4 Running HIL
 
@@ -557,7 +609,7 @@ python3 run_sim.py --hil speed      # HIL speed build + run (flash MCU first!)
 
 ### Important notes
 
-- **HIL mode:** Flash the MCU firmware to the STM32F411 board *before* running `--hil`. Use `st-flash` or your preferred debugger with the `MDCS_HIL.bin` from `build/<model>/`.
+- **HIL mode:** Flash the MCU firmware to the STM32F411 board *before* running `--hil`. Use `st-flash` or any other programmer with the `MDCS_HIL.bin` from `build/<model>/` — see [§6.3 Flashing Firmware](#63-flashing-firmware).
 - **Socat bridges:** The script reuses existing bridges if they already exist; otherwise it creates new ones. You do not need to start socat manually.
 - **Working directory:** Always run `run_sim.py` from *inside* the model directory.
 

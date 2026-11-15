@@ -506,7 +506,8 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                 <code>make -f Makefile_HIL</code> (pendulum, furnace)<br>
                 <code>make -f Makefile_HIL position</code> / <code>make -f Makefile_HIL speed</code> (flywheel)</p>
                 <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Flash MCU:</strong><br>
-                <code>flash &lt;model&gt;/MDCS_HIL.bin</code> to your MCU via USB CDC</p>
+                write <code>build/&lt;model&gt;/MDCS_HIL.bin</code> at <code>0x08000000</code> over SWD<br>
+                (<code>st-flash --reset write MDCS_HIL.bin 0x08000000</code>, OpenOCD, STM32CubeProgrammer, or any tool you like)</p>
             </div>
 
             <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">MCU Compensator Laws</h3>
