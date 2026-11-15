@@ -219,33 +219,7 @@ In ideal situations, step b above should be run only. Steps a and c should be fo
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
-<div style="color: red; font-weight: bold; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin: 20px 0;">
-
-**⚠️ WARNING — Hardcoded Paths (change before building)**
-
-Several paths are hardcoded in this repository. **You must change them to match your machine/user before building or running anything:**
-
-| What | Hardcoded value | Where to change |
-|------|-----------------|-----------------|
-| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`) |
-| `run_sim.py` paths (all models) | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in` | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
-| HIL serial port | `/dev/ttyACM0` | `compensator/compensator_hil.c`, Python visualizers |
-| Socat links inside Python files | `/home/dipto/sim_3d`, `/home/dipto/sim_graph` | `visualiser/*_telemetry.py`, `visualiser/*_animation.py` |
-| VS Code `launch.json` (all models + hil) | `/home/dipto/st/.../ST-LINK_gdbserver`, `/home/dipto/Desktop/MDCS_Backup/MDCS/build/.../MDCS_HIL.out` | `.vscode/launch.json` (and `.vscode/launch.position.json`, `launch.speed.json` for flywheel) |
-| HIL test defaults | `/dev/ttyUSB0` | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c` |
-
-**If you do not update these, the simulator will write telemetry to the wrong PTY files, the Python visualizers will read from the wrong serial ports, VS Code debugging will point to the wrong binary, and nothing will appear to work.**
-
-The paths must match **exactly** between:
-1. The `socat` commands you run,
-2. The C source files (simulator/compensator),
-3. `run_sim.py` for your chosen model,
-4. The Python visualizer files, and
-5. (for HIL debugging) your VS Code `launch.json`.
-
-If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` (and `/dev/ttyUSB0` for tests) and replace them with your own paths.
-
-</div>
+> 🔗 **See the red "Hardcoded Paths" warning box at the top of this README** — it lists every path that must be changed before building/running (socat PTY links, `run_sim.py`, HIL serial port, VS Code `launch.json`, HIL test defaults). Read it before proceeding.
 
 #### Step 2: Source Code Path Configuration
 
