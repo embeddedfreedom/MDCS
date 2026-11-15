@@ -50,7 +50,11 @@ Telemetry is the 6-value stream `<T1 T2 u1 u2 q12 Tamb>`; the 3D animation reads
 
 `BENCH_TEST_ACCELERATED = 1` in `simulator/furnace_sim.c` divides `C1`/`C2` by 100, so the same sequence runs in seconds (75 °C in ≈ 12 s, back to ambient in ≈ 60 s) — useful for checking the law without waiting 18 minutes.
 
-The plant state is `double` while the compensator stays `float`; `docs/LQI_DERIVATION.md` §14 explains why a `float` state silently stops the slab from cooling.
+### Why the plant state is `double`
+
+A `float` cannot represent the cooling of this plant. At 20 kHz one RK4 step changes the industrial slab by only ≈ 2.5e-6 °C, while one ULP of a `float` near 75 °C is 7.6e-6 (half an ULP = 3.8e-6). `T += dT` therefore rounded straight back to `T`, so pressing `T` left the temperature frozen instead of cooling it. Heating still worked because 36 W gives 3.6e-6 °C per step, which does clear the threshold; bench mode hid the bug because `C1 = 5` makes every step 100× larger.
+
+`ThermalState` is now `double`, while `ThermalParams` and `compensator.c` stay `float` so the SIL law still matches the MCU law. The same note is in `simulator/furnace_sim.c` above `rk4_step()`, and the full derivation is in `docs/LQI_DERIVATION.md` §14.
 
 ## Gain derivation (Python)
 

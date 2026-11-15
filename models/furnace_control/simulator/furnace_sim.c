@@ -37,6 +37,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Global flag used by compensator to disconnect/suspend the simulation
 bool runloop;
 
+/*
+ * ---------------------------------------------------------------------------
+ * WHY THE THERMAL STATE IS double  (do not change it back to float)
+ * ---------------------------------------------------------------------------
+ *
+ * Symptom: the slab heats up normally, but pressing 'T' (heaters off) leaves
+ * the temperature frozen. Measured on the real binary:
+ *
+ *     90 s of heating : 25.000 -> 31.852 degC   (pwm 1.0 / 1.0)
+ *     press 'T'       : pwm -> 0.0 / 0.0
+ *     next 60 s       : 31.868 -> 31.868 degC   <- no cooling at all, ever
+ *
+ * Cause: the physics loop runs at 20 kHz RK4 and the industrial plant is very
+ * slow (tau ~ 1055 s). One 50 us step therefore moves the temperature by only
+ *
+ *     dT = (ha/C) * (T - Tamb) * dt
+ *        = (0.5/500) * (75 - 25) * 5e-5
+ *        = 2.5e-6 degC
+ *
+ * A float carries ~7 significant digits, so near 75 degC one ULP is 7.6e-6
+ * and half an ULP is 3.8e-6. The RK4 increment is SMALLER than half an ULP:
+ *
+ *     x->T1 += 2.5e-6;      // rounds straight back to x->T1
+ *
+ * so nothing happens on any step. The state is not merely slow, it is frozen.
+ *
+ * Why heating still worked: 36 W into C1 = 500 J/K gives 3.6e-6 degC per step,
+ * just above the rounding threshold, so energy going IN was integrated while
+ * energy going OUT was not.
+ *
+ * Why bench mode looked fine: BENCH_TEST_ACCELERATED uses C1 = 5, a 100x
+ * smaller thermal mass, so the same cooldown is ~2.5e-4 degC per step - far
+ * above the ULP - and a float state cools correctly. That masked the bug.
+ *
+ * Fix: keep the integrated state in double (ThermalState in furnace_types.h).
+ * Only the host integrates the plant; ThermalParams and compensator.c stay
+ * float so the SIL law keeps matching the MCU law. Double costs nothing
+ * measurable at 20 kHz on a PC.
+ * ---------------------------------------------------------------------------
+ */
+
 /**
  * @brief Computes the state derivatives for the Coupled Heat Slab.
  * Governing Equations:
@@ -190,6 +231,8 @@ int main() {
         float active_pwm2 = pwm2;
         
         // Safety shutdown: zero power if compensator is detached
+        // (with a float state this is where the temperature used to freeze -
+        //  see the precision note above rk4_step())
         if (!runloop) {
             active_pwm1 = 0.0f;
             active_pwm2 = 0.0f;
