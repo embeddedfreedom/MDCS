@@ -191,7 +191,9 @@ In ideal situations, step b above should be run only. Steps a and c should be fo
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
-#### ⚠️ WARNING — Hardcoded Paths (change before building)
+<div style="color: red; font-weight: bold; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin: 20px 0;">
+
+**⚠️ WARNING — Hardcoded Paths (change before building)**
 
 Several paths are hardcoded in this repository. **You must change them to match your machine/user before building or running anything:**
 
@@ -209,6 +211,8 @@ The paths must match **exactly** between:
 3. The Python visualizer files.
 
 If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` and replace them with your own paths.
+
+</div>
 
 #### Step 2: Source Code Path Configuration
 
