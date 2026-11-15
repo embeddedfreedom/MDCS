@@ -266,7 +266,7 @@ def main():
     display = [1200, 800]
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL | RESIZABLE)
     pygame.display.set_caption("Dual-Zone Coupled Heat Slab 3D Visualizer")
-    glClearColor(0.85, 0.85, 0.88, 1.0)
+    glClearColor(0.0, 0.0, 0.0, 1.0)
     glEnable(GL_DEPTH_TEST)
 
     view_rot_x, view_rot_y, zoom = 25, 30, -12
@@ -299,7 +299,8 @@ def main():
         glTranslatef(0, -1.0, zoom); glRotatef(view_rot_x, 1, 0, 0); glRotatef(view_rot_y, 0, 1, 0)
 
         # Draw Grid
-        glBegin(GL_LINES); glColor3f(0.6, 0.6, 0.6)
+        glLineWidth(1.0)
+        glBegin(GL_LINES); glColor3f(0.5, 0.5, 0.5)
         for i in range(-15, 16):
             glVertex3f(i, -1.0, -15); glVertex3f(i, -1.0, 15)
             glVertex3f(-15, -1.0, i); glVertex3f(15, -1.0, i)
@@ -308,7 +309,7 @@ def main():
         # Insulated Base
         glPushMatrix()
         glTranslatef(0, -0.65, 0)
-        draw_solid_box(BASE_L, BASE_H, BASE_W, (0.2, 0.2, 0.25))
+        draw_solid_box(BASE_L, BASE_H, BASE_W, (0.8, 0.8, 0.8))
         glPopMatrix()
 
         # Zone 1 and Zone 2 Slabs touching at X = 0

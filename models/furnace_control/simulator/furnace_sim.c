@@ -32,7 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // --- TIME-SCALE TOGGLE (0 = Real Industrial Slow, 1 = Rapid Bench Test) ---
 // Set to 1 if you want setpoints to settle in ~8 seconds instead of 15 minutes!
-#define BENCH_TEST_ACCELERATED       0
+#define BENCH_TEST_ACCELERATED       1
 
 // Global flag used by compensator to disconnect/suspend the simulation
 bool runloop;
