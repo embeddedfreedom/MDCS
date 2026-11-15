@@ -174,13 +174,12 @@ def main():
     print(f"Mode: {'HIL' if use_hil else 'SIL'}")
     print(f"Binary: {binary}")
 
-    # Build: always rebuild for HIL (host + firmware), SIL only if missing
-    if use_hil or not os.path.exists(binary):
-        print(f"Building with: {' '.join(make_cmd)}")
-        result = subprocess.run(make_cmd, cwd=MODEL_DIR)
-        if result.returncode != 0:
-            print("Build failed!")
-            sys.exit(1)
+    # Build: always rebuild (host + firmware for HIL, host for SIL)
+    print(f"Building with: {' '.join(make_cmd)}")
+    result = subprocess.run(make_cmd, cwd=MODEL_DIR)
+    if result.returncode != 0:
+        print("Build failed!")
+        sys.exit(1)
 
     # Check if socat bridges already exist
     bridges_exist = all(os.path.exists(f) for f in [SIM_3D, SIM_3D_IN, SIM_GRAPH, SIM_GRAPH_IN])
