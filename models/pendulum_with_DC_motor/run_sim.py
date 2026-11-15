@@ -56,7 +56,7 @@ signal.signal(signal.SIGTERM, cleanup)
 
 
 def check_stlink_for_hil():
-    """Check that st-flash is available and the STM32 MCU is reachable."""
+    """Check that st-flash is available, the STM32 MCU is reachable, and flash firmware."""
     if shutil.which("st-flash") is None:
         print("\n" + "=" * 60)
         print("ERROR: st-flash not found on this system.")
@@ -81,6 +81,31 @@ def check_stlink_for_hil():
         print(f"    st-flash --reset write {HIL_BIN_PATH} 0x08000000")
         print("=" * 60 + "\n")
         sys.exit(1)
+
+    # Flash the firmware to the MCU
+    if not os.path.exists(HIL_BIN_PATH):
+        print("\n" + "=" * 60)
+        print(f"ERROR: Firmware binary not found: {HIL_BIN_PATH}")
+        print("Build the HIL firmware first:")
+        print(f"    make -f Makefile_HIL")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
+    print(f"\nFlashing firmware to STM32: {HIL_BIN_PATH}")
+    flash = subprocess.run(
+        ["st-flash", "--reset", "write", HIL_BIN_PATH, "0x08000000"],
+        capture_output=True, text=True
+    )
+    if flash.returncode != 0:
+        print("\n" + "=" * 60)
+        print("ERROR: Failed to flash firmware to STM32.")
+        print(flash.stderr or flash.stdout)
+        print("Flash manually before running --hil:")
+        print(f"    st-flash --reset write {HIL_BIN_PATH} 0x08000000")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
+    print("Firmware flashed successfully.\n")
 
 
 def main():
