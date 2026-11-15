@@ -136,8 +136,6 @@ def check_stlink_for_hil(profile):
         print("\n" + "=" * 60)
         print("ERROR: Failed to flash firmware to STM32.")
         print(flash.stderr or flash.stdout)
-        print("Flash manually before running --hil:")
-        print(f"    st-flash --reset write {bin_path} 0x08000000")
         print("=" * 60 + "\n")
         sys.exit(1)
 
