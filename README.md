@@ -65,6 +65,29 @@ The `socat` configuration used in this suite creates a specific set of virtual s
 
 - Attempting to run a second model (e.g., running `inverted_pendulum` while `furuta_pendulum` is active) will result in serial port resource conflicts and data corruption.
 
+<div style="color: red; font-weight: bold; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin: 20px 0;">
+
+**⚠️ WARNING — Hardcoded Paths (change before building)**
+
+Several paths are hardcoded in this repository. **You must change them to match your machine/user before building or running anything:**
+
+| What | Hardcoded value | Where to change |
+|------|-----------------|-----------------|
+| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`), `run_sim.py` |
+| HIL serial port | `/dev/ttyACM0` | `compensator/compensator_hil.c`, Python visualizers |
+| Socat links inside Python files | `/home/dipto/sim_3d`, `/home/dipto/sim_graph` | `visualiser/*_telemetry.py`, `visualiser/*_animation.py` |
+
+**If you do not update these, the simulator will write telemetry to the wrong PTY files and the Python visualizers will read from the wrong serial ports — nothing will appear to work.**
+
+The paths must match **exactly** between:
+1. The `socat` commands you run,
+2. The C source files (simulator/compensator), and
+3. The Python visualizer files.
+
+If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` and replace them with your own paths.
+
+</div>
+
 ## 2. Prerequisites
 
 ### System Dependencies
