@@ -40,6 +40,18 @@ Keys while running: `S` = enable compensator, `T` = disable, `Q` = quit.
 
 Telemetry is the 6-value stream `<T1 T2 u1 u2 q12 Tamb>`; the 3D animation reads `/home/dipto/sim_3d` and the plotter reads `/home/dipto/sim_graph`, both at 115200 baud.
 
+## Runtime behaviour (industrial parameters)
+
+| Phase | What you should see |
+|---|---|
+| Warm-up | PWM pegged at 1.0/1.0, 75 °C reached in ≈ 1100 s (18–19 min), roughly 2.8 °C/min early on |
+| Steady state | `pwm1 ≈ 0.8333`, `pwm2 ≈ 0.7454` (feedforward holding the setpoint against ambient loss) |
+| `T` pressed | PWM → 0 and the slab coasts down at ≈ 2.8 °C/min from setpoint, slowing as it approaches ambient (τ ≈ 1055 s) |
+
+`BENCH_TEST_ACCELERATED = 1` in `simulator/furnace_sim.c` divides `C1`/`C2` by 100, so the same sequence runs in seconds (75 °C in ≈ 12 s, back to ambient in ≈ 60 s) — useful for checking the law without waiting 18 minutes.
+
+The plant state is `double` while the compensator stays `float`; `docs/LQI_DERIVATION.md` §14 explains why a `float` state silently stops the slab from cooling.
+
 ## Gain derivation (Python)
 
 `docs/furnace_lqi_design.py` solves the continuous-time ARE for the 4-state LQI plant and prints C-ready values:

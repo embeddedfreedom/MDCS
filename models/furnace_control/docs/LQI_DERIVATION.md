@@ -874,8 +874,8 @@ Implemented in `compensator.c` with clamping.
 
 | Derivation                | Equation                                                           | C code                                                                                                                                                             |
 | ------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Zone 1 energy balance     | $C_1\dot{T}_1 = P_1 - K_{12}(T_1-T_2) - h_{a1}A_{a1}(T_1-T_{amb})$ | `float q12 = p->K12 * (t1 - t2);`<br>`float p1 = (p->Vmax * pwm1) * (p->Vmax * pwm1) / p->R;`<br>`float dT1_dt = (p1 - q12 - p->ha1_A1 * (t1 - p->Tamb)) / p->C1;` |
-| Zone 2 energy balance     | $C_2\dot{T}_2 = P_2 - K_{12}(T_2-T_1) - h_{a2}A_{a2}(T_2-T_{amb})$ | `float p2 = (p->Vmax * pwm2) * (p->Vmax * pwm2) / p->R;`<br>`float dT2_dt = (p2 + q12 - p->ha2_A2 * (t2 - p->Tamb)) / p->C2;`                                      |
+| Zone 1 energy balance     | $C_1\dot{T}_1 = P_1 - K_{12}(T_1-T_2) - h_{a1}A_{a1}(T_1-T_{amb})$ | `double q12 = p->K12 * (t1 - t2);`<br>`double p1 = (p->Vmax * pwm1) * (p->Vmax * pwm1) / p->R;`<br>`double dT1_dt = (p1 - q12 - p->ha1_A1 * (t1 - p->Tamb)) / p->C1;` |
+| Zone 2 energy balance     | $C_2\dot{T}_2 = P_2 - K_{12}(T_2-T_1) - h_{a2}A_{a2}(T_2-T_{amb})$ | `double p2 = (p->Vmax * pwm2) * (p->Vmax * pwm2) / p->R;`<br>`double dT2_dt = (p2 + q12 - p->ha2_A2 * (t2 - p->Tamb)) / p->C2;`                                 |
 | A matrix element a₁₁      | $-\frac{K_{12}+h_{a1}A_{a1}}{C_1}$                                 | `(p1 - q12 - p->ha1_A1 * (t1 - p->Tamb)) / p->C1`                                                                                                                  |
 | A matrix element a₁₂      | $\frac{K_{12}}{C_1}$                                               | implicit via `q12 / C1` in dT1_dt                                                                                                                                  |
 | A matrix element a₂₁      | $\frac{K_{12}}{C_2}$                                               | implicit via `q12 / C2` in dT2_dt                                                                                                                                  |
@@ -884,7 +884,7 @@ Implemented in `compensator.c` with clamping.
 | B matrix element b₂₂      | $\frac{2 \cdot V_{max}^2 \cdot pwm_{sp2}}{R \cdot C_2}$            | `(p->Vmax * pwm2) * (p->Vmax * pwm2) / p->R / p->C2` (linearized)                                                                                                  |
 | Disturbance vector d      | $\frac{h_{a1}A_{a1}}{C_1}T_{amb}$                                  | `p->ha1_A1 * p->Tamb / p->C1`                                                                                                                                      |
 | Disturbance vector d      | $\frac{h_{a2}A_{a2}}{C_2}T_{amb}$                                  | `p->ha2_A2 * p->Tamb / p->C2`                                                                                                                                      |
-| RK4 integration           | $\dot{x} = f(x,pwm)$                                               | `rk4_step(&s, active_pwm1, active_pwm2, dt, &p);`                                                                                                                  |
+| RK4 integration           | $\dot{x} = f(x,pwm)$                                               | `rk4_step(&s, active_pwm1, active_pwm2, physics_dt, &p);`                                                                                                          |
 | 1 kHz compensator trigger | Every 20 physics steps                                             | `if (i >= 20)`                                                                                                                                                     |
 | Compensator call          | `run_thermal_compensator_cycle(...)`                               | `run_thermal_compensator_cycle(measured_T1, measured_T2, &p, &pwm1, &pwm2);`                                                                                       |
 | Telemetry output          | `<T1 T2 pwm1 pwm2 q12 Tamb>`                                       | `snprintf(buf, ..., "%.4f\t%.4f\t...")`                                                                                                                            |
@@ -903,6 +903,42 @@ Implemented in `compensator.c` with clamping.
 | Output saturation  | $u \in [0, 100]$                             | `clampf(&out1, U_MIN, U_MAX);`<br>`clampf(&out2, U_MIN, U_MAX);`                   |
 | Anti-windup commit | skip q update if saturated                   | `if (!sat1) q1 = q1_next;`<br>`if (!sat2) q2 = q2_next;`                           |
 | Output assignment  | $pwm_1, pwm_2$                               | `*pwm1 = out1;`<br>`*pwm2 = out2;`                                                 |
+
+---
+
+## 14. Numerical precision — why `ThermalState` is `double`
+
+The controller stays single precision to match the MCU, but the **plant state must be double**. The reason is the ratio between the integration step and the state itself.
+
+At the top of the industrial range the fastest passive cooling rate is
+
+$$\dot{T}_1 = -\frac{h_{a1}A_{a1}(T_1 - T_{amb})}{C_1}
+           = -\frac{0.5 \times (75-25)}{500} = -0.05\ \text{°C/s}$$
+
+so one 50 µs RK4 step moves the temperature by
+
+$$\Delta T = 0.05 \times 5\times10^{-5} = 2.5\times10^{-6}\ \text{°C}.$$
+
+A `float` has a 24-bit mantissa, so its spacing (ULP) near 75 °C is $2^{-17} \approx 7.6\times10^{-6}$ and half an ULP is $3.8\times10^{-6}$. The RK4 increment is *smaller than half an ULP*, so
+
+```c
+x->T1 += 2.5e-6;   /* rounds straight back to x->T1 — every step, forever */
+```
+
+does nothing. The slab still **heats** (36 W gives 3.6e-6 °C per step, which does clear the threshold), so the defect only shows up after pressing `T`: the PWM goes to zero and the temperature stops dead instead of decaying.
+
+This is why bench mode appeared to work. With `C1 = 5` the same cooldown is 100× faster (2.5e-4 °C per step), far above the ULP, so a float state cools normally.
+
+**Fix:** integrate the thermal state in `double` (`ThermalState` in `simulator/furnace_types.h`) while `ThermalParams` and `compensator.c` stay `float`. Only the host integrates the plant, so the MCU law keeps its single-precision, no-libm rules and SIL/HIL gain parity is unchanged.
+
+With the fix the industrial plant behaves as derived:
+
+| Phase | Behaviour |
+|---|---|
+| Warm-up (heaters saturated at 1.0) | 75 °C in ≈ 1100 s (18–19 min) |
+| Steady state | `pwm1 = 0.8333`, `pwm2 = 0.7454` |
+| `T` pressed at setpoint | ≈ 2.8 °C/min, slowing exponentially (τ ≈ 1055 s) |
+| Bench parameters (`C1=5`, `C2=4.5`) | 75 °C in ≈ 12 s, back to ambient in ≈ 60 s |
 
 ---
 

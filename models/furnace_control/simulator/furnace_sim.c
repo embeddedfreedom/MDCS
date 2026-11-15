@@ -44,22 +44,22 @@ bool runloop;
  *   C2 * dT2/dt = u2 + K12*(T1 - T2) - ha2_A2*(T2 - Tamb)
  */
 void compute_derivatives(const ThermalState *x, float pwm1, float pwm2, const ThermalParams *p, ThermalState *dx) {
-    float t1 = x->T1;
-    float t2 = x->T2;
+    double t1 = x->T1;
+    double t2 = x->T2;
 
     // --- HEATER MODEL: PWM duty cycle -> voltage -> power ---
     // P = V^2 / R, where V = Vmax * pwm (clamped to [0, Vmax])
-    float v1 = p->Vmax * pwm1;
-    float v2 = p->Vmax * pwm2;
-    float p1 = (v1 * v1) / p->R;   // Heater 1 electrical power (W)
-    float p2 = (v2 * v2) / p->R;   // Heater 2 electrical power (W)
+    double v1 = (double)p->Vmax * pwm1;
+    double v2 = (double)p->Vmax * pwm2;
+    double p1 = (v1 * v1) / p->R;   // Heater 1 electrical power (W)
+    double p2 = (v2 * v2) / p->R;   // Heater 2 electrical power (W)
 
     // Heat flux from node 1 to node 2
-    float q12 = p->K12 * (t1 - t2);
+    double q12 = p->K12 * (t1 - t2);
 
     // Dynamic temperature derivatives
-    float dT1_dt = (p1 - q12 - p->ha1_A1 * (t1 - p->Tamb)) / p->C1;
-    float dT2_dt = (p2 + q12 - p->ha2_A2 * (t2 - p->Tamb)) / p->C2;
+    double dT1_dt = (p1 - q12 - p->ha1_A1 * (t1 - p->Tamb)) / p->C1;
+    double dT2_dt = (p2 + q12 - p->ha2_A2 * (t2 - p->Tamb)) / p->C2;
 
     dx->T1 = t1;
     dx->T2 = t2;
@@ -73,20 +73,20 @@ void compute_derivatives(const ThermalState *x, float pwm1, float pwm2, const Th
 /**
  * @brief 4th-Order Runge-Kutta numerical integrator
  */
-void rk4_step(ThermalState *x, float u1, float u2, float dt, const ThermalParams *p) {
+void rk4_step(ThermalState *x, float u1, float u2, double dt, const ThermalParams *p) {
     ThermalState k1, k2, k3, k4, xt;
     
     // Step 1: Evaluate at start of interval
     compute_derivatives(x, u1, u2, p, &k1);
     
     // Step 2: Evaluate at midpoint using k1
-    xt.T1 = x->T1 + 0.5f * dt * k1.T1_dot; 
-    xt.T2 = x->T2 + 0.5f * dt * k1.T2_dot;
+    xt.T1 = x->T1 + 0.5 * dt * k1.T1_dot; 
+    xt.T2 = x->T2 + 0.5 * dt * k1.T2_dot;
     compute_derivatives(&xt, u1, u2, p, &k2);
     
     // Step 3: Evaluate at midpoint using k2
-    xt.T1 = x->T1 + 0.5f * dt * k2.T1_dot; 
-    xt.T2 = x->T2 + 0.5f * dt * k2.T2_dot;
+    xt.T1 = x->T1 + 0.5 * dt * k2.T1_dot; 
+    xt.T2 = x->T2 + 0.5 * dt * k2.T2_dot;
     compute_derivatives(&xt, u1, u2, p, &k3);
     
     // Step 4: Evaluate at end of interval using k3
@@ -95,8 +95,8 @@ void rk4_step(ThermalState *x, float u1, float u2, float dt, const ThermalParams
     compute_derivatives(&xt, u1, u2, p, &k4);
     
     // Weighted accumulation of states
-    x->T1 += (dt / 6.0f) * (k1.T1_dot + 2.0f * k2.T1_dot + 2.0f * k3.T1_dot + k4.T1_dot);
-    x->T2 += (dt / 6.0f) * (k1.T2_dot + 2.0f * k2.T2_dot + 2.0f * k3.T2_dot + k4.T2_dot);
+    x->T1 += (dt / 6.0) * (k1.T1_dot + 2.0 * k2.T1_dot + 2.0 * k3.T1_dot + k4.T1_dot);
+    x->T2 += (dt / 6.0) * (k1.T2_dot + 2.0 * k2.T2_dot + 2.0 * k3.T2_dot + k4.T2_dot);
     
     // Update auxiliary telemetry & derivatives
     x->T1_dot = k4.T1_dot;
@@ -146,7 +146,7 @@ int main() {
         .q12 = 0.0f
     };
     
-    float dt = 0.00005f; // 20kHz Physics simulation step (50 microseconds)
+    const double physics_dt = 0.00005; // 20kHz Physics simulation step (50 microseconds)
     int sim_3d_in = open("/home/dipto/sim_3d_in", O_WRONLY | O_NONBLOCK);
     int sim_graph_in = open("/home/dipto/sim_graph_in", O_WRONLY | O_NONBLOCK);
     
@@ -196,7 +196,7 @@ int main() {
         }
 
         // Integrate thermal physics
-        rk4_step(&s, active_pwm1, active_pwm2, dt, &p);
+        rk4_step(&s, active_pwm1, active_pwm2, physics_dt, &p);
 
         i++; 
         // ==================================================
@@ -224,8 +224,8 @@ int main() {
             jitter1 = ((float)rand() / RAND_MAX - 0.5f) * JITTER_STRENGTH;
             jitter2 = ((float)rand() / RAND_MAX - 0.5f) * JITTER_STRENGTH;
 #endif
-            float measured_T1 = s.T1 + jitter1;
-            float measured_T2 = s.T2 + jitter2;
+            float measured_T1 = (float)(s.T1 + jitter1);
+            float measured_T2 = (float)(s.T2 + jitter2);
 
             if (runloop) {
                 /* --- COMPENSATOR HOOK (1 kHz) --- */
