@@ -473,6 +473,64 @@ make -f Makefile_HIL
 
 Host: `build/furnace_control/furnace_sim_hil` | Firmware: `build/furnace_control/MDCS_HIL.out/.bin` (built with `-DHIL_TWO_OUTPUTS`)
 
+### 6.2.5 Makefile Hierarchy & Build Mechanism
+
+MDCS uses a two-level Makefile system. Each model directory contains its own `Makefile` (SIL) and `Makefile_HIL` (HIL), while the shared STM32F411 firmware engine lives in `hil/hil_STM32F4/`.
+
+```
+MDCS/
+├── Makefile                        # SIL build (host gcc)
+├── Makefile_HIL                    # HIL build (host + invokes shared firmware)
+├── simulator/                      # SIL physics engine (20 kHz RK4)
+├── compensator/                    # Control laws
+│   ├── compensator.c               # SIL law (float math)
+│   ├── compensator_hil.c           # Host-side HIL link (USB CDC)
+│   └── compensator_STM32F411.c     # MCU law (bare-metal float only)
+├── visualiser/                     # Python 3D + telemetry
+├── run_sim.py                      # Build + socat + simulator + visualizers
+└── docs/                           # Derivations & diagrams
+```
+
+```
+hil/hil_STM32F4/                    # Shared bare-metal firmware engine
+├── Makefile                        # STM32F411 firmware (MIT licensed)
+├── HIL_main.c                      # USB CDC task + compensator adapter
+├── src/
+│   ├── core_initialisation_STM32F411xe.c   # Clock, GPIO, TIM3 PWM, USB
+│   ├── startup_gcc.c                 # Vector table, reset handler
+│   ├── UART.c                        # UART helpers
+│   ├── printm.c                      # Bare-metal printf (LGPLv2.1)
+│   ├── handlers_STM32F411xe.c        # IRQ handlers
+│   ├── applications.c                # Main loop
+│   ├── usb_descriptors.c             # USB CDC descriptors
+│   └── usb_cdc_adapter.c             # 12-byte frame parser + dispatcher
+└── MDCS_HIL.ld                       # Linker script (FLASH @ 0x08000000)
+```
+
+**Build flow — SIL (`make`):**
+
+The model's `Makefile` compiles the simulator (`simulator/<model>_sim.c`) + SIL compensator (`compensator/compensator.c`) + `get_keypress.c` with host `gcc`. Output goes to `build/<model>/<model>_sim` (or `build/flywheel_control/flywheel_position_sim` / `flywheel_speed_sim`).
+
+**Build flow — HIL (`make -f Makefile_HIL`):**
+
+Two separate compilations happen:
+
+1. **Host binary** — Compiled with host `gcc` from the simulator + `compensator/compensator_hil.c` (USB CDC link layer) + `get_keypress.c`. Outputs `build/<model>/<model>_sim_hil` (or `build/flywheel_control/{position,speed}/flywheel_hil_sim`).
+
+2. **MCU firmware** — `Makefile_HIL` recursively invokes `hil/hil_STM32F4/Makefile`, passing:
+   - `COMPENSATOR=<absolute path to model's MCU compensator .c file>`
+   - `OUTPUT_DIR=<absolute path to model's build folder>`
+   - Optional `EXTRA_CFLAGS` (e.g., `-DHIL_TWO_OUTPUTS` for furnace, `-DFLYWHEEL_SPEED`)
+
+   The shared firmware Makefile compiles STM32F411 bare-metal code (TinyUSB stack + clock + GPIO + TIM3 PWM + CDC adapter + model's compensator), links with `arm-none-eabi-gcc`, then `arm-none-eabi-objcopy` produces `MDCS_HIL.bin` for flashing at `0x08000000`.
+
+**Key points:**
+
+- **No `COMPENSATOR` hardcoded in shared firmware** — Each model's `Makefile_HIL` injects its own compensator. The shared `hil/hil_STM32F4/Makefile` requires `COMPENSATOR` to be set (errors out otherwise, except for `make clean`).
+- **Single-precision only (MCU)** — `float` math, `fpv4-sp-d16` FPU, hard-float ABI. No `double`, no `M_PI`, no libm. Local `sqrt_pos()` Newton iteration replaces `sqrtf()`.
+- **Clean builds** — `make clean` removes the model's entire `build/` subtree (SIL + HIL together). For flywheel, both `position/` and `speed/` subfolders are removed.
+- **Header changes** — Firmware rules list `.c` sources only; editing a `.h` does not force a rebuild. Use `make -B -f Makefile_HIL` or delete `MDCS_HIL.out` after header changes.
+
 ### 6.3 Flashing Firmware
 
 `Makefile_HIL` links and then converts the ELF to a raw binary:
