@@ -597,7 +597,9 @@ The STM32F411 firmware uses TIM3 for hardware PWM output. Pin assignments:
 | Furnace             | TIM3  | CH1     | PA6 | AF2                | Heater 1 PWM duty    |
 | Furnace             | TIM3  | CH2     | PA7 | AF2                | Heater 2 PWM duty    |
 
-**Note:** All models use TIM3. The furnace uses both TIM3_CH1 (PA6) and TIM3_CH2 (PA7) for its two independent heater PWMs. 
+**Note:** All models use TIM3. The furnace uses both TIM3_CH1 (PA6) and TIM3_CH2 (PA7) for its two independent heater PWMs. TIM4 is **not** configured for PWM output in any model — it only appears in the interrupt vector table as an unused default handler.
+
+**Scope check vs USB CDC link:** The PWM pins (PA6/PA7) output the PWM duty cycle on the STM32 and can be probed with an oscilloscope or multimeter to verify the firmware is generating the expected signal. However, in the HIL setup the actual control values are sent back to the host over USB CDC (the 12-byte frame, 921600 baud) — the PWM pins are for hardware verification only, not the primary feedback path.
 
 ## 7. System Specifications & Logic
 
