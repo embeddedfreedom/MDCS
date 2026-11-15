@@ -191,9 +191,28 @@ In ideal situations, step b above should be run only. Steps a and c should be fo
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
+#### ⚠️ WARNING — Hardcoded Paths (change before building)
+
+Several paths are hardcoded in this repository. **You must change them to match your machine/user before building or running anything:**
+
+| What | Hardcoded value | Where to change |
+|------|-----------------|-----------------|
+| Socat PTY links (3D + graph) | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in` | C simulator source (`simulator/*.c`), `run_sim.py` |
+| HIL serial port | `/dev/ttyACM0` | `compensator/compensator_hil.c`, Python visualizers |
+| Socat links inside Python files | `/home/dipto/sim_3d`, `/home/dipto/sim_graph` | `visualiser/*_telemetry.py`, `visualiser/*_animation.py` |
+
+**If you do not update these, the simulator will write telemetry to the wrong PTY files and the Python visualizers will read from the wrong serial ports — nothing will appear to work.**
+
+The paths must match **exactly** between:
+1. The `socat` commands you run,
+2. The C source files (simulator/compensator), and
+3. The Python visualizer files.
+
+If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` and replace them with your own paths.
+
 #### Step 2: Source Code Path Configuration
 
-**Crucial:** The paths used in the `socat` commands above (e.g., `/home/dipto/sim_3d`) must be **exactly** matched inside your source files:
+The paths used in the `socat` commands above (e.g., `/home/dipto/sim_3d`) must be **exactly** matched inside your source files:
 
 - Update the device paths in the **C source files** (simulator/compensator).
 
