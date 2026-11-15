@@ -17,6 +17,7 @@ import signal
 import sys
 import os
 import time
+import shutil
 
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MODEL_DIR)))
@@ -30,6 +31,10 @@ SIM_BINARIES = {
 HIL_BINARIES = {
     "position": os.path.join(BUILD_DIR, "position", "flywheel_hil_sim"),
     "speed": os.path.join(BUILD_DIR, "speed", "flywheel_hil_sim"),
+}
+HIL_BIN_PATHS = {
+    "position": os.path.join(BUILD_DIR, "position", "MDCS_HIL.bin"),
+    "speed": os.path.join(BUILD_DIR, "speed", "MDCS_HIL.bin"),
 }
 
 SIM_3D = "/home/dipto/sim_3d"
@@ -63,6 +68,34 @@ signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
 
+def check_stlink_for_hil(profile):
+    """Check that st-flash is available and the STM32 MCU is reachable."""
+    if shutil.which("st-flash") is None:
+        print("\n" + "=" * 60)
+        print("ERROR: st-flash not found on this system.")
+        print("HIL mode requires the STM32 ST-LINK programmer tools.")
+        print("Please install stlink-tools yourself, for example:")
+        print("    sudo apt install stlink-tools")
+        print("Then flash the firmware manually before running --hil:")
+        print(f"    st-flash --reset write {HIL_BIN_PATHS[profile]} 0x08000000")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
+    # Try to probe the target MCU
+    probe = subprocess.run(["st-info", "--probe"], capture_output=True, text=True)
+    if probe.returncode != 0 or "No target connected" in probe.stdout or "failed" in probe.stdout.lower():
+        print("\n" + "=" * 60)
+        print("ERROR: STM32 target not detected by ST-LINK.")
+        print("Check that:")
+        print("  - The STM32F411 board is connected via USB")
+        print("  - BOOT0 is set to 0 (normal flash mode)")
+        print("  - The ST-LINK drivers are installed")
+        print("Then flash the firmware manually before running --hil:")
+        print(f"    st-flash --reset write {HIL_BIN_PATHS[profile]} 0x08000000")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     profile = args[0] if args else "position"
@@ -71,6 +104,9 @@ def main():
         sys.exit(1)
 
     use_hil = "--hil" in sys.argv
+
+    if use_hil:
+        check_stlink_for_hil(profile)
 
     binary = HIL_BINARIES[profile] if use_hil else SIM_BINARIES[profile]
     make_cmd = ["make", "-f", "Makefile_HIL", profile] if use_hil else ["make", profile]

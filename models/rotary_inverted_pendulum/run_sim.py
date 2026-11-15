@@ -15,12 +15,14 @@ import signal
 import sys
 import os
 import time
+import shutil
 
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(MODEL_DIR))
 BUILD_DIR = os.path.join(ROOT_DIR, "build", "furuta")
 SIM_BINARY = os.path.join(BUILD_DIR, "furuta_sim")
 HIL_BINARY = os.path.join(BUILD_DIR, "furuta_sim_hil")
+HIL_BIN_PATH = os.path.join(BUILD_DIR, "MDCS_HIL.bin")
 
 SIM_3D = "/home/dipto/sim_3d"
 SIM_3D_IN = "/home/dipto/sim_3d_in"
@@ -53,8 +55,39 @@ signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
 
+def check_stlink_for_hil():
+    """Check that st-flash is available and the STM32 MCU is reachable."""
+    if shutil.which("st-flash") is None:
+        print("\n" + "=" * 60)
+        print("ERROR: st-flash not found on this system.")
+        print("HIL mode requires the STM32 ST-LINK programmer tools.")
+        print("Please install stlink-tools yourself, for example:")
+        print("    sudo apt install stlink-tools")
+        print("Then flash the firmware manually before running --hil:")
+        print(f"    st-flash --reset write {HIL_BIN_PATH} 0x08000000")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
+    # Try to probe the target MCU
+    probe = subprocess.run(["st-info", "--probe"], capture_output=True, text=True)
+    if probe.returncode != 0 or "No target connected" in probe.stdout or "failed" in probe.stdout.lower():
+        print("\n" + "=" * 60)
+        print("ERROR: STM32 target not detected by ST-LINK.")
+        print("Check that:")
+        print("  - The STM32F411 board is connected via USB")
+        print("  - BOOT0 is set to 0 (normal flash mode)")
+        print("  - The ST-LINK drivers are installed")
+        print("Then flash the firmware manually before running --hil:")
+        print(f"    st-flash --reset write {HIL_BIN_PATH} 0x08000000")
+        print("=" * 60 + "\n")
+        sys.exit(1)
+
+
 def main():
     use_hil = "--hil" in sys.argv
+
+    if use_hil:
+        check_stlink_for_hil()
 
     binary = HIL_BINARY if use_hil else SIM_BINARY
     make_cmd = ["make", "-f", "Makefile_HIL"] if use_hil else ["make"]
