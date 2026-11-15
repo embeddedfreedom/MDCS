@@ -495,7 +495,20 @@ Start the socat bridges first (see Step 1 above), then run the HIL host binary f
 
 Press **S** to enable the compensator, **T** to disable, **Q** to quit.
 
-**Runtime caveat:** Host↔MCU USB CDC turnaround (~300 ms) exceeds the 3 ms poll timeout. Needs the physical MCU connected to diagnose; SIL profiles are unaffected.
+**Link behaviour (measured on hardware, current firmware):** one host→MCU→host exchange costs **≈ 0.4 ms** (0.32–0.50 ms over five requests at 921600 baud), far inside the 3 ms `poll()` timeout, so USB does not limit the 1 kHz compensator cadence. A normal run reports no `CONNECTION ERROR` lines.
+
+Probing the MCU directly, with setpoints 75/75 °C, shows the law running on the chip and not on the host:
+
+| Sent T1 / T2 | PWM1 / PWM2 returned | Why |
+|---|---|---|
+| 25.0 / 25.0 | 1.0000 / 1.0000 | 50 °C below setpoint — `Kx ≈ 20.8` saturates both heaters |
+| 74.0 / 74.0 | 1.0000 / 1.0000 | 1 °C below setpoint is still enough to saturate |
+| 75.0 / 75.0 | 0.8333 / 0.7454 | zero error → exactly the feedforward `pwm_sp` |
+| 76.0 / 76.0 | 0.0000 / 0.0000 | above setpoint → heaters off |
+
+Every reply carried `status = 0x01` (running) and a valid XOR checksum.
+
+**MCU integrator cadence:** the MCU law keeps no clock of its own. Each frame it receives advances the integral by a fixed `q += e * 0.001f`, i.e. it assumes exactly one host call per millisecond. The host calls the compensator once per 20 physics steps (1 kHz), so the two rates agree as long as the host loop meets its deadline. If the host falls behind, the integral simply advances more slowly in wall time — invisible at τ ≈ 1000 s, but do not change the host cadence without also changing that `0.001f`.
 
 ### 6.5 Bare-Metal Firmware Rules
 

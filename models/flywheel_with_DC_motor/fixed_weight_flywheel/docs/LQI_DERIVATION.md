@@ -1177,7 +1177,7 @@ The hardware-in-the-loop profile uses the same 20-bit host path:
 - The host→MCU packet is still 8 bytes and carries `float pos` in **radians**, not raw counts. The 20-bit change therefore does not require a CPR or packet-format change on the MCU side; the MCU receives a cleaner angle. Verify that the MCU-side parser matches the flywheel 8-byte packet before runtime, since the shared HIL adapter also supports the 12-byte two-angle packet.
 - The MCU→host packet is 8 bytes with `float output`, status, and XOR checksum, sync `0xAA 0x55` / `0x55 0xAA`, 921600 baud, 3 ms poll timeout.
 
-**Runtime caveat:** the HIL build is verified, but the host↔MCU USB CDC turnaround measured about 300 ms, which exceeds the 3 ms poll timeout. That is a transport/timing issue, not a control-law issue, and it needs the physical MCU to diagnose. The SIL profiles are unaffected.
+**Runtime status:** the HIL control law builds and the shared USB transport is healthy — a host→MCU→host exchange measures **≈ 0.4 ms** at 921600 baud (measured on the furnace, which uses the same framing and poll timeout), far inside the 3 ms poll timeout. An earlier note here claiming a ~300 ms USB CDC turnaround was wrong. The flywheel HIL path itself has not been re-run on hardware since that finding, so flash the profile's `MDCS_HIL.bin` and run the host binary to confirm it.
 
 ---
 
