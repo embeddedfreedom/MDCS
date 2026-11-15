@@ -67,6 +67,7 @@ Checked on real hardware with the firmware from `make -f Makefile_HIL`, running 
 | Framing | `sync 55 AA`, valid XOR checksum, `status = 0x01` on every reply |
 | Law on chip | 75/75 °C → `pwm 0.8333/0.7454` (feedforward); 76/76 → `0/0`; 25/25 and 74/74 → `1.0/1.0` |
 | Bench loop | 25 → 75 °C in ≈ 11 s, holds 75.00, cools to ≈ 32 °C within 20 s of `T`; `CONNECTION ERROR` count 0 |
+| Slow loop | 25 → 75 °C in ≈ 1100 s, holds at setpoint, coasts down ~2.6 °C/min after `T` over 200 s; `CONNECTION ERROR` count 0 |
 
 The MCU has no clock of its own: each received frame does `q += e * 0.001f`, so the integral assumes one host call per millisecond. The host calls at 1 kHz, which matches while the host loop keeps up; a slow host makes the integral advance more slowly in wall time, which is harmless at τ ≈ 1000 s.
 

@@ -108,7 +108,6 @@ The compilation paths are mapped according to the following relative organizatio
 ├── Makefile                     <-- SIL compilation engine (position + speed)
 ├── Makefile_HIL                 <-- HIL compilation engine (position + speed)
 ├── docs
-├── docs
 │   ├── flywheel_lqi_design.py   <-- Full LQR/LQI gain generator (position + speed)
 │   └── LQI_DERIVATION.md        <-- Mathematical derivation and tuning guide
 ├── README.md

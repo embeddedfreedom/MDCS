@@ -95,14 +95,14 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install required packages
-pip3 install pyserial numpy pyside6 pyqtgraph pygame PyOpenGL
+pip3 install pyserial numpy pyside6 pyqtgraph pygame PyOpenGL PyOpenGL-accelerate
 ```
 
 ---
 
 ## 3. Project Structure
 
-The project is organized into modular directories. For specific mathematical proofs, control theory diagrams, and stability analysis, refer to the **`docs/`** folder.
+The project is organized into modular directories. For specific mathematical proofs, control theory diagrams, and stability analysis, refer to the **`docs/`** folder inside each model directory.
 
 **📁 models/[model_name]/**
 
@@ -145,7 +145,7 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 
 ### 🛠 Student Workflow
 
-1. **Review the `docs/`**: Understand the mathematical model before touching the code.
+1. **Review the model's `docs/`**: Understand the mathematical model before touching the code.
 
 2. **Modify `compensator/`**: Implement your control gains or logic.
 
@@ -162,7 +162,7 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 | Furuta | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (p. 11); reproduces all four checked-in gains |
 | Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned |
 | Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
-| Furnace | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `docs/LQI_DERIVATION.md` §16); matches both C copies |
+| Furnace | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies |
 
 ---
 
@@ -197,7 +197,7 @@ In ideal situations, step b above should be run only. Steps a and c should be fo
 
 - Update the device paths in the **C source files** (simulator/compensator).
 
-- Update the serial port strings in the **Python files** (`plotter.py` and `visualizer_3d.py, these file names vary with models).
+- Update the serial port strings in the **Python files** (for example `furuta_telemetry.py` and `furuta_animation.py`; the names vary by model).
 
 #### Step 2.5: Install ARM Cross-Toolchain (for HIL Firmware)
 
@@ -262,7 +262,7 @@ The simulator does not pass the "true" angle to the compensator. Instead, it con
 | **Key** | **Action**  | **Effect**                                                                           |
 | ------- | ----------- | ------------------------------------------------------------------------------------ |
 | **S**   | **Enable**  | Starts the compensator logic and applies motor power.                                |
-| **T**   | **Disable** | Dicconnects compensator from plant (`pwm = 0`); physics continue to run (free fall). |
+| **T**   | **Disable** | Disconnects compensator from plant (`pwm = 0`); physics continue to run (free fall). |
 | **Q**   | **Quit**    | Safely closes the simulation.                                                        |
 
  The model visualisers both graphical and the model will settle down like the real scenario. Pressing S again connects the compensator.  The output also displays timing jitter alerts if the control loop executes faster or slower than the expected interval of 1 millisecond. 
@@ -278,7 +278,7 @@ The loop is governed by `clock_nanosleep` using the `CLOCK_MONOTONIC` timer. Thi
 Bash
 
 ```
-python3 visualiser/plotter.py (Names will vary with model)
+python3 visualiser/furuta_telemetry.py    # filenames vary by model, see the table below
 ```
 
 The Telemetry plotter is a high-frequency (1kHz) data visualization and logging tool built with Python, PySide6, and PyQtGraph. Designed specifically for control systems engineering and hardware-in-the-loop testing.
@@ -326,7 +326,7 @@ The Telemetry plotter is a high-frequency (1kHz) data visualization and logging 
 Start the simulator: Run the Python script to see the system in action:
 
 ```bash
-python3 visualiser/visualizer_3d.py (Will differ based on model)
+python3 visualiser/furuta_animation.py    # filenames vary by model, see the table below
 ```
 
 ##### 5.3.1. Architectural Overview
@@ -363,6 +363,15 @@ The simulator includes a 2D heads-up display (HUD) overlaid on the 3D scene.
 | **Zoom In/Out**   | `Right-Click + Drag` | Adjusts the camera distance (Z-translation).              |
 | **Toggle Units**  | `T` Key              | Switches the HUD between Radians and Degrees.             |
 | **Resize Window** | `Drag Corner`        | The viewport automatically adjusts the perspective ratio. |
+
+**Script names by model** (run from inside the model directory):
+
+| Model | Telemetry plotter | 3D simulator |
+|---|---|---|
+| Furuta | `visualiser/furuta_telemetry.py` | `visualiser/furuta_animation.py` |
+| Pendulum | `visualiser/motor_and_pendulum_telemetry.py` | `visualiser/motor_and_pendulum_animation.py` |
+| Flywheel | `visualiser/motor_and_flywheel_telemetry.py` | `visualiser/motor_and_flywheel_animation.py` |
+| Furnace | `visualiser/furnace_telemetry.py` | `visualiser/furnace_animation.py` |
 
 **NOTE:** The simulator and plotter can be started in any order, any one can also be started if the other is not required. This will not affect the visuals at all.
 

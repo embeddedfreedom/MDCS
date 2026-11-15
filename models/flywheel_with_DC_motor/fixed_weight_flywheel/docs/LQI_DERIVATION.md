@@ -1174,8 +1174,8 @@ The hardware-in-the-loop profile uses the same 20-bit host path:
 - `compensator/hil_control/compensator_hil.c` uses `Decoder20` and `decoder20_process`.
 - `MAX_BUS_STATES` is 32768, enough for 4.85 ms at the 40.465 rad/s no-load speed.
 - `Makefile_HIL` defines `-DHIL_PROFILE`, so `flywheel_sim.c` enables the 20-bit codec for HIL as well.
-- The host→MCU packet is still 8 bytes and carries `float pos` in **radians**, not raw counts. The 20-bit change therefore does not require a CPR or packet-format change on the MCU side; the MCU receives a cleaner angle. Verify that the MCU-side parser matches the flywheel 8-byte packet before runtime, since the shared HIL adapter also supports the 12-byte two-angle packet.
-- The MCU→host packet is 8 bytes with `float output`, status, and XOR checksum, sync `0xAA 0x55` / `0x55 0xAA`, 921600 baud, 3 ms poll timeout.
+- Both directions use the shared **12-byte** frame (an 8-byte packet belongs to an older adapter): host→MCU `sync 0xAA 0x55 | float pos1 | float pos2 | uint8 cmd | uint8 checksum`, MCU→host `sync 0x55 0xAA | float out1 | float out2 | uint8 status | uint8 checksum`.
+- `pos1` carries the angle in **radians** (not raw counts, wrapped to ±π) with `pos2 = 0`; the MCU returns the signed motor voltage in `out1` and echoes `pos2` in `out2`. 921600 baud, 3 ms poll timeout. The 20-bit change therefore needs no CPR or packet-format change on the MCU side.
 
 **Runtime status:** the HIL control law builds and the shared USB transport is healthy — a host→MCU→host exchange measures **≈ 0.4 ms** at 921600 baud (measured on the furnace, which uses the same framing and poll timeout), far inside the 3 ms poll timeout. An earlier note here claiming a ~300 ms USB CDC turnaround was wrong. The flywheel HIL path itself has not been re-run on hardware since that finding, so flash the profile's `MDCS_HIL.bin` and run the host binary to confirm it.
 

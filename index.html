@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modular Dynamics Control Suite (MDCS) - SIL Simulator</title>
-    <meta name="description" content="Modular Dynamics Control Suite (MDCS): Lightweight 20kHz SIL simulator for control systems like Furuta Pendulum and DC Motor. Code C compensators, bridge theory to embedded firmware.">
+    <meta name="description" content="Modular Dynamics Control Suite (MDCS): Lightweight 20kHz SIL simulator for control systems like the Furuta pendulum, DC-motor pendulum, flywheel and coupled thermal furnace. Code C compensators, bridge theory to embedded firmware.">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://embeddedfreedom.dev/">
     <meta property="og:title" content="Modular Dynamics Control Suite (MDCS) - SIL Simulator">
-    <meta property="og:description" content="Modular Dynamics Control Suite (MDCS): Lightweight 20kHz SIL simulator for control systems like Furuta Pendulum and DC Motor. Code C compensators, bridge theory to embedded firmware.">
+    <meta property="og:description" content="Modular Dynamics Control Suite (MDCS): Lightweight 20kHz SIL simulator for control systems like the Furuta pendulum, DC-motor pendulum, flywheel and coupled thermal furnace. Code C compensators, bridge theory to embedded firmware.">
     <meta property="og:image" content="https://drive.google.com/thumbnail?id=1fDoL-trrQ1vb06qEXCZGTvNvvishzZ8o&sz=w1200">
 
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://embeddedfreedom.dev/">
     <meta property="twitter:title" content="Modular Dynamics Control Suite (MDCS) - SIL Simulator">
-    <meta property="twitter:description" content="Modular Dynamics Control Suite (MDCS): Lightweight 20kHz SIL simulator for control systems like Furuta Pendulum and DC Motor. Code C compensators, bridge theory to embedded firmware.">
+    <meta property="twitter:description" content="Modular Dynamics Control Suite (MDCS): Lightweight 20kHz SIL simulator for control systems like the Furuta pendulum, DC-motor pendulum, flywheel and coupled thermal furnace. Code C compensators, bridge theory to embedded firmware.">
     <meta property="twitter:image" content="https://drive.google.com/thumbnail?id=1fDoL-trrQ1vb06qEXCZGTvNvvishzZ8o&sz=w1200">
 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -289,7 +289,7 @@
     </style>
 
     <link rel="canonical" href="https://embeddedfreedom.dev/" />
-        <meta name="keywords" content="Cortex-M4, Embedded Systems, LQR Control, SIL Simulator, Bare-metal C, Furuta Pendulum, Control Systems Engineering">
+        <meta name="keywords" content="Cortex-M4, Embedded Systems, LQR Control, LQI Control, SIL Simulator, Bare-metal C, Furuta Pendulum, Flywheel, Furnace Control, HIL, STM32F411, Control Systems Engineering">
         <meta name="author" content="Embedded Freedom">
 
         <script type="application/ld+json">
@@ -419,7 +419,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                 </p>
                 <p>
                     <strong>2. DC Motor with Inverse Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
-                    A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( 180^\circ \le \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
+                    A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( \theta = 180^\circ \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
                 </p>
                 <p>
                     <strong>3. Flywheel with DC Motor:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
@@ -444,7 +444,10 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
         <div class="glass-card">
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Hardware-in-the-Loop (HIL)</h2>
             <p style="font-size: 0.95rem; color: #334155;">
-                MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411RE</b> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
+                MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
+            </p>
+            <p style="font-size: 0.9rem; color: #475569;">
+                Measured on hardware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate.
             </p>
 
             <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
