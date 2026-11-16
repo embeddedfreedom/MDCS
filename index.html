@@ -180,7 +180,8 @@
         .spec-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         .spec-table td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); }
 
-        .noise-pill { background: #1e293b; color: #fff; padding: 5px 12px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; margin: 4px; display: inline-block; }
+        .noise-pill { color: var(--ef-blue); font-family: monospace; font-size: 0.78rem; font-weight: 600; margin: 4px 6px; display: inline-block; padding: 2px 6px; border: 1px solid rgba(30, 58, 138, 0.25); border-radius: 3px; background: rgba(30, 58, 138, 0.04); transition: all 0.2s ease; }
+        .noise-pill:hover { background: rgba(30, 58, 138, 0.12); border-color: var(--ef-blue); }
 
         /* XP Style Deep Green 3D Square Button */
         .github-btn { 
@@ -443,7 +444,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
 
         <div class="glass-card">
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Hardware-in-the-Loop (HIL)</h2>
-            <p style="font-size: 0.95rem; color: #334155;">
+            <p style="font-size: 1rem; color: #334155;">
                 MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
             </p>
             <p style="font-size: 0.9rem; color: #475569;">
