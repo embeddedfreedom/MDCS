@@ -790,10 +790,4 @@ python3 run_sim.py --help             # Show usage help
 
 ---
 
-## Support
-
-If you find MDCS useful, consider supporting development:
-
-[!["Sponsor on GitHub"](https://img.shields.io/github/sponsors/embeddedfreedom?logo=GitHub&color=fb625e)](https://github.com/sponsors/embeddedfreedom)
-
-Or via PayPal: [Donate via PayPal](https://paypal.me/embeddedfreedom)
+**Support via PayPal:** [Donate via PayPal](https://paypal.me/embeddedfreedom)
