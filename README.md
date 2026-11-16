@@ -29,7 +29,16 @@ Before setting up the local environment, you can explore the system architecture
 
 - **Dashboard:** [embeddedfreedom.dev](https://www.embeddedfreedom.dev) — *A web-based overview of the MDCS models, system specifications, and ecosystem positioning.*
 
-- **Video Walkthrough:** [MDCS Setup & Demonstration](https://youtu.be/eaQ9mskr6E8) — *A 7-minute guide covering the SIL loop, telemetry plotter interaction, and 3D OpenGL visualization.*
+- **Video Walkthrough:** [MDCS Setup & Demonstration (v1.x — SIL only)](https://youtu.be/eaQ9mskr6E8) — *A 7-minute guide covering the SIL loop, telemetry plotter interaction, and 3D OpenGL visualization. HIL, flywheel, and furnace are covered in §6 and the model sections.*
+
+## What's new in v2.0
+
+| Addition | Details |
+|---|---|
+| **Hardware-in-the-Loop (HIL)** | STM32F411 over USB CDC at 921600 baud. Fixed 12-byte frames with XOR checksums. See §6 for build, flash, and pin mapping. |
+| **Flywheel with DC Motor** | Position and speed profiles, 20-bit quadrature encoder, Z-pulse drift compensation at revolution boundaries. |
+| **Furnace Control** | 2×2 coupled thermal LQI, dual PWM outputs (TIM3 CH1/PA6, CH2/PA7), industrial and bench parameter sets. |
+| **Automation** | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model. |
 
 ## 1. Architecture Overview
 
