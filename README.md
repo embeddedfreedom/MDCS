@@ -54,6 +54,8 @@ The SIL project is built for **Linux Desktop** environments and utilizes a **
 
 ![Diagram](general_architecture.png)
 
+[Image 1] Attached file: /home/dipto/3.Technology/Digital_Control_Systems/Control_Systems_Emulator/MDCS/general_architecture_hil.png
+
 #### 1.1 Modeling Fidelity & Abstractions
 
 Bridging the digital-to-physical gap with intentional modeling choices:
