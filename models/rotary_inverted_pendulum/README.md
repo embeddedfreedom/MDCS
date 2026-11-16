@@ -1,7 +1,19 @@
-<!--
+/*
 Copyright (C) 2026 Diptopal Basu (embeddedfreedom)
-Licensed under the MIT License
--->
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 # Furuta (Rotary Inverted Pendulum)
 
@@ -30,7 +42,9 @@ Telemetry is the 6-value stream `<theta1 theta2 theta1_dot theta2_dot torque com
 
 ## Gain derivation (Python)
 
-The LQR design script is embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (pages 11-12). It reproduces all four checked-in gains (`k1`, `k2`, `k3`, `k4`).
+The LQR design script is embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Furuta.pdf` §5 (pages 12-13). It reproduces all four checked-in gains (`k1`, `k2`, `k3`, `k4`).
+
+The older MIT-licensed `Complete_derivation_Rotary_Inverted_Pendulum.pdf` is superseded by the GPLv3 `Complete_derivation_Furuta.pdf`; it is kept only as a local, untracked copy.
 
 ## HIL
 

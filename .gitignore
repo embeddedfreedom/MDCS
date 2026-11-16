@@ -12,6 +12,8 @@ __pycache__/
 # Documentation & Images
 .marktext/
 *.log
+# Superseded MIT-licensed Furuta derivation PDF (kept on disk, not distributed)
+models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf
 
 # System files
 .DS_Store

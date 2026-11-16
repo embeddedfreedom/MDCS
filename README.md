@@ -188,7 +188,7 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 | Model    | Gain derivation                                                                                                                                                                            |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (pp. 11-12); reproduces all four checked-in gains                     |
+| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Furuta.pdf` §5 (pp. 12-13); reproduces all four checked-in gains                     |
 | Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned                                 |
 | Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
 | Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies                                          |
@@ -689,7 +689,7 @@ MDCS uses multiple licenses depending on the component:
 
 | Component                                                           | License  | File                    |
 | ------------------------------------------------------------------- | -------- | ----------------------- |
-| Root README, AGENTS.md, LICENSE-GPLv3                               | GPLv3    | `LICENSE-GPLv3`         |
+| Documentation (READMEs, `AGENTS.md`, `docs/*.md`, `docs/*.pdf`, diagrams) | GPLv3    | `LICENSE-GPLv3`         |
 | All model source (`*.c`, `*.h`, `*.py`, `Makefile`, `Makefile_HIL`) | GPLv3    | `LICENSE-GPLv3`         |
 | Framework (`framework/`)                                            | GPLv3    | `LICENSE-GPLv3`         |
 | HIL shared firmware (`hil/hil_STM32F4/`)                            | MIT      | `LICENSE-MIT`           |
@@ -697,8 +697,8 @@ MDCS uses multiple licenses depending on the component:
 | `tinyusb-master/` (vendored stack)                                  | MIT      | `tinyusb-master/`       |
 | `printm.c` (printf implementation)                                  | LGPLv2.1 | `LICENSES/LGPL-2.1.txt` |
 
-- **`LICENSE-GPLv3`** — GPLv3, the primary license for MDCS source code.
-- **`LICENSE-MIT`** — MIT License, applies to HIL firmware and MCU compensator files.
+- **`LICENSE-GPLv3`** — GPLv3, the primary license for MDCS source code and documentation.
+- **`LICENSE-MIT`** — MIT License, applies only to HIL firmware and MCU compensator files.
 - **`LICENSES/LGPL-2.1.txt`** — GNU Lesser General Public License v2.1, applies to `hil/hil_STM32F4/src/printm.c`.
 - **`tinyusb-master/`** — Vendored third-party stack, licensed under MIT (see `tinyusb-master/` source headers).
 
