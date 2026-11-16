@@ -27,10 +27,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "flywheel_types.h"
 #include "encoder_decoder_logic.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
-#endif
-
 /* A real index pulse occurs only at the revolution boundary. The simulator
    emits a one-shot pulse on window entry; gate the snap so a coarse window
    position can never erase real motion. */

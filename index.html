@@ -562,7 +562,6 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                 <li>FPU: <code>fpv4-sp-d16</code>, hard-float ABI</li>
                 <li>Firmware rules list <code>.c</code> sources only — after editing a header, force a rebuild with <code>make -B -f Makefile_HIL</code> or delete <code>MDCS_HIL.out</code></li>
                 <li><code>EXTRA_CFLAGS</code> is not a make dependency — stale firmware can persist if defines change without cleaning</li>
-                <li><strong>Documented exception:</strong> Furuta's MCU law includes <code>&lt;math.h&gt;</code> and uses the double <code>M_PI</code>, so it links <code>__aeabi_d*</code> soft-double helpers. The other three models comply.</li>
             </ul>
         </div>
 

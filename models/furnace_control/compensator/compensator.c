@@ -21,10 +21,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "compensator.h"
 #include "furnace_types.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
-#endif
-
 /* ----------------------------------------------------------------
  * Tuning — edit these to retune.
  * ---------------------------------------------------------------- */

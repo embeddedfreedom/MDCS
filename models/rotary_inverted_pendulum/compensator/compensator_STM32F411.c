@@ -6,8 +6,8 @@ Licensed under the MIT License
 #include <math.h>
 #include "core_initialisation_STM32F411xe.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
+#ifndef PI
+#define PI 3.14159265358979323846f
 #endif
 
 static bool initialized = false;
@@ -16,8 +16,8 @@ static int serial_fd = -1;
 float Vmax = 12.0f;
 
 static void wrap_angle(float *a) {
-    while (*a >  M_PI) *a -= 2.0f * M_PI;
-    while (*a < -M_PI) *a += 2.0f * M_PI;
+    while (*a >  PI) *a -= 2.0f * PI;
+    while (*a < -PI) *a += 2.0f * PI;
 }
 
 float run_compensator_cycle_HIL(float t1, float t2){
@@ -30,7 +30,7 @@ float run_compensator_cycle_HIL(float t1, float t2){
     t1_prev = t1; 
     t2_prev = t2; 
     
-    float angle_err = t2 - M_PI;
+    float angle_err = t2 - PI;
     wrap_angle(&angle_err);
     float u = 0;
 

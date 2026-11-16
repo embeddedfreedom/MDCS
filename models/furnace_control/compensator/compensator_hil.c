@@ -26,10 +26,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "compensator.h"
 #include "furnace_types.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
-#endif
-
 #pragma pack(push, 1)
 typedef struct __attribute__((packed)) {
     uint8_t  sync[2];       

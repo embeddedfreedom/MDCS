@@ -22,10 +22,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "furuta_types.h"
 #include "encoder_decoder_logic.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
-#endif
-
 static bool initialized = false;
 static Decoder dec_arm, dec_pend;
 static float t1_prev = 0, t2_prev = 0;
