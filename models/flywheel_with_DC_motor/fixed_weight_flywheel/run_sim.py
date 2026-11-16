@@ -2,16 +2,16 @@
 """
 Run MDCS Flywheel with DC Motor simulator with visualizers.
 
-Automates: build -> socat bridges -> simulator -> visualizers.
+Automates: build -> flash (HIL only) -> socat bridges -> simulator -> visualizers.
 Press Ctrl+C to stop everything.
 
 Usage:
-    python3 run_sim.py              # SIL position build + run
+    python3 run_sim.py position     # SIL position build + run
     python3 run_sim.py speed        # SIL speed build + run
-    python3 run_sim.py --hil        # HIL position build + flash + run
+    python3 run_sim.py --hil position  # HIL position build + flash + run
     python3 run_sim.py --hil speed  # HIL speed build + flash + run
-    python3 run_sim.py --hil-no-flash position   # HIL position build only (flash MCU yourself)
-    python3 run_sim.py --hil-no-flash speed      # HIL speed build only (flash MCU yourself)
+    python3 run_sim.py --hil-no-flash position   # HIL position build + run, skip flashing (flash MCU yourself first)
+    python3 run_sim.py --hil-no-flash speed      # HIL speed build + run, skip flashing (flash MCU yourself first)
 """
 
 import subprocess
@@ -154,13 +154,13 @@ Usage:
   python3 run_sim.py speed              # SIL speed build + run
   python3 run_sim.py --hil position     # HIL position build + flash + run
   python3 run_sim.py --hil speed        # HIL speed build + flash + run
-  python3 run_sim.py --hil-no-flash position   # HIL position build only
-  python3 run_sim.py --hil-no-flash speed      # HIL speed build only
+  python3 run_sim.py --hil-no-flash position   # HIL position build + run, skip flashing
+  python3 run_sim.py --hil-no-flash speed      # HIL speed build + run, skip flashing
   python3 run_sim.py --help             # Show this help message
 
 Options:
   --hil <profile>       Build HIL host + STM32 firmware, flash MCU, run simulator
-  --hil-no-flash <profile>   Build HIL host + STM32 firmware only, skip flashing
+  --hil-no-flash <profile>   Build HIL host + STM32 firmware, skip flashing, then run
   --help, -h            Show this help message and exit
 
 Profiles:

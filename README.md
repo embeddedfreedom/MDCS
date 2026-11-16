@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Installation Manual and Architecture Overview: Modular Dynamics Control Suite (MDCS)
 
-**Date:** February 2026
+**Date:** November 2026
 
-**Version:** 1.0
+**Version:** 2.0
 
 **Executive Summary & Configuration:** This document serves as the installation and configuration manual and the architecture overview document for the MDCS simulation environment. It details the setup of the 20kHz simulation engine, the 1kHz compensator interface, and the virtual serial bridge configuration required for real-time visualization and control. This repository contains a collection of independent, hardcoded dynamical models. This manual also details the setup required to bridge these C-based simulations to the Python visualizers via virtual serial ports. 
 
@@ -63,7 +63,7 @@ The `socat` configuration used in this suite creates a specific set of virtual s
 
 - **Do not run two models simultaneously.**
 
-- Attempting to run a second model (e.g., running `inverted_pendulum` while `furuta_pendulum` is active) will result in serial port resource conflicts and data corruption.
+- Attempting to run a second model (e.g., running `inverted_pendulum_sim` while `furuta_sim` is active) will result in serial port resource conflicts and data corruption.
 
 <div style="color: red; font-weight: bold; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin: 20px 0;">
 
@@ -75,7 +75,7 @@ Several paths are hardcoded in this repository. **You must change them to match 
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Socat PTY links (3D + graph)             | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in`    | C simulator source (`simulator/*.c`)                                                                                                                                                            |
 | `run_sim.py` paths (all models)          | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in`    | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
-| HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c`, Python visualizers                                                                                                                                             |
+| HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c` (host-side link); the Python visualizers read the socat links, not the MCU                                                                                                                                             |
 | Socat links inside Python files          | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`                                                         | `visualiser/*_telemetry.py`, `visualiser/*_animation.py`                                                                                                                                        |
 | VS Code `launch.json` (all models + hil) | `/home/dipto/st/.../ST-LINK_gdbserver`, `/home/dipto/Desktop/MDCS_Backup/MDCS/build/.../MDCS_HIL.out` | `.vscode/launch.json` (and `.vscode/launch.position.json`, `launch.speed.json` for flywheel)                                                                                                    |
 | HIL test defaults                        | `/dev/ttyUSB0`                                                                                        | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c`                                                                                                        |
@@ -149,7 +149,7 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
   
   - **`Design Diagrams:`** Includes the **System Block Diagrams**. These visualize the control architecture, showing how sensor data is filtered, passed through the compensator, and converted into actuator commands (Torque/Voltage).
 
-- **`Makefile`**: Every model folder includes a Makefile. Simply run `make` to compile the compensator and simulator into a single executable binary.
+- **`Makefile`**: Every model folder includes a Makefile. Run `make` to compile the compensator and simulator into a single executable binary. The flywheel is multi-profile: use `make position` or `make speed` instead of a plain `make`.
 
 - **`Makefile_HIL`**: (Selected models) Builds the Hardware-in-the-Loop host executable plus STM32F411 firmware. Requires a physical MCU on `/dev/ttyACM0`.
 
@@ -188,7 +188,7 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 | Model    | Gain derivation                                                                                                                                                                            |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (p. 11); reproduces all four checked-in gains                     |
+| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_Inverted_Pendulum.pdf` §5 (pp. 11-12); reproduces all four checked-in gains                     |
 | Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned                                 |
 | Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
 | Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies                                          |
@@ -478,14 +478,14 @@ Host: `build/furnace_control/furnace_sim_hil` | Firmware: `build/furnace_control
 MDCS uses a two-level Makefile system. Each model directory contains its own `Makefile` (SIL) and `Makefile_HIL` (HIL), while the shared STM32F411 firmware engine lives in `hil/hil_STM32F4/`.
 
 ```
-MDCS/
+models/<model>/
 ├── Makefile                        # SIL build (host gcc)
 ├── Makefile_HIL                    # HIL build (host + invokes shared firmware)
 ├── simulator/                      # SIL physics engine (20 kHz RK4)
 ├── compensator/                    # Control laws
 │   ├── compensator.c               # SIL law (float math)
 │   ├── compensator_hil.c           # Host-side HIL link (USB CDC)
-│   └── compensator_STM32F411.c     # MCU law (bare-metal float only)
+│   └── compensator_STM32F411.c     # MCU law (furnace names it compensator_hil_STM32F4.c)
 ├── visualiser/                     # Python 3D + telemetry
 ├── run_sim.py                      # Build + socat + simulator + visualizers
 └── docs/                           # Derivations & diagrams
@@ -509,25 +509,25 @@ hil/hil_STM32F4/                    # Shared bare-metal firmware engine
 
 **Build flow — SIL (`make`):**
 
-The model's `Makefile` compiles the simulator (`simulator/<model>_sim.c`) + SIL compensator (`compensator/compensator.c`) + `get_keypress.c` with host `gcc`. Output goes to `build/<model>/<model>_sim` (or `build/flywheel_control/flywheel_position_sim` / `flywheel_speed_sim`).
+The model's `Makefile` compiles the simulator (`simulator/<model>_sim.c`) + SIL compensator (`compensator/compensator.c`; flywheel uses `compensator/{position_control,speed_control}/compensator.c`) + `get_keypress.c` with host `gcc`. Output goes to `build/<model>/<model>_sim` (or `build/flywheel_control/flywheel_position_sim` / `flywheel_speed_sim`).
 
 **Build flow — HIL (`make -f Makefile_HIL`):**
 
 Two separate compilations happen:
 
-1. **Host binary** — Compiled with host `gcc` from the simulator + `compensator/compensator_hil.c` (USB CDC link layer) + `get_keypress.c`. Outputs `build/<model>/<model>_sim_hil` (or `build/flywheel_control/{position,speed}/flywheel_hil_sim`).
+1. **Host binary** — Compiled with host `gcc` from the simulator + `compensator/compensator_hil.c` (USB CDC link layer; flywheel uses `compensator/hil_control/compensator_hil.c`) + `get_keypress.c`. Outputs `build/<model>/<model>_sim_hil` (or `build/flywheel_control/{position,speed}/flywheel_hil_sim`).
 
 2. **MCU firmware** — `Makefile_HIL` recursively invokes `hil/hil_STM32F4/Makefile`, passing:
    - `COMPENSATOR=<absolute path to model's MCU compensator .c file>`
    - `OUTPUT_DIR=<absolute path to model's build folder>`
-   - Optional `EXTRA_CFLAGS` (e.g., `-DHIL_TWO_OUTPUTS` for furnace, `-DFLYWHEEL_SPEED`)
+   - Optional `EXTRA_CFLAGS` (e.g., `-DHIL_TWO_OUTPUTS` for furnace; the flywheel selects its profile by choosing the MCU source file)
 
    The shared firmware Makefile compiles STM32F411 bare-metal code (TinyUSB stack + clock + GPIO + TIM3 PWM + CDC adapter + model's compensator), links with `arm-none-eabi-gcc`, then `arm-none-eabi-objcopy` produces `MDCS_HIL.bin` for flashing at `0x08000000`.
 
 **Key points:**
 
 - **No `COMPENSATOR` hardcoded in shared firmware** — Each model's `Makefile_HIL` injects its own compensator. The shared `hil/hil_STM32F4/Makefile` requires `COMPENSATOR` to be set (errors out otherwise, except for `make clean`).
-- **Single-precision only (MCU)** — `float` math, `fpv4-sp-d16` FPU, hard-float ABI. No `double`, no `M_PI`, no libm. Local `sqrt_pos()` Newton iteration replaces `sqrtf()`.
+- **Single-precision only (MCU)** — `float` math, `fpv4-sp-d16` FPU, hard-float ABI. No `double`, no `M_PI`, no libm. Local `sqrt_pos()` Newton iteration replaces `sqrtf()`. Furuta's MCU law is the current documented exception; see §6.5.
 - **Clean builds** — `make clean` removes the model's entire `build/` subtree (SIL + HIL together). For flywheel, both `position/` and `speed/` subfolders are removed.
 - **Header changes** — Firmware rules list `.c` sources only; editing a `.h` does not force a rebuild. Use `make -B -f Makefile_HIL` or delete `MDCS_HIL.out` after header changes.
 
@@ -591,19 +591,27 @@ If your tool asks for an address, it is always `0x08000000`. If it asks for a fo
 - `dmesg | tail` should show the CDC ACM attach.
 - The HIL host binary opens `/dev/ttyACM0` at 921600 baud, so the port must be free and the user must be in the `dialout` group.
 
-If `/dev/ttyACM0` never appears, the usual cause is the clock setup: the firmware assumes an **8 MHz HSE** crystal. A board with a different crystal needs the PLL factors in `PLL_Init_84MHz()` adjusted (see §6.6).
+If `/dev/ttyACM0` never appears, the usual cause is the clock setup: the firmware assumes an **8 MHz HSE** crystal. A board with a different crystal needs the PLL factors in `PLL_Init_84MHZ()` adjusted (see §6.6).
 
 ### 6.4 Running HIL
 
-Start the socat bridges first (see Step 1 above), then run the HIL host binary from the model directory:
+Start the socat bridges first (see Step 1 above), then run the HIL host binary. From a model directory two levels below the repo root (furuta, pendulum, furnace), the path is `../../build/<build_dir>/<hil_binary>`, using the build directories listed in §6.2:
 
 ```bash
-../../build/<model>/<hil_binary>
+../../build/furuta/furuta_sim_hil
+../../build/inverted_pendulum/inverted_pendulum_sim_hil
+../../build/furnace_control/furnace_sim_hil
+```
+
+The nested flywheel model is three levels deep, so its binaries are at:
+
+```bash
+../../../build/flywheel_control/{position,speed}/flywheel_hil_sim
 ```
 
 Press **S** to enable the compensator, **T** to disable, **Q** to quit.
 
-**Link behaviour (measured on hardware, current firmware):** one host→MCU→host exchange costs **≈ 0.4 ms** (0.32–0.50 ms over five requests at 921600 baud), far inside the 3 ms `poll()` timeout, so USB does not limit the 1 kHz compensator cadence. A normal run reports no `CONNECTION ERROR` lines.
+**Link behaviour (measured on hardware with the furnace firmware; the other MCU laws build but have not been individually exercised on hardware yet):** one host→MCU→host exchange costs **≈ 0.4 ms** (0.32–0.50 ms over five requests at 921600 baud), far inside the 3 ms `poll()` timeout, so USB does not limit the 1 kHz compensator cadence. A normal furnace run reports no `CONNECTION ERROR` lines.
 
 Probing the MCU directly, with setpoints 75/75 °C, shows the law running on the chip and not on the host:
 
@@ -627,6 +635,8 @@ MCU code must stay fully bare-metal: no `-lm`, no newlib syscalls, single-precis
 - Firmware rules list `.c` sources only — after editing a header, force a rebuild with `make -B -f Makefile_HIL` or delete `MDCS_HIL.out`.
 - `EXTRA_CFLAGS` is not a make dependency; stale firmware can persist if defines change without cleaning.
 
+**Known exception:** Furuta's `compensator_STM32F411.c` includes `<math.h>` and uses its double `M_PI`, so that firmware still links `__aeabi_d*` soft-double helpers. It builds and runs, but it is the only MCU law that does not meet the float-only rule; the other three models comply. See `models/rotary_inverted_pendulum/README.md`.
+
 ### 6.6 Board & Clock Configuration
 
 The HIL firmware is built for the **STM32F411** with an **8 MHz external crystal** (HSE). The clock tree is configured in:
@@ -636,7 +646,7 @@ The HIL firmware is built for the **STM32F411** with an **8 MHz external crystal
 
 The firmware runs all variants of the STM32F411 family. The USB CDC stack itself is portable and works on a wider variety of STM32 boards (e.g., STM32F401 "Blackpill", STM32F407, etc.), but porting to a different board or crystal requires changing:
 
-- `PLL_Init_84MHz()` in `core_initialisation_STM32F411xe.c` — PLL multiplication factors depend on the input crystal frequency
+- `PLL_Init_84MHZ()` in `core_initialisation_STM32F411xe.c` — PLL multiplication factors depend on the input crystal frequency
 - Any board-specific GPIO/pin assignments in `TIM3_PWM_Init()` and `usb_hardware_init()`
 - Linker script memory regions (`MDCS_HIL.ld`) if flash/SRAM sizes differ
 
@@ -667,9 +677,9 @@ The STM32F411 firmware uses TIM3 for hardware PWM output. Pin assignments:
 
 - **Convention:** Clockwise turns are **negative**; Counter-clockwise are **positive**.
 
-- **Arm Range:** $0$ to $\pm 180^\circ$.
+- **Arm Range (Furuta):** $0$ to $\pm 180^\circ$.
 
-- **Data Format:** Tab-Delimited Fixed-Precision ASCII Stream (6-set packet of Radian values in case if furuta model). Value 1 = Arm, Value 2 = Pendulum.
+- **Data Format:** Tab-delimited fixed-precision ASCII stream. Each model has its own value set: Furuta sends a 6-value packet (Value 1 = arm angle, Value 2 = pendulum angle, then their rates, torque and commanded voltage); pendulum, flywheel and furnace streams are documented in their model READMEs.
 
 - **UI:** The visualizer includes a toggle to switch between Radians and Degrees.
 
@@ -703,7 +713,7 @@ Navigate to the model directory and run:
 ```bash
 python3 run_sim.py           # SIL build + run
 python3 run_sim.py --hil     # HIL build + flash MCU + run
-python3 run_sim.py --hil-no-flash  # HIL build only (flash MCU yourself)
+python3 run_sim.py --hil-no-flash  # HIL build + run, skip flashing (flash MCU yourself first)
 python3 run_sim.py --help    # Show usage help
 ```
 
@@ -714,8 +724,8 @@ python3 run_sim.py position           # SIL position build + run
 python3 run_sim.py speed              # SIL speed build + run
 python3 run_sim.py --hil position     # HIL position build + flash + run
 python3 run_sim.py --hil speed        # HIL speed build + flash + run
-python3 run_sim.py --hil-no-flash position   # HIL position build only
-python3 run_sim.py --hil-no-flash speed      # HIL speed build only
+python3 run_sim.py --hil-no-flash position   # HIL position build + run, skip flashing
+python3 run_sim.py --hil-no-flash speed      # HIL speed build + run, skip flashing
 python3 run_sim.py --help             # Show usage help
 ```
 
@@ -758,10 +768,8 @@ python3 run_sim.py --help             # Show usage help
 ### Important notes
 
 - **HIL mode (`--hil`):** Builds host + firmware, flashes MCU via `st-flash`, then runs. Requires an STM32F411 on `/dev/ttyACM0` with `st-flash` installed. See [§6.3 Flashing Firmware](#63-flashing-firmware).
-- **HIL no-flash (`--hil-no-flash`):** Builds host + firmware only, skips flashing. Use your own programmer (OpenOCD, STM32CubeProgrammer, J-Link, etc.) to flash `MDCS_HIL.bin`, then run the host binary.
+- **HIL no-flash (`--hil-no-flash`):** Builds host + firmware, skips flashing, then immediately launches the host simulator and visualizers. Flash `MDCS_HIL.bin` first with your own programmer (OpenOCD, STM32CubeProgrammer, J-Link, etc.); the script does not pause for you to flash before starting the HIL host.
 - **Help (`--help`, `-h`):** Prints usage information and exits.
 - **Socat bridges:** The script reuses existing bridges if they already exist; otherwise it creates new ones. You do not need to start socat manually.
 - **Working directory:** Always run `run_sim.py` from *inside* the model directory.
 - **Build:** Always rebuilds on every run — no need for `make clean` between changes.
-
-# 

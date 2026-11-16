@@ -2,13 +2,13 @@
 """
 Run MDCS Furnace Control simulator with visualizers.
 
-Automates: build -> socat bridges -> simulator -> visualizers.
+Automates: build -> flash (HIL only) -> socat bridges -> simulator -> visualizers.
 Press Ctrl+C to stop everything.
 
 Usage:
     python3 run_sim.py              # SIL build + run
     python3 run_sim.py --hil        # HIL build + flash + run
-    python3 run_sim.py --hil-no-flash  # HIL build only (flash MCU yourself)
+    python3 run_sim.py --hil-no-flash  # HIL build + run, skip flashing (flash MCU yourself first)
 """
 
 import subprocess
@@ -137,12 +137,12 @@ MDCS Furnace Control - run_sim.py
 Usage:
   python3 run_sim.py              # SIL build + run
   python3 run_sim.py --hil        # HIL build + flash MCU + run
-  python3 run_sim.py --hil-no-flash  # HIL build only (skip flashing)
+  python3 run_sim.py --hil-no-flash  # HIL build + run, skip flashing
   python3 run_sim.py --help       # Show this help message
 
 Options:
   --hil            Build HIL host + STM32 firmware, flash MCU, run simulator
-  --hil-no-flash   Build HIL host + STM32 firmware only, skip flashing
+  --hil-no-flash   Build HIL host + STM32 firmware, skip flashing, then run
   --help, -h       Show this help message and exit
 
 The HIL mode requires an STM32F411 on /dev/ttyACM0 with st-flash installed.

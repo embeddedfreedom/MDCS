@@ -25,7 +25,7 @@ The system features a decoupled, multi-target compilation engine split across tw
 
 * **`make position`**: Compiles the isolated position tracking executable. It appends the `./compensator/position_control` include directory and compiles `compensator/position_control/compensator.c`.
 * **`make speed`**: Compiles the isolated velocity regulation executable. It appends the `./compensator/speed_control` include directory and compiles `compensator/speed_control/compensator.c`.
-* **`make clean`**: Wipes out the generated target directories and clears compiled binary artifacts.
+* **`make clean`**: Removes the entire `../../../build/flywheel_control/` folder, including the SIL binaries and both HIL profile outputs.
 * **`make help`**: Displays a reference utility menu outlining usage syntax within the terminal.
 
 **`Makefile_HIL`** (Hardware-in-the-Loop profiles):
@@ -132,7 +132,7 @@ The compilation paths are mapped according to the following relative organizatio
     └── flywheel_types.h
 ```
 
-`compensator/speed_control/encoder_decoder_local.{c,h}` are dead code — not compiled; the common 20-bit codec in `framework/transport/codecs/` is used instead.
+Both profiles use the common 20-bit codec in `framework/transport/codecs/` (`Encoder20`/`Decoder20`); there is no per-profile encoder copy in the build.
 
 #### Python Gain Derivation
 

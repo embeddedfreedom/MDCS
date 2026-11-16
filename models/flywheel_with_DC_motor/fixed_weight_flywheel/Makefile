@@ -76,7 +76,7 @@ help:
 	@echo "  make clean     - Wipes the output build directories"
 	@echo "  make help      - Displays this reference guide"
 	@echo ""
-	@echo "  (For Hardware-in-the-Loop, use: make -f Makefile_HIL hil)"
+	@echo "  (For Hardware-in-the-Loop, use: make -f Makefile_HIL position|speed)"
 	@echo "================================================================="
 	@echo "Output Binaries will be safely generated under:"
 	@echo "  $(BUILD_DIR)/"

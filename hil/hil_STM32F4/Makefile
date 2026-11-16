@@ -26,7 +26,7 @@ TINYUSB_ROOT = ../../tinyusb-master
 COMPENSATOR ?=
 # All build artifacts land here (normal case: build/<model>/).
 OUTPUT_DIR ?= .
-# Optional model/profile defines, e.g. -DHIL_TWO_OUTPUTS or -DFLYWHEEL_SPEED.
+# Optional model/profile defines, e.g. -DHIL_TWO_OUTPUTS.
 EXTRA_CFLAGS ?=
 
 # Only require COMPENSATOR for actual builds, so `make clean` still works.
