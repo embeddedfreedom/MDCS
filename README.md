@@ -29,7 +29,7 @@ Before setting up the local environment, you can explore the system architecture
 
 - **Dashboard:** [embeddedfreedom.dev](https://www.embeddedfreedom.dev) — *A web-based overview of the MDCS models, system specifications, and ecosystem positioning.*
 
-- **Video Walkthrough:** [MDCS Setup & Demonstration (v1.x — SIL only)](https://youtu.be/eaQ9mskr6E8) — *A 7-minute guide covering the SIL loop, telemetry plotter interaction, and 3D OpenGL visualization. HIL, flywheel, and furnace are covered in §6 and the model sections.*
+- **Video Walkthrough:** [MDCS Setup & Demonstration (v1.x — SIL only)](https://youtu.be/eaQ9mskr6E8) — *A 7-minute text-card walkthrough with soft background music (no narration), covering the SIL loop, telemetry plotter interaction, and 3D OpenGL visualization. HIL is covered in §6; flywheel and furnace details are in each model's README.*
 
 ## What's new in v2.0
 
