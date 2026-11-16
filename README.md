@@ -204,6 +204,10 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 ---
 
+**Errata — Pendulum derivation PDF:** The prose in `Complete_derivation_pendulum_DC_motor.pdf` §3 states *"The Python solver yields k1 ≈ −106 and k2 ≈ −13"* — this refers to an older weight set. Running the embedded Python script (Q = diag([4575, 64]), R = 0.1) actually produces **k1 ≈ −220.11, k2 ≈ −26.08**, which exactly matches the checked-in C gains (`k1 = -220.0f`, `k2 = -26.0f`). The PDF prose is outdated; the embedded script and the C code are consistent.
+
+---
+
 ## 4. Installation & Setup
 
 #### Step 1: Initialise Serial Bridges
