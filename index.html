@@ -244,17 +244,36 @@
 
         .paypal-btn {
             display: inline-block;
-            background: #0070ba;
-            color: #fff !important;
-            padding: 8px 20px;
-            border-radius: 6px;
-            text-decoration: none !important;
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-top: 8px;
-            transition: background 0.2s ease;
+            padding: 14px 40px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+            border: 1px solid #004a8c;
+            background: linear-gradient(to bottom, #009edb 0%, #007fbd 10%, #006ca5 45%, #005a8c 50%, #004a8c 100%);
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 4px 6px rgba(0, 0, 0, 0.3), 0 2px 0 #002a4a;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
         }
-        .paypal-btn:hover { background: #005ea8; }
+
+        .paypal-btn:hover {
+            background: linear-gradient(to bottom, #1daaff 0%, #0c9cd5 10%, #1c82c3 45%, #0c6ba5 50%, #0c5ba5 100%);
+            transform: translateY(-1px);
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7), 0 6px 12px rgba(0, 0, 0, 0.4), 0 2px 0 #002a4a;
+        }
+
+        .paypal-btn:active {
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5), 0 0px 0 transparent;
+            background: #004a8c;
+        }
 
         @media (max-width: 1024px) {
             .title-block { flex-direction: column; align-items: flex-start; }
@@ -753,7 +772,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                     Donate via PayPal
                 </a>
             </div>
-            <div class="footer-line">
+            <div class="footer-line" style="margin-top: 20px;">
                 WATCH ON YOUTUBE: <a href="https://youtube.com/@electronicsacademy2d2e29" target="_blank">ELECTRONICS ACADEMY</a>
             </div>
         </footer>
