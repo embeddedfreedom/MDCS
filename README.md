@@ -787,3 +787,13 @@ python3 run_sim.py --help             # Show usage help
 - **Socat bridges:** The script reuses existing bridges if they already exist; otherwise it creates new ones. You do not need to start socat manually.
 - **Working directory:** Always run `run_sim.py` from *inside* the model directory.
 - **Build:** Always rebuilds on every run — no need for `make clean` between changes.
+
+---
+
+## Support
+
+If you find MDCS useful, consider supporting development:
+
+[!["Sponsor on GitHub"](https://img.shields.io/github/sponsors/embeddedfreedom?logo=GitHub&color=fb625e)](https://github.com/sponsors/embeddedfreedom)
+
+Or via PayPal: [Donate via PayPal](https://paypal.me/embeddedfreedom)
