@@ -418,7 +418,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                     This high-fidelity Furuta Pendulum Digital Twin utilizes a 20kHz RK4 physics engine and full Lagrangian mechanics to simulate complex multi-body dynamics, bridging the gap between theoretical state-space control and embedded system reality. Stabilized by an aggressive LQR controller tuned with a high-priority \( Q \) matrix (\( Q_{pend}=100 \)) to overcome a simulated 0.4V motor deadzone, the system maintains the unstable \( \pi \) equilibrium through precise, high-gain restorative torques. Unlike idealized models, this platform explicitly emulates hardware non-linearities—including quadrature encoder jitter, missing pulses, and discrete 1kHz compensator timing—to provide a rigorous environment for stress-testing robust industrial control laws. The integration of a real-time visualizer and a C-based SIL loop ensures that every micro-correction is both mathematically optimal and physically faithful to the constraints of DC motor actuation and sensor noise.
                 </p>
                 <p>
-                    <strong>2. DC Motor with Inverse Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    <strong>2. DC Motor with Inverted Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
                     A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( \theta = 180^\circ \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
                 </p>
                 <p>
@@ -447,7 +447,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                 MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
             </p>
             <p style="font-size: 0.9rem; color: #475569;">
-                Measured on hardware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate.
+                Measured on hardware with the furnace firmware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate. The other MCU laws build but have not yet been individually exercised on hardware.
             </p>
 
             <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
@@ -506,10 +506,10 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
             <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Build & Flash</h3>
             <div style="background: rgba(8, 126, 164, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--ef-blue); margin: 15px 0;">
                 <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Build HIL:</strong><br>
-                <code>make -f Makefile_HIL</code> (pendulum, furnace)<br>
+                <code>make -f Makefile_HIL</code> (furuta, pendulum, furnace)<br>
                 <code>make -f Makefile_HIL position</code> / <code>make -f Makefile_HIL speed</code> (flywheel)</p>
                 <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Flash MCU:</strong><br>
-                write <code>build/&lt;model&gt;/MDCS_HIL.bin</code> at <code>0x08000000</code> over SWD<br>
+                write <code>build/&lt;model&gt;/MDCS_HIL.bin</code> at <code>0x08000000</code> over SWD (flywheel: <code>build/flywheel_control/{position,speed}/MDCS_HIL.bin</code>)<br>
                 (<code>st-flash --reset write MDCS_HIL.bin 0x08000000</code>, OpenOCD, STM32CubeProgrammer, or any tool you like)</p>
             </div>
 
@@ -527,7 +527,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                         <tr>
                             <td style="font-family: monospace; font-size: 0.85rem;">Furuta</td>
                             <td style="font-family: monospace; font-size: 0.85rem;">compensator_STM32F411.c</td>
-                            <td style="font-family: monospace; font-size: 0.85rem;">LQR+I + energy swing-up</td>
+                            <td style="font-family: monospace; font-size: 0.85rem;">LQR + energy swing-up</td>
                         </tr>
                         <tr>
                             <td style="font-family: monospace; font-size: 0.85rem;">Pendulum</td>
@@ -561,6 +561,7 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
                 <li>FPU: <code>fpv4-sp-d16</code>, hard-float ABI</li>
                 <li>Firmware rules list <code>.c</code> sources only — after editing a header, force a rebuild with <code>make -B -f Makefile_HIL</code> or delete <code>MDCS_HIL.out</code></li>
                 <li><code>EXTRA_CFLAGS</code> is not a make dependency — stale firmware can persist if defines change without cleaning</li>
+                <li><strong>Documented exception:</strong> Furuta's MCU law includes <code>&lt;math.h&gt;</code> and uses the double <code>M_PI</code>, so it links <code>__aeabi_d*</code> soft-double helpers. The other three models comply.</li>
             </ul>
         </div>
 
@@ -647,7 +648,6 @@ bare-metal microcontroller environment. To mitigate general-purpose OS jitter, t
     <span style="border: 3px solid var(--ef-blue); padding: 0 4px; border-radius: 3px; font-weight: 600;">novel control challenges</span> 
     to solve. LQR gains tuned for the default configuration must be re-derived to ensure stability.</strong>
 </p>
-            </p>
         </div>
 
         <div class="glass-card">
