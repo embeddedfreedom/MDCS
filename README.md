@@ -53,8 +53,7 @@ The **core physics engine** is optimized for single-thread execution to ensure
 The SIL project is built for **Linux Desktop** environments and utilizes a **high-precision timing super-loop** to emulate a **Real-Time (Soft)** bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a **lockstep architecture** where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve **temporal determinism**. The system implements a **self-healing absolute timeline** that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.
 
 ![Diagram](general_architecture.png)
-
-[Image 1] Attached file: /home/dipto/3.Technology/Digital_Control_Systems/Control_Systems_Emulator/MDCS/general_architecture_hil.png
+![Diagram](general_architecture_hil.png)
 
 #### 1.1 Modeling Fidelity & Abstractions
 
