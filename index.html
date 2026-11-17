@@ -430,6 +430,101 @@
             
             <p>During mechanical, electrical, and electronic engineering education, students are rarely exposed to a <b>physical control systems bench</b>. Most learning is confined to abstract simulation environments like MATLAB and Simulink, leaving a massive gap between the idealized model and industrial firmware reality.</p>
 
+        </div>
+
+<div class="glass-card" style="padding: 20px; margin-top: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="color: #000; margin: 0;">Dynamic Response Visualizations</h2>
+        <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border: 1px solid #cbd5e1;">
+            Simulation Replay
+        </span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <p style="font-size: 0.8rem; color: #64748b; margin: 0; font-style: italic;">
+            Note: These are <strong>screen recordings</strong> of the MDCS environment. If videos do not render, please refresh.
+        </p>
+        <button onclick="window.location.reload()" style="background: none; border: 1px solid rgba(8, 126, 164, 0.3); color: var(--ef-blue); padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
+            Refresh
+        </button>
+    </div>
+    
+    <div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap;">
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/Vavp13DXVbI?autoplay=1&mute=1&loop=1&playlist=Vavp13DXVbI&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    loading="lazy"
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Rotary Inverted Pendulum (Furuta)</strong>
+                <span class="driver-tag sil">SIL · C Simulator</span>
+            </p>
+        </div>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/s7hajcn0f4U?autoplay=1&mute=1&loop=1&playlist=s7hajcn0f4U&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    loading="lazy"
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Furnace Control</strong>
+                <span class="driver-tag hil">HIL · STM32F411</span>
+            </p>
+        </div>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/Gaajo-y-IBA?autoplay=1&mute=1&loop=1&playlist=Gaajo-y-IBA&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    loading="lazy"
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Flywheel — Position Control</strong>
+                <span class="driver-tag hil">HIL · STM32F411</span>
+            </p>
+        </div>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/OSTYHuD7X-0?autoplay=1&mute=1&loop=1&playlist=OSTYHuD7X-0&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    loading="lazy"
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>DC Motor with Inverted Pendulum</strong>
+                <span class="driver-tag sil">SIL · C Simulator</span>
+                <span class="driver-tag hil">HIL-tested</span>
+            </p>
+        </div>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/xnm7Dh1A2eQ?autoplay=1&mute=1&loop=1&playlist=xnm7Dh1A2eQ&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    loading="lazy"
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Flywheel — Speed Control</strong>
+                <span class="driver-tag hil">HIL · STM32F411</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+        <div class="glass-card">
             <div class="theory-bridge-summary">
                 <p style="margin-top:0;">Traditional control education often leaves students stranded in a <strong>"Classical Gap,"</strong> mastering Root Locus and Bode plots for simple systems that fail when confronted with the multi-variable complexity of a Cart-Pole or Furuta Pendulum.</p> 
                 
@@ -460,110 +555,30 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
 
         </div>
 
+        <div class="glass-card">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">System Block Diagram</h2>
+            <p style="margin-top: 15px; margin-bottom: 10px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the SIL control loop and emulated hardware interfaces.</p>
+            <img src="general_architecture.png" alt="System Block Diagram" class="diagram-img">
+        </div>
 
-<div class="glass-card" style="padding: 20px; margin-top: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-bottom: 15px;">
-        <h2 style="color: #000; margin: 0;">Dynamic Response Visualizations</h2>
-        <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border: 1px solid #cbd5e1;">
-            Simulation Replay
-        </span>
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <p style="font-size: 0.8rem; color: #64748b; margin: 0; font-style: italic;">
-            Note: These are <strong>screen recordings</strong> of the MDCS environment. If videos do not render, please refresh.
-        </p>
-        <button onclick="window.location.reload()" style="background: none; border: 1px solid rgba(8, 126, 164, 0.3); color: var(--ef-blue); padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
-            Refresh
-        </button>
-    </div>
-    
-    <div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap;">
-        <div class="video-item">
-            <div class="video-frame">
-                <iframe 
-                    src="https://www.youtube.com/embed/Gaajo-y-IBA?autoplay=1&mute=1&loop=1&playlist=Gaajo-y-IBA&start=0&controls=0&modestbranding=1&rel=0" 
-                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                    allow="autoplay; encrypted-media">
-                </iframe>
-            </div>
-            <p class="video-caption">
-                <strong>Flywheel — Position Control</strong>
-                <span class="driver-tag hil">HIL · STM32F411</span>
-            </p>
-        </div>
-        <div class="video-item">
-            <div class="video-frame">
-                <iframe 
-                    src="https://www.youtube.com/embed/Vavp13DXVbI?autoplay=1&mute=1&loop=1&playlist=Vavp13DXVbI&start=0&controls=0&modestbranding=1&rel=0" 
-                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                    allow="autoplay; encrypted-media">
-                </iframe>
-            </div>
-            <p class="video-caption">
-                <strong>Rotary Inverted Pendulum (Furuta)</strong>
-                <span class="driver-tag sil">SIL · C Simulator</span>
-            </p>
-        </div>
-        <div class="video-item">
-            <div class="video-frame">
-                <iframe 
-                    src="https://www.youtube.com/embed/OSTYHuD7X-0?autoplay=1&mute=1&loop=1&playlist=OSTYHuD7X-0&start=0&controls=0&modestbranding=1&rel=0" 
-                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                    allow="autoplay; encrypted-media">
-                </iframe>
-            </div>
-            <p class="video-caption">
-                <strong>DC Motor with Inverted Pendulum</strong>
-                <span class="driver-tag sil">SIL · C Simulator</span>
-            </p>
-        </div>
-        <div class="video-item">
-            <div class="video-frame">
-                <iframe 
-                    src="https://www.youtube.com/embed/xnm7Dh1A2eQ?autoplay=1&mute=1&loop=1&playlist=xnm7Dh1A2eQ&start=0&controls=0&modestbranding=1&rel=0" 
-                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                    allow="autoplay; encrypted-media">
-                </iframe>
-            </div>
-            <p class="video-caption">
-                <strong>Flywheel — Speed Control</strong>
-                <span class="driver-tag hil">HIL · STM32F411</span>
-            </p>
-        </div>
-        <div class="video-item">
-            <div class="video-frame">
-                <iframe 
-                    src="https://www.youtube.com/embed/s7hajcn0f4U?autoplay=1&mute=1&loop=1&playlist=s7hajcn0f4U&start=0&controls=0&modestbranding=1&rel=0" 
-                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                    allow="autoplay; encrypted-media">
-                </iframe>
-            </div>
-            <p class="video-caption">
-                <strong>Furnace Control</strong>
-                <span class="driver-tag hil">HIL · STM32F411</span>
-            </p>
-        </div>
-    </div>
-</div>
 
         <div class="glass-card">
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Available Models</h2>
             <div style="margin: 20px 0;">
                 <p>
-                    <strong>1. Rotary Inverted Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    <strong>1. Rotary Inverted Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-IMPLEMENTED</span><br>
                     This high-fidelity Furuta Pendulum Digital Twin utilizes a 20kHz RK4 physics engine and full Lagrangian mechanics to simulate complex multi-body dynamics, bridging the gap between theoretical state-space control and embedded system reality. Stabilized by an aggressive LQR controller tuned with a high-priority \( Q \) matrix (\( Q_{pend}=100 \)) to overcome a simulated 0.4V motor deadzone, the system maintains the unstable \( \pi \) equilibrium through precise, high-gain restorative torques. Unlike idealized models, this platform explicitly emulates hardware non-linearities—including quadrature encoder jitter, missing pulses, and discrete 1kHz compensator timing—to provide a rigorous environment for stress-testing robust industrial control laws. The integration of a real-time visualizer and a C-based SIL loop ensures that every micro-correction is both mathematically optimal and physically faithful to the constraints of DC motor actuation and sensor noise.
                 </p>
                 <p>
-                    <strong>2. DC Motor with Inverted Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    <strong>2. DC Motor with Inverted Pendulum:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-IMPLEMENTED</span><br>
                     A classic "unstable" control systems benchmark where a motorized pivot must provide real-time torque to maintain a free-rotating rod in an upright equilibrium (\( \theta = 180^\circ \)). The system operates by measuring the angular position and velocity through high-resolution encoders and applying a control law—typically a combination of LQR (Linear Quadratic Regulator) for stability and an Integrator for precision—to command motor voltage. Mathematically, the motor must "chase" the pendulum's center of gravity by accelerating the pivot point to counteract the gravitational torque. While the theoretical model predicts a perfect balance, the physical implementation must contend with sensor noise, which causes micro-vibrations, and mechanical drift, which requires high-stiffness gains (\( k_1 = -220 \)) and integral action to maintain a true vertical.
                 </p>
                 <p>
-                    <strong>3. Flywheel with DC Motor:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    <strong>3. Flywheel with DC Motor:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-IMPLEMENTED</span><br>
                     A DC motor driving a fixed-weight steel disc. The position profile tracks a setpoint angle using LQR control, while the speed profile regulates angular velocity with PI + feedforward control. The 20-bit quadrature encoder provides high-resolution angle measurement, with Z-pulse drift compensation at revolution boundaries. Supports two HIL profiles: position and speed.
                 </p>
                 <p>
-                    <strong>4. Furnace Control:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-READY</span><br>
+                    <strong>4. Furnace Control:</strong> <span style="background: var(--ef-blue); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 8px;">HIL-IMPLEMENTED</span><br>
                     A 2×2 coupled thermal LQI system modeling two coupled heat slabs with heater inputs. Regulates two independent temperature zones using PWM duty cycle outputs in \([0, 1]\). The MCU runs a dual-output LQI compensator running at 1 kHz over USB CDC.
                 </p>
             </div>
@@ -584,10 +599,13 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
             </p>
             <p style="font-size: 0.9rem; color: #475569;">
-                Measured on hardware with the furnace firmware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate. The other MCU laws build but have not yet been individually exercised on hardware.
+                Measured on hardware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate. All models — including both flywheel profiles — have been run in HIL on the STM32F411.
             </p>
 
-            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
+            <p style="margin-top: 25px; margin-bottom: 12px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the HIL control loop and emulated hardware interfaces.</p>
+            <img src="general_architecture_hil.png" alt="HIL Architecture Diagram" class="diagram-img">
+
+            <h3 style="margin-top: 25px; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
             <div style="overflow-x: auto; margin: 15px 0;">
                 <table class="spec-table">
                     <thead>
@@ -789,14 +807,9 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
         </div>
 
         <div class="glass-card">
-            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">System Block Diagram</h2>
-            <p style="margin-top: 15px; margin-bottom: 10px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the SIL control loop and emulated hardware interfaces.</p>
-            <img src="general_architecture.png" alt="System Block Diagram" class="diagram-img">
-            <p style="margin-top: 40px; margin-bottom: 12px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the HIL control loop and emulated hardware interfaces.</p>
-            <img src="general_architecture_hil.png" alt="HIL Architecture Diagram" class="diagram-img">
+            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Modeling Fidelity & Abstractions</h2>
 
-            <div class="fidelity-section">
-                <h3 style="margin-top: 0; color: var(--ef-blue); font-size: 1.1rem;">Modeling Fidelity & Abstractions</h3>
+            <div class="fidelity-section" style="margin-top: 20px;">
                 <p style="font-size: 0.9rem; color: #334155; margin-bottom: 15px;">Bridging the digital-to-physical gap with intentional modeling choices:</p>
                 
                 <div class="fidelity-grid">

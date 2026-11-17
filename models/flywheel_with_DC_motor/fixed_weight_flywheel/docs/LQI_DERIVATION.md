@@ -1177,7 +1177,7 @@ The hardware-in-the-loop profile uses the same 20-bit host path:
 - Both directions use the shared **12-byte** frame (an 8-byte packet belongs to an older adapter): host→MCU `sync 0xAA 0x55 | float pos1 | float pos2 | uint8 cmd | uint8 checksum`, MCU→host `sync 0x55 0xAA | float out1 | float out2 | uint8 status | uint8 checksum`.
 - `pos1` carries the angle in **radians** (not raw counts, wrapped to ±π) with `pos2 = 0`; the MCU returns the signed motor voltage in `out1` and echoes `pos2` in `out2`. 921600 baud, 3 ms poll timeout. The 20-bit change therefore needs no CPR or packet-format change on the MCU side.
 
-**Runtime status:** the HIL control law builds and the shared USB transport is healthy — a host→MCU→host exchange measures **≈ 0.4 ms** at 921600 baud (measured on the furnace, which uses the same framing and poll timeout), far inside the 3 ms poll timeout. An earlier note here claiming a ~300 ms USB CDC turnaround was wrong. The flywheel HIL path itself has not been re-run on hardware since that finding, so flash the profile's `MDCS_HIL.bin` and run the host binary to confirm it.
+**Runtime status:** the HIL control law builds and the shared USB transport is healthy — a host→MCU→host exchange measures **≈ 0.4 ms** at 921600 baud, far inside the 3 ms poll timeout. An earlier note here claiming a ~300 ms USB CDC turnaround was wrong. Both flywheel profiles have been run in HIL on the STM32F411.
 
 ---
 

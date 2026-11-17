@@ -625,7 +625,7 @@ The nested flywheel model is three levels deep, so its binaries are at:
 
 Press **S** to enable the compensator, **T** to disable, **Q** to quit.
 
-**Link behaviour (measured on hardware with the furnace firmware; the other MCU laws build but have not been individually exercised on hardware yet):** one host→MCU→host exchange costs **≈ 0.4 ms** (0.32–0.50 ms over five requests at 921600 baud), far inside the 3 ms `poll()` timeout, so USB does not limit the 1 kHz compensator cadence. A normal furnace run reports no `CONNECTION ERROR` lines.
+**Link behaviour (measured on hardware; all models, including both flywheel profiles, have been run in HIL on the STM32F411):** one host→MCU→host exchange costs **≈ 0.4 ms** (0.32–0.50 ms over five requests at 921600 baud), far inside the 3 ms `poll()` timeout, so USB does not limit the 1 kHz compensator cadence. Normal runs report no `CONNECTION ERROR` lines.
 
 Probing the MCU directly, with setpoints 75/75 °C, shows the law running on the chip and not on the host:
 
