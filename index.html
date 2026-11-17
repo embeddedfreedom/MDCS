@@ -541,7 +541,7 @@
     Ready to cross to real silicon? MDCS also supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. See <b>§6 Hardware-in-the-Loop (HIL)</b> in <a href="README.md" target="_blank">README.md</a> for build, flash, and run instructions for all showcased models.
 </p>
             
-            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift.</p>
+            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift. Telemetry data can be exported to CSV for offline analysis.</p>
 
             <p>
                 The framework is completely <b>configurable</b>; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only <b>~20 KB</b> (minus the visualizers and the external shared libraries), it's incredibly lean. By writing your compensator in <b>native C</b>, you get a real feel for how industrial control actually works—managing <b>fixed-step timing</b> and <b>deterministic loops</b> rather than just dragging blocks in a GUI.
@@ -582,7 +582,7 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                     A 2×2 coupled thermal LQI system modeling two coupled heat slabs with heater inputs. Regulates two independent temperature zones using PWM duty cycle outputs in \([0, 1]\). The MCU runs a dual-output LQI compensator running at 1 kHz over USB CDC.
                 </p>
             </div>
-            <p style="font-size: 0.9rem; margin-top: 10px;">The MDCS environment simulates common industrial hardware non-linearities to ensure control laws are robust against real-world interference:</p>
+            <p style="font-size: 0.9rem; margin-top: 10px;">The visualizer injects simulated hardware non-linearities to stress-test control laws:</p>
             <div style="margin-top: 10px;">
                 <span class="noise-pill">NOISE_PWM_VIBRATION</span>
                 <span class="noise-pill">NOISE_SENSOR_JITTER</span>
