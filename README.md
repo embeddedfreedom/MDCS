@@ -326,7 +326,7 @@ Bash
 python3 visualiser/furuta_telemetry.py    # filenames vary by model, see the table below
 ```
 
-The Telemetry plotter is a high-frequency (1kHz) data visualization and logging tool built with Python, PySide6, and PyQtGraph. Designed specifically for control systems engineering and hardware-in-the-loop testing.
+The Telemetry plotter is a high-frequency (1kHz) data visualization and logging tool built with Python, PySide6, and PyQtGraph. Designed specifically for control systems engineering and hardware-in-the-loop implementation.
 
 ###### 5.2.1. Real-Time Visualization
 
@@ -422,7 +422,7 @@ The simulator includes a 2D heads-up display (HUD) overlaid on the 3D scene.
 
 ## 6. Hardware-in-the-Loop (HIL)
 
-MDCS supports Hardware-in-the-Loop testing against a physical STM32F411 MCU over USB CDC at 921600 baud on `/dev/ttyACM0`. Only sensor values cross the link; the MCU derives velocity/state and runs the compensator law.
+MDCS includes a complete Hardware-in-the-Loop implementation against a physical STM32F411 MCU over USB CDC at 921600 baud on `/dev/ttyACM0`. Only sensor values cross the link; the MCU derives velocity/state and runs the compensator law.
 
 ### 6.1 HIL Frame Format
 
@@ -509,6 +509,8 @@ models/<model>/
 hil/hil_STM32F4/                    # Shared bare-metal firmware engine
 ├── Makefile                        # STM32F411 firmware (MIT licensed)
 ├── HIL_main.c                      # USB CDC task + compensator adapter
+├── include/
+│   └── tusb_config.h               # TinyUSB device configuration
 ├── src/
 │   ├── core_initialisation_STM32F411xe.c   # Clock, GPIO, TIM3 PWM, USB
 │   ├── startup_gcc.c                 # Vector table, reset handler
@@ -520,6 +522,29 @@ hil/hil_STM32F4/                    # Shared bare-metal firmware engine
 │   └── usb_cdc_adapter.c             # 12-byte frame parser + dispatcher
 └── MDCS_HIL.ld                       # Linker script (FLASH @ 0x08000000)
 ```
+
+**TinyUSB stack** — The USB CDC transport is provided by the [TinyUSB](https://github.com/hathach/tinyusb) stack, vendored at `tinyusb-master/` and licensed under MIT. It is **not** part of MDCS itself — it is a third-party dependency kept under `tinyusb-master/`. The shared firmware Makefile (`hil/hil_STM32F4/Makefile`) pulls in only the subset of TinyUSB source files needed for device-mode CDC:
+
+```make
+TINYUSB_ROOT = ../../tinyusb-master
+
+include_dirs = . include $(TINYUSB_ROOT)/src $(dir $(COMPENSATOR))
+
+sources = HIL_main.c \
+          src/core_initialisation_STM32F411xe.c \
+          ...
+          src/usb_descriptors.c \
+          src/usb_cdc_adapter.c \
+          $(COMPENSATOR) \
+          $(TINYUSB_ROOT)/src/tusb.c \
+          $(TINYUSB_ROOT)/src/common/tusb_fifo.c \
+          $(TINYUSB_ROOT)/src/device/usbd.c \
+          $(TINYUSB_ROOT)/src/class/cdc/cdc_device.c \
+          $(TINYUSB_ROOT)/src/portable/synopsys/dwc2/dcd_dwc2.c \
+          $(TINYUSB_ROOT)/src/portable/synopsys/dwc2/dwc2_common.c
+```
+
+The model's `Makefile_HIL` invokes this shared Makefile recursively, passing `COMPENSATOR` and `OUTPUT_DIR`. TinyUSB sources are compiled from `tinyusb-master/` directly — there is no separate build step for the stack.
 
 **Build flow — SIL (`make`):**
 
@@ -627,7 +652,7 @@ Press **S** to enable the compensator, **T** to disable, **Q** to quit.
 
 **Link behaviour (measured on hardware; all models, including both flywheel profiles, have been run in HIL on the STM32F411):** one host→MCU→host exchange costs **≈ 0.4 ms** (0.32–0.50 ms over five requests at 921600 baud), far inside the 3 ms `poll()` timeout, so USB does not limit the 1 kHz compensator cadence. Normal runs report no `CONNECTION ERROR` lines.
 
-Probing the MCU directly, with setpoints 75/75 °C, shows the law running on the chip and not on the host:
+For the furnace model, probing the compensator code on the MCU directly, with setpoints 75/75 °C, shows the law running on the chip and not on the host (table below):
 
 | Sent T1 / T2 | PWM1 / PWM2 returned | Why                                                       |
 | ------------ | -------------------- | --------------------------------------------------------- |
