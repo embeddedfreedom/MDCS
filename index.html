@@ -143,6 +143,55 @@
             object-fit: cover;
         }
 
+        /* Simulation replay cards (video + caption) */
+        .video-item {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        .video-frame {
+            border-radius: 0;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            aspect-ratio: 16/9;
+            position: relative;
+            background: #000;
+        }
+        .video-caption {
+            margin: 10px 0 0 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #334155;
+            line-height: 1.6;
+        }
+        .video-caption strong {
+            display: block;
+            color: #000;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+        .driver-tag {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 9px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .driver-tag.hil {
+            background: var(--ef-blue);
+            color: #fff;
+        }
+        .driver-tag.sil {
+            background: #e2e8f0;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+
         /* Hero Container Modified for 2x2 Image Grid */
         .hero-container {
             background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border);
@@ -429,41 +478,71 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
         </button>
     </div>
     
-    <div style="display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15); aspect-ratio: 16/9; position: relative; background: #000;">
-            <iframe 
-                src="https://www.youtube.com/embed/Gaajo-y-IBA?autoplay=1&mute=1&loop=1&playlist=Gaajo-y-IBA&start=0&controls=0&modestbranding=1&rel=0" 
-                style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                allow="autoplay; encrypted-media">
-            </iframe>
+    <div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap;">
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/Gaajo-y-IBA?autoplay=1&mute=1&loop=1&playlist=Gaajo-y-IBA&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Flywheel — Position Control</strong>
+                <span class="driver-tag hil">HIL · STM32F411</span>
+            </p>
         </div>
-        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15); aspect-ratio: 16/9; position: relative; background: #000;">
-            <iframe 
-                src="https://www.youtube.com/embed/Vavp13DXVbI?autoplay=1&mute=1&loop=1&playlist=Vavp13DXVbI&start=0&controls=0&modestbranding=1&rel=0" 
-                style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                allow="autoplay; encrypted-media">
-            </iframe>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/Vavp13DXVbI?autoplay=1&mute=1&loop=1&playlist=Vavp13DXVbI&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Rotary Inverted Pendulum (Furuta)</strong>
+                <span class="driver-tag sil">SIL · C Simulator</span>
+            </p>
         </div>
-        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15); aspect-ratio: 16/9; position: relative; background: #000;">
-            <iframe 
-                src="https://www.youtube.com/embed/OSTYHuD7X-0?autoplay=1&mute=1&loop=1&playlist=OSTYHuD7X-0&start=0&controls=0&modestbranding=1&rel=0" 
-                style="width: 100%; height: 100%; border: none; pointer-events= none;" 
-                allow="autoplay; encrypted-media">
-            </iframe>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/OSTYHuD7X-0?autoplay=1&mute=1&loop=1&playlist=OSTYHuD7X-0&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>DC Motor with Inverted Pendulum</strong>
+                <span class="driver-tag sil">SIL · C Simulator</span>
+            </p>
         </div>
-        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15); aspect-ratio: 16/9; position: relative; background: #000;">
-            <iframe 
-                src="https://www.youtube.com/embed/xnm7Dh1A2eQ?autoplay=1&mute=1&loop=1&playlist=xnm7Dh1A2eQ&start=0&controls=0&modestbranding=1&rel=0" 
-                style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                allow="autoplay; encrypted-media">
-            </iframe>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/xnm7Dh1A2eQ?autoplay=1&mute=1&loop=1&playlist=xnm7Dh1A2eQ&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Flywheel — Speed Control</strong>
+                <span class="driver-tag hil">HIL · STM32F411</span>
+            </p>
         </div>
-        <div style="flex: 1; min-width: 300px; border-radius: 0; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.15); aspect-ratio: 16/9; position: relative; background: #000;">
-            <iframe 
-                src="https://www.youtube.com/embed/s7hajcn0f4U?autoplay=1&mute=1&loop=1&playlist=s7hajcn0f4U&start=0&controls=0&modestbranding=1&rel=0" 
-                style="width: 100%; height: 100%; border: none; pointer-events: none;" 
-                allow="autoplay; encrypted-media">
-            </iframe>
+        <div class="video-item">
+            <div class="video-frame">
+                <iframe 
+                    src="https://www.youtube.com/embed/s7hajcn0f4U?autoplay=1&mute=1&loop=1&playlist=s7hajcn0f4U&start=0&controls=0&modestbranding=1&rel=0" 
+                    style="width: 100%; height: 100%; border: none; pointer-events: none;" 
+                    allow="autoplay; encrypted-media">
+                </iframe>
+            </div>
+            <p class="video-caption">
+                <strong>Furnace Control</strong>
+                <span class="driver-tag hil">HIL · STM32F411</span>
+            </p>
         </div>
     </div>
 </div>
