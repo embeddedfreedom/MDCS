@@ -247,17 +247,36 @@ class TelemetryDash(QtWidgets.QMainWindow):
         if self.auto_scroll:
             QtWidgets.QMessageBox.warning(self, "Hold on", "Pause the graph before exporting.")
             return
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Export Data", "", "CSV Files (*.csv)")
-        if path:
-            if self.tick < MAX_SAMPLES:
-                x, y = self.time_data[:self.ptr], self.y_data[:, :self.ptr]
-            else:
-                x = np.concatenate((self.time_data[self.ptr:], self.time_data[:self.ptr]))
-                y = np.concatenate((self.y_data[:, self.ptr:], self.y_data[:, :self.ptr]), axis=1)
-            data_to_save = np.vstack((x - x[0], y)).T
-            header = "Time_s," + ",".join(self.labels)
-            np.savetxt(path, data_to_save, delimiter=",", header=header, comments='')
-            QtWidgets.QMessageBox.information(self, "Done", "Export Successful")
+        if self.tick == 0:
+            QtWidgets.QMessageBox.information(self, "Nothing to export", "No telemetry received yet.")
+            return
+        # Use Qt's own file dialog on purpose. The native GTK/portal-backed chooser
+        # can block the GUI thread indefinitely on some Linux desktops, which makes
+        # the whole window look frozen. DontUseNativeDialog avoids that code path.
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Export Data", "telemetry.csv", "CSV Files (*.csv)",
+            options=QtWidgets.QFileDialog.Option.DontUseNativeDialog)
+        if not path:
+            return
+        if not path.lower().endswith(".csv"):
+            path += ".csv"
+
+        if self.tick < MAX_SAMPLES:
+            x, y = self.time_data[:self.ptr], self.y_data[:, :self.ptr]
+        else:
+            x = np.concatenate((self.time_data[self.ptr:], self.time_data[:self.ptr]))
+            y = np.concatenate((self.y_data[:, self.ptr:], self.y_data[:, :self.ptr]), axis=1)
+        data_to_save = np.vstack((x - x[0], y)).T
+        header = "Time_s," + ",".join(self.labels)
+        try:
+            # %.6f is plenty at 1 kHz and keeps the file ~2.5x smaller than the
+            # numpy default (%.18e), which also makes the export much faster.
+            np.savetxt(path, data_to_save, delimiter=",", header=header,
+                       comments='', fmt="%.6f")
+        except OSError as exc:
+            QtWidgets.QMessageBox.critical(self, "Export failed", f"Could not write {path}:\n{exc}")
+            return
+        QtWidgets.QMessageBox.information(self, "Done", f"Export Successful\n{path}")
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
