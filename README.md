@@ -161,7 +161,7 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 
 - **`Makefile`**: Every model folder includes a Makefile. Run `make` to compile the compensator and simulator into a single executable binary. The flywheel is multi-profile: use `make position` or `make speed` instead of a plain `make`.
 
-- **`Makefile_HIL`**: (Selected models) Builds the Hardware-in-the-Loop host executable plus STM32F411 firmware. Requires a physical MCU on `/dev/ttyACM0`.
+- **`Makefile_HIL`**: (All models) Builds the Hardware-in-the-Loop host executable plus STM32F411 firmware. Requires a physical MCU on `/dev/ttyACM0`.
 
 **📁 build/  :** Contains the binary for the plant after compiling. This directory has subdirectories with the respective model names under which the compiled binaries get created after make.
 
@@ -541,7 +541,7 @@ Two separate compilations happen:
 **Key points:**
 
 - **No `COMPENSATOR` hardcoded in shared firmware** — Each model's `Makefile_HIL` injects its own compensator. The shared `hil/hil_STM32F4/Makefile` requires `COMPENSATOR` to be set (errors out otherwise, except for `make clean`).
-- **Single-precision only (MCU)** — `float` math, `fpv4-sp-d16` FPU, hard-float ABI. No `double`, no `M_PI`, no libm. Local `sqrt_pos()` Newton iteration replaces `sqrtf()`. Furuta's MCU law is the current documented exception; see §6.5.
+- **Single-precision only (MCU)** — `float` math, `fpv4-sp-d16` FPU, hard-float ABI. No `double`, no `M_PI`, no libm. Local `sqrt_pos()` Newton iteration replaces `sqrtf()`. All five MCU images link no soft-double or libm symbols; see §6.5.
 - **Clean builds** — `make clean` removes the model's entire `build/` subtree (SIL + HIL together). For flywheel, both `position/` and `speed/` subfolders are removed.
 - **Header changes** — Firmware rules list `.c` sources only; editing a `.h` does not force a rebuild. Use `make -B -f Makefile_HIL` or delete `MDCS_HIL.out` after header changes.
 
@@ -649,7 +649,7 @@ MCU code must stay fully bare-metal: no `-lm`, no newlib syscalls, single-precis
 - Firmware rules list `.c` sources only — after editing a header, force a rebuild with `make -B -f Makefile_HIL` or delete `MDCS_HIL.out`.
 - `EXTRA_CFLAGS` is not a make dependency; stale firmware can persist if defines change without cleaning.
 
-**Known exception:** Furuta's `compensator_STM32F411.c` includes `<math.h>` and uses its double `M_PI`, so that firmware still links `__aeabi_d*` soft-double helpers. It builds and runs, but it is the only MCU law that does not meet the float-only rule; the other three models comply. See `models/rotary_inverted_pendulum/README.md`.
+**Verified:** all five MCU images (furuta, inverted_pendulum, flywheel position/speed, furnace_control) rebuilt with `make -B -f Makefile_HIL` contain no undefined `__aeabi_d*`, `sqrt`, `fabs`, `sin`, or `cos` symbols. Furuta and pendulum include `<math.h>` and call `fabsf`, which GCC lowers to a single-precision instruction, so the float-only rule holds for every model.
 
 ### 6.6 Board & Clock Configuration
 

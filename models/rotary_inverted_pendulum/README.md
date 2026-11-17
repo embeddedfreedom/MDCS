@@ -50,4 +50,4 @@ The older MIT-licensed `Complete_derivation_Rotary_Inverted_Pendulum.pdf` is sup
 
 Build the host binary and the MCU firmware with `make -f Makefile_HIL`; the MCU law is `compensator/compensator_STM32F411.c`. The 12-byte frame format, flashing steps (`0x08000000`), and runtime notes are in the repo-root `README.md` §6.
 
-**Known firmware exception:** this is the only MCU law that still pulls in `__aeabi_d*` soft-double helpers. It includes `<math.h>`, which already defines `M_PI` as a `double`, so the local `#ifndef M_PI` float fallback never applies. The firmware builds and runs, but it does not meet the float-only rule in `README.md` §6.5 that the other three models follow.
+**Firmware:** the law is float-only. It includes `<math.h>` and calls `fabsf`, which compiles to a single-precision instruction; a forced rebuild (`make -B -f Makefile_HIL`) shows no `__aeabi_d*` or libm symbols in `MDCS_HIL.out`.
