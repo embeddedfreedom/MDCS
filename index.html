@@ -666,6 +666,10 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Flash MCU:</strong><br>
                 write <code>build/&lt;model&gt;/MDCS_HIL.bin</code> at <code>0x08000000</code> over SWD (flywheel: <code>build/flywheel_control/{position,speed}/MDCS_HIL.bin</code>)<br>
                 (<code>st-flash --reset write MDCS_HIL.bin 0x08000000</code>, OpenOCD, STM32CubeProgrammer, or any tool you like)</p>
+                <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;"><strong>Automate with <code>run_sim.py</code>:</strong><br>
+                <code>python3 run_sim.py --hil</code> (build → flash → socat bridges → simulator → visualizers)<br>
+                <code>python3 run_sim.py --hil-no-flash</code> (build → socat bridges → simulator → visualizers, skip flashing)<br>
+                <code>python3 run_sim.py --hil position</code> / <code>python3 run_sim.py --hil speed</code> (flywheel profile)</p>
             </div>
 
             <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">MCU Compensator Laws</h3>
