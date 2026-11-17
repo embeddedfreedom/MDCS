@@ -544,7 +544,7 @@
     Ready to cross to real silicon? MDCS also supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. See <b>§6 Hardware-in-the-Loop (HIL)</b> in <a href="README.md" target="_blank" rel="noopener noreferrer">README.md</a> for build, flash, and run instructions for all showcased models.
 </p>
             
-            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift. Telemetry data can be exported to CSV for offline analysis.</p>
+            <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift. <strong>Telemetry data can be exported to CSV for offline analysis.</strong></p>
 
             <p>
                 The framework is completely <b>configurable</b>; you can tweak the system specs and noise levels directly in the source code. Since the core executable is only <b>~20 KB</b> (minus the visualizers and the external shared libraries), it's incredibly lean. By writing your compensator in <b>native C</b>, you get a real feel for how industrial control actually works—managing <b>fixed-step timing</b> and <b>deterministic loops</b> rather than just dragging blocks in a GUI.
