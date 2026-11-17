@@ -540,7 +540,7 @@
 </p>
 
             <p style="margin-top: 10px; font-size: 0.95rem; color: #1a1a1a; line-height: 1.6;">
-    Ready to cross to real silicon? MDCS also supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. See <b>§6 Hardware-in-the-Loop (HIL)</b> in <a href="README.md" target="_blank" rel="noopener noreferrer">README.md</a> for build, flash, and run instructions for all showcased models.
+    Ready to cross to real silicon? MDCS includes a <b>complete Hardware-in-the-Loop (HIL) implementation</b> against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. See <b>§6 Hardware-in-the-Loop (HIL)</b> in <a href="README.md" target="_blank" rel="noopener noreferrer">README.md</a> for build, flash, and run instructions for all showcased models.
 </p>
             
             <p>To enrich the student experience further, the project includes a <b>High-Fidelity 3D Visualizer</b> and <b>Real-Time Telemetry Graphs</b>. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift. <strong>Telemetry data can be exported to CSV for offline analysis.</strong></p>
@@ -598,7 +598,7 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
         <div class="glass-card">
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Hardware-in-the-Loop (HIL)</h2>
             <p style="font-size: 1rem; color: #334155;">
-                MDCS supports <b>Hardware-in-the-Loop (HIL)</b> testing against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
+                MDCS includes a <b>complete Hardware-in-the-Loop (HIL) implementation</b> against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
             </p>
             <p style="font-size: 0.9rem; color: #475569;">
                 Measured on hardware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate. All models — including both flywheel profiles — have been run in HIL on the STM32F411.
