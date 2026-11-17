@@ -617,8 +617,8 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 <li>No <code>double</code>, no <code>M_PI</code>, no unsuffixed decimal literals</li>
                 <li>No libm calls</li>
                 <li>FPU: <code>fpv4-sp-d16</code>, hard-float ABI</li>
-                <li>Firmware rules list <code>.c</code> sources only — after editing a header, force a rebuild with <code>make -B -f Makefile_HIL</code> or delete <code>MDCS_HIL.out</code></li>
-                <li><code>EXTRA_CFLAGS</code> is not a make dependency — stale firmware can persist if defines change without cleaning</li>
+                <li>Firmware rules list <code>.c</code> sources only — Make does not track header dependencies. After editing a header, force a rebuild with <code>make -B -f Makefile_HIL</code> or delete <code>MDCS_HIL.out</code></li>
+                <li><code>EXTRA_CFLAGS</code> is not a make dependency — changing defines (e.g. <code>-DHIL_TWO_OUTPUTS</code>) will not trigger a rebuild. Run <code>make clean</code> first, otherwise stale firmware can persist</li>
             </ul>
         </div>
 
