@@ -674,6 +674,23 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 <code>python3 run_sim.py --hil position</code> / <code>python3 run_sim.py --hil speed</code> (flywheel profile)</p>
             </div>
 
+            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Packet trace (furnace HIL)</h3>
+            <div style="background: rgba(8, 126, 164, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--ef-blue); margin: 15px 0;">
+                <p style="margin: 5px 0; font-family: monospace; font-size: 0.85rem;">
+                Captured from the <strong>furnace HIL</strong> host with <code>strace -f -e trace=read,write -x -s 64</code>.<br>
+                Furnace at ~25 °C ambient → both heaters at PWM 1.0 (fully on).<br>
+                Serial port fd was 5 in this capture; yours may differ.
+                </p>
+                <div style="font-family: monospace; font-size: 0.8rem; background: #f8f9fa; padding: 8px; border-radius: 4px; overflow-x: auto;">
+                    write(5, "\xaa\x55\xc8\xdf\xc7\x41\x86\x05\xc8\x41\x01\x65", 12) = 12<br>
+                    read(5, "\x55\xaa\x00\x00\x80\x3f\x00\x00\x80\x3f\x01\xfe", 12) = 12
+                </div>
+                <p style="margin: 5px 0; font-family: monospace; font-size: 0.75rem; color: #666;">
+                Host→MCU: sync AA 55 | float T1 ≈ 25.2 °C | float T2 ≈ 25.3 °C | cmd 01 | checksum 65<br>
+                MCU→host: sync 55 AA | float PWM1 = 1.0 | float PWM2 = 1.0 | status 01 | checksum FE
+                </p>
+            </div>
+
             <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">MCU Compensator Laws</h3>
             <div style="overflow-x: auto; margin: 15px 0;">
                 <table class="spec-table">
