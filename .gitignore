@@ -3,6 +3,7 @@
 
 # Agent instructions (local, not shared)
 AGENTS.md
+/.opencode/
 
 # Python
 __pycache__/
