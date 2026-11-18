@@ -42,6 +42,21 @@ Before setting up the local environment, you can explore the system architecture
 | **Furnace Control** | 2×2 coupled thermal LQI, dual PWM outputs (TIM3 CH1/PA6, CH2/PA7), industrial and bench parameter sets. |
 | **Automation** | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model. |
 
+## Engineering notes
+
+Six short write-ups of problems that were actually hit during development: symptom, diagnosis, fix, and scope of the fix. Written for anyone debugging the same failure.
+
+| Note | Problem |
+|---|---|
+| [Float precision in a slow plant](docs/notes/01-float-precision-slow-plant.md) | A thermal model heats but never cools, because a 20 kHz step is smaller than a `float` ULP. |
+| [Fixed-rate timing on Linux](docs/notes/02-fixed-rate-timing-and-jitter.md) | Why relative sleeps drift, how absolute deadlines fix it, what the jitter alert measures. |
+| [The 12-byte HIL frame](docs/notes/03-hil-frame-protocol.md) | Sync hunting, XOR checksums, a 3 ms poll deadline, and what happens when the host stops sending. |
+| [Float-only compensator port](docs/notes/04-bare-metal-float-only-port.md) | How a `double` reaches the firmware, and the three linker checks that catch it. |
+| [HIL scope](docs/notes/05-what-hil-validates.md) | What the hardware tests prove, and what they do not. |
+| [Lockstep HIL](docs/notes/06-lockstep-host-owns-the-clock.md) | Why the host owns the clock, and how plant and controller stay in phase when Linux preempts the host. |
+
+Index: [`docs/notes/README.md`](docs/notes/README.md)
+
 ## 1. Architecture Overview
 
 MDCS provides a **Real-Time (Soft) Hardware-Emulated environment—a Software-in-the-Loop (SIL) Digital Twin** that faithfully models a system using Lagrangian mechanics and the RK4 solver. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk. It utilizes C, the industry standard for embedded systems, ensuring the transition from simulation to real hardware is seamless.
