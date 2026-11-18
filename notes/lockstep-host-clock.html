@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>Lockstep HIL: the host owns the clock — Embedded Freedom</title>
+    <meta name="description" content="Why the host owns the clock in a lockstep HIL rig: how a Linux preemption freezes plant and controller together, and the one condition that makes it valid.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/lockstep-host-clock.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/lockstep-host-clock.html">
+    <meta property="og:title" content="Lockstep HIL: the host owns the clock — Embedded Freedom">
+    <meta property="og:description" content="Why the host owns the clock in a lockstep HIL rig: how a Linux preemption freezes plant and controller together, and the one condition that makes it valid.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Lockstep HIL: the host owns the clock — Embedded Freedom">
+    <meta name="twitter:description" content="Why the host owns the clock in a lockstep HIL rig: how a Linux preemption freezes plant and controller together, and the one condition that makes it valid.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/notes/">&larr; Engineering notes</a>
+            <h1>Lockstep HIL: the host owns the clock</h1>
+            <p class="note-meta">MDCS development note &middot; November 2026</p>
+        </header>
+        <article class="glass-card note-body">
+<p><strong>Problem.</strong> A simulated plant and a real controller are two separate processors. If each keeps its own notion of time, they slip — and a slip between a plant and its controller is not a cosmetic timing error. It changes the effective sample rate of the derivative term, it corrupts integrator wind-up, and in the worst case it turns a stable loop into an unstable one without any code being wrong.</p>
+<p>This note describes the mechanism that prevents it, why USB CDC was chosen for it, and the exact condition under which the mechanism is valid.</p>
+<h2>The arrangement</h2>
+<ul>
+<li>The <strong>plant</strong> runs on the host at 20 kHz, fixed 50 µs step.</li>
+<li>Every <strong>20 plant steps</strong> (1 ms of simulated time), the host calls the compensator.</li>
+<li>That call is <strong>blocking</strong>: it writes a 12-byte frame, waits up to 3 ms for the reply, validates it, and returns the control effort.</li>
+<li>The <strong>MCU has no control clock.</strong> It does not schedule anything. It sits in <code>wfi</code>; a USB packet wakes it, the RX callback runs the control law once, and the reply is flushed immediately.</li>
+</ul>
+<pre><code class="language-c">/* host, inside the 1 kHz slot of the plant loop */
+if (i &gt;= 20) {
+    if (runloop) {
+        pwm = run_compensator_cycle(&amp;bus, &amp;p, &amp;dir);   /* blocks for the round trip */
+    }
+    ...
+    i = 0;
+}
+</code></pre>
+<pre><code class="language-c">/* MCU, inside the USB receive callback */
+if (Extract_HostToMcuPacket(rx_packet, &amp;pos1, &amp;pos2, &amp;cmd)) {
+    float out1 = run_compensator_cycle_HIL(pos1, pos2);
+    Write_McuToHostPacket(tx_packet, out1, pos2, 0x01);
+    tud_cdc_write(tx_packet, HIL_PACKET_SIZE);
+    tud_cdc_write_flush();
+}
+</code></pre>
+<p>One frame in, exactly one control update out. The MCU cannot run ahead, because it has nothing to run on; it cannot fall behind, because it does no work between frames.</p>
+<h2>Why this is a common clock</h2>
+<p>The plant's time and the controller's execution are the same time base. Simulated time advances only when a frame completes — not approximately, structurally. That is a phase lock between plant and controller, in the same sense as a shared clock line between two chips: there is no second oscillator to drift against.</p>
+<p>This is not an aesthetic preference. The MCU code contains hardcoded assumptions that only hold under lockstep:</p>
+<pre><code class="language-c">/* velocity from finite difference */
+float d1 = (t1 - t1_prev) / 0.001f;
+
+/* integrator */
+float q1_next = clampf(q1 + e1 * 0.001f, -INT_CLAMP, INT_CLAMP);
+</code></pre>
+<p>Both constants mean &quot;one call per millisecond of plant time&quot;. Under lockstep that is guaranteed by construction. Under a free-running MCU timer it would be an assumption about the host's scheduling — and a wrong one the first time Linux preempts the process.</p>
+<h2>What happens when the host is preempted</h2>
+<p>This is the case the design is built for.</p>
+<p>Linux can stall a userspace process for tens or hundreds of milliseconds. Under lockstep, the plant is frozen during that stall, because it lives in the same thread that is blocked on the serial exchange. When the thread is scheduled again, the plant resumes at exactly the simulated instant it stopped, and the MCU resumes from exactly the controller state it held. Wall-clock time was lost; <strong>simulated phase was not</strong>.</p>
+<p>Under a free-running MCU clock, the same stall produces one of two failures:</p>
+<ul>
+<li>the controller keeps firing at 1 kHz against a sensor value that is no longer updating — the integrator winds up, the derivative goes to zero, and the loop is effectively running open-loop on stale data;</li>
+<li>or the plant advances while the controller does not, and every subsequent sample carries a phase error that the loop interprets as plant dynamics.</li>
+</ul>
+<p>Both are silent. Nothing in the telemetry says &quot;the controller and the plant disagreed about time&quot;. That is why the lockstep is worth the cost.</p>
+<h2>Why USB CDC, interrupt-driven</h2>
+<p>The requirement is not &quot;a serial link&quot;. It is &quot;a link whose latency is a single round trip and whose timing does not depend on the MCU polling&quot;.</p>
+<ul>
+<li>The MCU idles in <code>wfi</code> and wakes on packet arrival. There is no polling loop, no timer tick, no baud-rate-driven sample clock to reconcile — the frame arrival <em>is</em> the controller's clock.</li>
+<li>One round trip fits inside the 1 ms control period with room to spare. The measured budget and the framing that makes it possible are in <code>03-hil-frame-protocol.md</code>.</li>
+</ul>
+<p>A UART implementation <em>can</em> work, and this repository retains one, but a UART receiver is usually serviced either by polling (adds a sampling interval to every exchange) or by an interrupt that still needs a framing layer above it. USB CDC gives enumeration, a bulk endpoint with CRC and retry underneath, and a standard host driver — so the only thing left to design is the 12-byte frame.</p>
+<h2>The costs, stated plainly</h2>
+<ol>
+<li><strong>The control rate is capped by the round trip.</strong> 1 kHz fits; 10 kHz would not — the link would become the controller's sample rate, not the plant's.</li>
+<li><strong>Every control cycle blocks the host.</strong> The physics loop cannot proceed while waiting for the reply. That is the price of phase lock: worst-case link latency becomes part of the cycle budget, and the poll timeout bounds how long a dead board can stall the loop.</li>
+<li><strong>Losing the link means losing the controller.</strong> The host treats any transport error as a fault: it zeroes the command within one poll timeout, stops the loop, and requires <code>S</code> to restart. There is no degraded mode, and no attempt to extrapolate.</li>
+<li><strong>Phase lock is not a real-time guarantee.</strong> It guarantees plant and controller stay <em>consistent</em> with each other. It does not guarantee the pair runs at 1 kHz of wall-clock time. Under sustained host load the simulation runs slower than real time, correctly and consistently.</li>
+</ol>
+<h2>The condition that makes it valid</h2>
+<p>This scheme works because <strong>the plant is simulated on the same host thread that drives the controller</strong>. Freezing the plant during a host stall is legitimate — there is no physical process continuing without its controller.</p>
+<p>With a real plant, it would be wrong. A physical motor keeps spinning while the host is descheduled, so &quot;stop simulating until the controller replies&quot; is not available. A real HIL rig needs the controller to run on its own real-time clock and the host to timestamp and resynchronise, accepting a bounded phase error rather than eliminating it.</p>
+<p>That distinction is the honest boundary of this design: it is a software-in-the-loop plant with a hardware controller, phase-locked by construction. It is not a real-time rig for a physical plant, and it should not be described as one.</p>
+<h2>Related</h2>
+<ul>
+<li><code>03-hil-frame-protocol.md</code> — frame layout, checksums, and the current state of the MCU watchdog.</li>
+<li><code>02-fixed-rate-timing-and-jitter.md</code> — how the host keeps its own 20 kHz/1 kHz cadence.</li>
+<li><code>05-what-hil-validates.md</code> — what this arrangement does and does not prove.</li>
+</ul>
+        </article>
+        <div class="note-foot">
+            <div class="pn-row"><a class="pn prev" href="what-hil-validates.html"><span>&larr; Previous</span>What HIL validates, and what it does not</a></div>
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/06-lockstep-host-owns-the-clock.md">docs/notes/06-lockstep-host-owns-the-clock.md</a>
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>

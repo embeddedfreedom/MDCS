@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>A 20 kHz integrator that heats but never cools — Embedded Freedom</title>
+    <meta name="description" content="A thermal plant heated correctly but never cooled: at 32 °C the 50 µs step fell below half a float ULP, so every cooldown update rounded back to the previous state.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/float-precision-slow-plant.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/float-precision-slow-plant.html">
+    <meta property="og:title" content="A 20 kHz integrator that heats but never cools — Embedded Freedom">
+    <meta property="og:description" content="A thermal plant heated correctly but never cooled: at 32 °C the 50 µs step fell below half a float ULP, so every cooldown update rounded back to the previous state.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="A 20 kHz integrator that heats but never cools — Embedded Freedom">
+    <meta name="twitter:description" content="A thermal plant heated correctly but never cooled: at 32 °C the 50 µs step fell below half a float ULP, so every cooldown update rounded back to the previous state.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/notes/">&larr; Engineering notes</a>
+            <h1>A 20 kHz integrator that heats but never cools</h1>
+            <p class="note-meta">MDCS development note &middot; November 2026</p>
+        </header>
+        <article class="glass-card note-body">
+<p><strong>Symptom.</strong> The thermal slab heats normally. Press <code>T</code> to switch the heaters off and the temperature stops moving — not slow, frozen. It stays at whatever value it reached, indefinitely.</p>
+<p><strong>Plant.</strong> Industrial furnace model, integrated at 20 kHz with RK4:</p>
+<table>
+<thead>
+<tr>
+  <th>Parameter</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>C1</code> (thermal mass)</td>
+  <td>500 J/K</td>
+</tr>
+<tr>
+  <td><code>ha1_A1</code> (loss coefficient)</td>
+  <td>0.5 W/K</td>
+</tr>
+<tr>
+  <td><code>Tamb</code></td>
+  <td>25 °C</td>
+</tr>
+<tr>
+  <td><code>Vmax</code>, <code>R</code> (heater)</td>
+  <td>12 V, 4 Ω → 36 W at full duty</td>
+</tr>
+<tr>
+  <td>Time constant</td>
+  <td>≈ 1055 s</td>
+</tr>
+</tbody>
+</table>
+<p>One 50 µs step moves the temperature by</p>
+<pre><code>dT = (ha1_A1 / C1) * (T - Tamb) * dt
+   = 0.001 * (T - 25) * 5e-5
+</code></pre>
+<p>At the observed freeze point (31.868 °C) that is <strong>3.43e-7 °C per step</strong>.</p>
+<p>A <code>float</code> near 32 °C has an ULP of 2⁻¹⁹ = <strong>1.907e-6 °C</strong>, so half an ULP is <strong>9.54e-7 °C</strong>. The increment is smaller than half an ULP:</p>
+<pre><code class="language-c">x-&gt;T1 += 3.43e-7f;   // rounds straight back to x-&gt;T1
+</code></pre>
+<p>The state is not converging slowly. It is not converging at all — every step is discarded by the rounding of the store.</p>
+<h2>Why heating still worked</h2>
+<p>Heating delivers 36 W into 500 J/K:</p>
+<pre><code>dT = (36 / 500) * 5e-5 = 3.6e-6 °C per step
+</code></pre>
+<p>That is above the half-ULP at 32 °C, so energy going <strong>in</strong> was integrated while energy going <strong>out</strong> was not. The result looks like a plant with no losses, until the heaters turn off.</p>
+<p>The same arithmetic predicts a second failure that was never reached in this run: above 64 °C the ULP doubles to 7.63e-6, half-ULP becomes 3.81e-6, and even the heating increment (3.6e-6) falls below it. A float state would asymptote below 64 °C and never reach a 75 °C setpoint. That is arithmetic, not a measurement — the observed run froze at 31.868 °C first.</p>
+<h2>Why the bench test passed</h2>
+<p><code>BENCH_TEST_ACCELERATED</code> uses <code>C1 = 5</code> instead of 500 — a 100× smaller thermal mass. The same cooldown becomes 3.4e-5 °C per step, far above the ULP, so a float state cools correctly and the bug is invisible. The fast test configuration masked a defect that only exists in the slow, realistic one.</p>
+<h2>Fix</h2>
+<p>Keep the integrated state in <code>double</code>; keep everything that crosses the compensator boundary in <code>float</code>.</p>
+<pre><code class="language-c">/* simulator/furnace_types.h */
+typedef struct {
+    double T1, T2;
+    double T1_dot, T2_dot;
+    double u1, u2;
+    double q12;
+} ThermalState;
+
+typedef struct {
+    float C1, C2, K12, ha1_A1, ha2_A2, Tamb, Vmax, R;
+} ThermalParams;
+</code></pre>
+<pre><code class="language-c">/* simulator/furnace_sim.c — at the 1 kHz compensator call */
+float measured_T1 = (float)(s.T1 + jitter1);
+float measured_T2 = (float)(s.T2 + jitter2);
+</code></pre>
+<p>Only the host integrates the plant, so this costs nothing on the MCU. <code>ThermalParams</code> and the compensator stay <code>float</code>, which keeps the SIL control law bit-comparable to the firmware law. Changing the state to <code>double</code> does <strong>not</strong> change the gains.</p>
+<h2>The general rule</h2>
+<p>For a fixed-step integrator in single precision, a state update is lost when</p>
+<pre><code>|dT/dt| * dt  &lt;  0.5 * ULP(T)
+</code></pre>
+<p>with <code>ULP(T) ≈ 2^(floor(log2 T) - 23)</code>. Two ways out:</p>
+<ol>
+<li><strong>Raise the precision of the integrated state</strong> (this fix). Costs memory bandwidth, nothing else on a desktop.</li>
+<li><strong>Integrate slow states at a slower rate.</strong> Sub-stepping a 1055 s plant at 20 kHz is mostly wasted work anyway — a 1 kHz or 100 Hz thermal integrator with a larger dt would resolve the same dynamics.</li>
+</ol>
+<p>Option 1 was chosen here because the loop is shared with the fast electromechanical models and the uniformity is worth more than the cycles.</p>
+<h2>How to check for it</h2>
+<ul>
+<li>Command a step, then remove the input and watch for <em>any</em> decay over 60 s. A perfectly flat line after the input is removed is not a slow pole; it is a rounding floor.</li>
+<li>Print <code>nextafterf(x, INFINITY) - x</code> at your operating point. If your per-step increment is smaller than half of that, the state cannot move.</li>
+<li>Run the same test with the fast parameter set. If it passes there and fails with realistic parameters, suspect precision before suspecting the physics.</li>
+</ul>
+<h2>Scope</h2>
+<p>This is a host-side numerical issue only. The MCU never integrates the plant — it receives measured temperatures and returns duty cycles — so the firmware stays single precision throughout. See <code>04-bare-metal-float-only-port.md</code> for why that constraint is enforced.</p>
+        </article>
+        <div class="note-foot">
+            <div class="pn-row"><a class="pn next" href="fixed-rate-timing-jitter.html"><span>Next &rarr;</span>Fixed-rate loops on Linux, and what the jitter alert measures</a></div>
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/01-float-precision-slow-plant.md">docs/notes/01-float-precision-slow-plant.md</a>
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>

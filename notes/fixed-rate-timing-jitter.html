@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>Fixed-rate loops on Linux, and what the jitter alert measures — Embedded Freedom</title>
+    <meta name="description" content="Why relative sleeps drift, how absolute CLOCK_MONOTONIC deadlines remove the drift, and what a jitter alert can and cannot tell you in a 20 kHz / 1 kHz loop.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/fixed-rate-timing-jitter.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/fixed-rate-timing-jitter.html">
+    <meta property="og:title" content="Fixed-rate loops on Linux, and what the jitter alert measures — Embedded Freedom">
+    <meta property="og:description" content="Why relative sleeps drift, how absolute CLOCK_MONOTONIC deadlines remove the drift, and what a jitter alert can and cannot tell you in a 20 kHz / 1 kHz loop.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Fixed-rate loops on Linux, and what the jitter alert measures — Embedded Freedom">
+    <meta name="twitter:description" content="Why relative sleeps drift, how absolute CLOCK_MONOTONIC deadlines remove the drift, and what a jitter alert can and cannot tell you in a 20 kHz / 1 kHz loop.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/notes/">&larr; Engineering notes</a>
+            <h1>Fixed-rate loops on Linux: why `usleep(50)` drifts, and what the jitter alert actually measures</h1>
+            <p class="note-meta">MDCS development note &middot; November 2026</p>
+        </header>
+        <article class="glass-card note-body">
+<p><strong>Symptom.</strong> A controller that is supposed to run at exactly 1 kHz occasionally prints <code>Timing Jitter Alert: Cycle took 1.3 ms</code>, and the average rate is a little below 1 kHz even when nothing looks slow.</p>
+<p>This note covers the scheduling scheme used by every MDCS simulator, what it guarantees, and what it does not.</p>
+<h2>The loop shape</h2>
+<p>Two rates, one thread:</p>
+<table>
+<thead>
+<tr>
+  <th>Rate</th>
+  <th>Period</th>
+  <th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>20 kHz</td>
+  <td>50 µs</td>
+  <td>RK4 plant step, encoder pulse generation, Z-index check</td>
+</tr>
+<tr>
+  <td>1 kHz</td>
+  <td>1 ms</td>
+  <td>Compensator call, telemetry write, bus reset</td>
+</tr>
+</tbody>
+</table>
+<p>The compensator is not scheduled from a timer. It fires once every 20 physics steps:</p>
+<pre><code class="language-c">i++;
+if (i &gt;= 20) {
+    /* 1 kHz compensator */
+    ...
+    i = 0;
+}
+</code></pre>
+<p>That is deliberate. The compensator consumes the encoder edges accumulated over exactly 20 plant steps, so the control interval is defined in simulation steps rather than wall-clock time. The loop is a fixed-step simulation that happens to be paced by a clock — not a real-time task that happens to simulate.</p>
+<h2>Why relative sleep drifts</h2>
+<p><code>usleep(50)</code> sleeps <em>at least</em> 50 µs, then the loop does its work, then sleeps again. The actual period is therefore</p>
+<pre><code>period = work + sleep
+</code></pre>
+<p>If the plant step costs 8 µs, the loop runs at 58 µs — 17.2 kHz, not 20 kHz — and the error accumulates against the wall clock without bound. Every timing diagram, every jitter measurement, and every telemetry timestamp slowly slides.</p>
+<h2>Absolute deadlines</h2>
+<p>The fix is to schedule against an absolute timeline that is advanced independently of how long the work takes:</p>
+<pre><code class="language-c">const long NS_PER_STEP = 50000;   /* 50 us */
+
+struct timespec next_step;
+clock_gettime(CLOCK_MONOTONIC, &amp;next_step);
+
+while (1) {
+    /* ... 20 kHz work ... */
+
+    next_step.tv_nsec += NS_PER_STEP;
+    if (next_step.tv_nsec &gt;= 1000000000L) {
+        next_step.tv_nsec -= 1000000000L;
+        next_step.tv_sec++;
+    }
+
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &amp;next_step, NULL);
+}
+</code></pre>
+<p><code>TIMER_ABSTIME</code> means &quot;sleep until this instant&quot;, not &quot;sleep for this long&quot;. Work time is subtracted automatically: an 8 µs step sleeps 42 µs, a 30 µs step sleeps 20 µs, and the period stays 50 µs.</p>
+<p><code>CLOCK_MONOTONIC</code> is used rather than <code>CLOCK_REALTIME</code> because the latter can jump when NTP adjusts the system clock. A monotonic clock never goes backwards.</p>
+<h2>What happens under overload</h2>
+<p>If a step takes longer than 50 µs, <code>next_step</code> is already in the past when the sleep is reached, so <code>clock_nanosleep</code> returns immediately. The loop then runs flat out until the backlog is cleared. Three consequences:</p>
+<ul>
+<li><strong>The step rate is not guaranteed.</strong> The code asks for 20 kHz; the OS delivers whatever it can.</li>
+<li><strong>Per-step determinism is preserved.</strong> <code>dt</code> is a compile-time constant (<code>0.00005f</code>), never measured from the clock. A late step is still a 50 µs step, so the step sequence never changes — only how fast it is delivered.</li>
+<li><strong>Simulation time and wall time diverge.</strong> A long stall does not produce one giant integration step — it produces a burst of normal steps.</li>
+</ul>
+<p>This is a soft real-time design. There is no <code>SCHED_FIFO</code>, no CPU isolation, and no <code>mlockall</code>. A desktop kernel can preempt the loop for milliseconds. The mitigation is architectural rather than scheduling: the freeze is deliberate, and <code>06-lockstep-host-owns-the-clock.md</code> explains what it buys.</p>
+<h2>What the jitter alert measures</h2>
+<pre><code class="language-c">clock_gettime(CLOCK_MONOTONIC, &amp;current_time);
+double elapsed_ms = (current_time.tv_sec - last_comp_time.tv_sec) * 1000.0
+                  + (current_time.tv_nsec - last_comp_time.tv_nsec) / 1000000.0;
+
+if (elapsed_ms &gt; 1.05 || elapsed_ms &lt; 0.95) { /* alert */ }
+last_comp_time = current_time;
+</code></pre>
+<p>It measures the interval between compensator entries — 20 physics steps — against a 1 ms target with ±5% tolerance. It does <strong>not</strong> measure:</p>
+<ul>
+<li>per-step jitter inside the 20-step block,</li>
+<li>worst-case latency of a single iteration,</li>
+<li>scheduling delay distribution.</li>
+</ul>
+<p>A loop can be perfectly regular at the 1 kHz boundary and still stutter at 20 kHz. If that matters, timestamp the top of the loop into a ring buffer and analyse the histogram offline:</p>
+<pre><code class="language-c">struct timespec t;
+clock_gettime(CLOCK_MONOTONIC, &amp;t);
+uint64_t ns = (uint64_t)t.tv_sec * 1000000000ull + t.tv_nsec;
+/* store ns - prev_ns in a preallocated array; dump on exit */
+</code></pre>
+<p>Preallocate the buffer. Calling <code>printf</code> or <code>malloc</code> from inside the loop measures the wrong thing and perturbs what it measures.</p>
+<h2>Known quirk in the alert path</h2>
+<p>The first <code>printf</code> in the alert block is unconditional; the throttle counter only controls a second, flushed copy. The practical effect is that every violating cycle prints, and every 200th prints again with a flush. It is noisy but harmless, and it is deliberately left alone: the alert is diagnostic scaffolding, not production telemetry.</p>
+<h2>Why not just use an RTOS or a timer ISR</h2>
+<p>Because this is a host program whose job is to make a desktop behave like a deterministic embedded target. An RTOS would add a scheduler to a system that already has one, and a timer ISR would move the control law out of the readable super-loop that students are meant to study. The absolute-deadline super-loop is the smallest mechanism that gives fixed-rate behaviour with fixed-step determinism, and it maps directly onto what an MCU does with a hardware timer.</p>
+        </article>
+        <div class="note-foot">
+            <div class="pn-row"><a class="pn prev" href="float-precision-slow-plant.html"><span>&larr; Previous</span>A 20 kHz integrator that heats but never cools</a><a class="pn next" href="hil-frame-protocol.html"><span>Next &rarr;</span>A 12-byte HIL frame over USB CDC</a></div>
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/02-fixed-rate-timing-and-jitter.md">docs/notes/02-fixed-rate-timing-and-jitter.md</a>
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>

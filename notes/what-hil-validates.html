@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>What HIL validates, and what it does not — Embedded Freedom</title>
+    <meta name="description" content="What hardware-in-the-loop testing actually proves when the plant is simulated: a validated link and firmware, unvalidated physics, and no safety claim.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/what-hil-validates.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/what-hil-validates.html">
+    <meta property="og:title" content="What HIL validates, and what it does not — Embedded Freedom">
+    <meta property="og:description" content="What hardware-in-the-loop testing actually proves when the plant is simulated: a validated link and firmware, unvalidated physics, and no safety claim.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="What HIL validates, and what it does not — Embedded Freedom">
+    <meta name="twitter:description" content="What hardware-in-the-loop testing actually proves when the plant is simulated: a validated link and firmware, unvalidated physics, and no safety claim.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/notes/">&larr; Engineering notes</a>
+            <h1>What HIL validates — and what it does not</h1>
+            <p class="note-meta">MDCS development note &middot; November 2026</p>
+        </header>
+        <article class="glass-card note-body">
+<p><strong>Claim under test.</strong> &quot;The control law runs on real hardware.&quot;</p>
+<p>That sentence is true and easy to over-read. This note states exactly what a passing MDCS HIL run proves, and what it leaves unproven, so the result is not asked to carry more weight than it can.</p>
+<h2>The setup</h2>
+<ul>
+<li>The <strong>plant</strong> is simulated on the host: RK4 at 20 kHz, fixed 50 µs step.</li>
+<li>The <strong>controller</strong> is real firmware on an STM32F411, receiving sensor values over USB CDC and returning control effort.</li>
+<li>The <strong>interface</strong> is the 12-byte frame described in <code>03-hil-frame-protocol.md</code>.</li>
+</ul>
+<p>This is a controller-in-the-loop configuration: real control code, simulated physics. It is the standard use of the term HIL, but the hardware under test is the controller, not the plant.</p>
+<h2>What a passing run does establish</h2>
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>How it is exercised</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>The firmware builds and boots</td>
+  <td>Board enumerates as <code>cafe:4001 MDCS_HIL</code></td>
+</tr>
+<tr>
+  <td>The control law is numerically identical to the SIL law</td>
+  <td>Same source, same gains, compared outputs</td>
+</tr>
+<tr>
+  <td>Floating-point behaviour on the target</td>
+  <td>Single precision only, no <code>__aeabi_d</code> in the ELF</td>
+</tr>
+<tr>
+  <td>The transport works under timing pressure</td>
+  <td>≈ 0.4 ms round trip inside a 1 ms control period</td>
+</tr>
+<tr>
+  <td>Framing and checksums reject corruption</td>
+  <td>Deliberate bad frames are dropped, not acted on</td>
+</tr>
+<tr>
+  <td>Host-side disconnect handling</td>
+  <td>Any transport error zeroes the command and stops the loop — within ~4 ms of the board going silent (3 ms poll timeout plus one control period)</td>
+</tr>
+<tr>
+  <td>Output saturation</td>
+  <td>Duty clamped to <code>[0, 1]</code> or <code>[-Vmax, +Vmax]</code> on the MCU side</td>
+</tr>
+<tr>
+  <td>Recovery after disconnect</td>
+  <td>Host closes and reopens the port; the next valid frame resumes control</td>
+</tr>
+</tbody>
+</table>
+<p>Those are real guarantees. They are also <em>all</em> of the guarantees.</p>
+<h2>What a passing run does not establish</h2>
+<p><strong>Plant fidelity.</strong> The plant is the host simulation. HIL validates the code path around it, not the physics inside it. If the Lagrangian has the wrong inertia, or the friction model is linear when the real bearing is not, HIL will happily validate a controller for a plant that does not exist.</p>
+<p><strong>Sensor realism.</strong> Encoder edges, missing pulses, and injected jitter are generated in software. They are useful for stressing the decoder, but they are not a model of a real optical encoder's behaviour at temperature or under vibration.</p>
+<p><strong>Actuator dynamics.</strong> The plant applies a mean-value PWM duty cycle. The firmware writes a timer compare register, but no gate driver, no current loop, no dead time, and no switching ripple are in the loop. A controller that is stable here can still oscillate against a real H-bridge.</p>
+<p><strong>Electrical reality.</strong> No EMC, no ground bounce, no cable length, no supply sag, no thermal drift of the electronics.</p>
+<p><strong>MCU-side failsafe.</strong> The firmware stops computing when frames stop arriving, and the PWM compare register holds its last value. A SysTick watchdog path exists in source but is not enabled in the current build. For a student bench whose actuator is not driving the simulated plant, &quot;hold the last output and wait&quot; is a reasonable behaviour; it is not a safety function, and it should not be treated as one.</p>
+<p><strong>Safety.</strong> Nothing in this bench is certified, redundant, or fail-safe in the SIL-2/ASIL sense. It is a teaching tool.</p>
+<h2>The measurement is local</h2>
+<p>The ≈ 0.4 ms round trip (0.32–0.50 ms observed) was measured on one host, one board, one cable, with the host otherwise idle. It is an existence proof — the link is fast enough for a 1 kHz loop — not a specification. A slower host, a hub, or a busy USB bus will change it.</p>
+<h2>How the gap would be closed</h2>
+<p>In rough order of cost:</p>
+<ol>
+<li><strong>Bench step response.</strong> Apply a known input to the real plant, record the response, compare with the simulation. One afternoon, and it catches gross parameter errors immediately.</li>
+<li><strong>Parameter identification.</strong> Fit inertia, friction, and thermal mass from measured data instead of datasheet values.</li>
+<li><strong>Torque constant calibration.</strong> Measure current versus torque on the actual motor rather than assuming it.</li>
+<li><strong>Gate-driver and current-loop characterisation.</strong> Scope the PWM output, measure dead time, check the current loop bandwidth.</li>
+<li><strong>Long-duration runs.</strong> Thermal drift and supply sag only show up over hours.</li>
+</ol>
+<p>None of these are done in this repository. The honest summary is: <strong>MDCS HIL proves the firmware and the link; it does not prove the plant.</strong></p>
+<h2>Why this note exists</h2>
+<p>Because &quot;hardware-verified&quot; is a phrase that can mean anything from &quot;flashed once and it blinked&quot; to &quot;certified against a real engine&quot;. Being precise about which one applies is cheaper than being corrected later — and a result that is honestly scoped is more useful than one that is oversold.</p>
+        </article>
+        <div class="note-foot">
+            <div class="pn-row"><a class="pn prev" href="float-only-cortex-m4.html"><span>&larr; Previous</span>Porting a compensator to Cortex-M4 without doubles</a><a class="pn next" href="lockstep-host-clock.html"><span>Next &rarr;</span>Lockstep HIL: the host owns the clock</a></div>
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/05-what-hil-validates.md">docs/notes/05-what-hil-validates.md</a>
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>

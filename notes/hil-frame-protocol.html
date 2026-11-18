@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>A 12-byte HIL frame over USB CDC — Embedded Freedom</title>
+    <meta name="description" content="A fixed 12-byte host/MCU frame: sync hunting, the limits of an XOR checksum, a 3 ms poll deadline, and where control effort goes to zero when the board stops answering.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/hil-frame-protocol.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/hil-frame-protocol.html">
+    <meta property="og:title" content="A 12-byte HIL frame over USB CDC — Embedded Freedom">
+    <meta property="og:description" content="A fixed 12-byte host/MCU frame: sync hunting, the limits of an XOR checksum, a 3 ms poll deadline, and where control effort goes to zero when the board stops answering.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="A 12-byte HIL frame over USB CDC — Embedded Freedom">
+    <meta name="twitter:description" content="A fixed 12-byte host/MCU frame: sync hunting, the limits of an XOR checksum, a 3 ms poll deadline, and where control effort goes to zero when the board stops answering.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/notes/">&larr; Engineering notes</a>
+            <h1>A 12-byte HIL frame over USB CDC</h1>
+            <p class="note-meta">MDCS development note &middot; November 2026</p>
+        </header>
+        <article class="glass-card note-body">
+<p><strong>Problem.</strong> A host-side plant simulation at 1 kHz needs to talk to a real STM32F411 running the control law, with a round-trip latency well below the 1 ms control period, and with a failure mode that fails safe instead of applying a stale or corrupted command.</p>
+<p>This is the framing scheme that emerged. It is deliberately small: 12 bytes, fixed length, one checksum byte, no length field, no sequence number.</p>
+<h2>Wire format</h2>
+<p>Both directions use the same 12-byte layout, only the field names differ:</p>
+<table>
+<thead>
+<tr>
+  <th>Offset</th>
+  <th>Size</th>
+  <th>Host → MCU</th>
+  <th>MCU → host</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>0..1</td>
+  <td>2</td>
+  <td><code>0xAA 0x55</code></td>
+  <td><code>0x55 0xAA</code></td>
+</tr>
+<tr>
+  <td>2..5</td>
+  <td>4</td>
+  <td><code>float v1</code></td>
+  <td><code>float out1</code></td>
+</tr>
+<tr>
+  <td>6..9</td>
+  <td>4</td>
+  <td><code>float v2</code></td>
+  <td><code>float out2</code></td>
+</tr>
+<tr>
+  <td>10</td>
+  <td>1</td>
+  <td><code>uint8 cmd</code></td>
+  <td><code>uint8 status</code></td>
+</tr>
+<tr>
+  <td>11</td>
+  <td>1</td>
+  <td>XOR of bytes 0..10</td>
+  <td>XOR of bytes 0..10</td>
+</tr>
+</tbody>
+</table>
+<p>Sync patterns are reversed between directions so a loopback or a mis-wired adapter cannot be mistaken for a valid reply.</p>
+<p>The struct is packed, and the size is checked at compile time:</p>
+<pre><code class="language-c">#pragma pack(push, 1)
+typedef struct __attribute__((packed)) {
+    uint8_t sync[2];
+    float   pos1;
+    float   pos2;
+    uint8_t host_cmd;
+    uint8_t checksum;
+} HostToMcuPacket;
+#pragma pack(pop)
+
+_Static_assert(sizeof(HostToMcuPacket) == 12, &quot;HostToMcuPacket is not 12 bytes!&quot;);
+</code></pre>
+<p>The static assertion is the important part. Without it, a compiler that inserts padding between <code>pos2</code> and <code>host_cmd</code> silently changes the wire format, and the failure looks like a checksum bug.</p>
+<h2>Why fixed length</h2>
+<p>A variable-length protocol needs either an escaping scheme or a length field plus a resynchronisation strategy. Both add code to the receive path, and the receive path here runs inside a USB callback on a Cortex-M4 with no RTOS.</p>
+<p>At 12 bytes the parser is three states and no allocation:</p>
+<pre><code class="language-c">switch (parser_state) {
+case STATE_HUNT_SYNC0:
+    if (byte == 0xAA) { rx_packet[0] = byte; parser_state = STATE_HUNT_SYNC1; }
+    break;
+
+case STATE_HUNT_SYNC1:
+    if (byte == 0x55)      { rx_packet[1] = byte; rx_idx = 2; parser_state = STATE_COLLECT_PAYLOAD; }
+    else if (byte == 0xAA) { rx_packet[0] = 0xAA; }   /* re-align on AA AA 55 */
+    else                   { parser_state = STATE_HUNT_SYNC0; }
+    break;
+
+case STATE_COLLECT_PAYLOAD:
+    rx_packet[rx_idx++] = byte;
+    if (rx_idx == HIL_PACKET_SIZE) {
+        parser_state = STATE_HUNT_SYNC0;
+        /* validate + dispatch */
+    }
+    break;
+}
+</code></pre>
+<h2>Checksum: XOR, and its limits</h2>
+<p>XOR over bytes 0..10 is weak. It cannot detect two swapped bytes, it cannot detect an even number of flipped bits in the same position, and a random 11-byte payload passes with probability 1/256.</p>
+<p>It is used here because the link is short, point-to-point, and travels over USB, which already has a CRC16 at the packet layer plus retry. The XOR byte is a framing sanity check, not an integrity guarantee. If this protocol were moved to a bare UART, a noisy cable, or a multi-drop bus, the checksum would need to become CRC-16/CCITT and the frame would need a sequence number so a duplicate reply cannot be mistaken for a fresh one.</p>
+<p>The host side enforces the same rule in reverse and refuses the frame if either sync byte or the checksum is wrong:</p>
+<pre><code class="language-c">if (rx_pkt.sync[0] != 0x55 || rx_pkt.sync[1] != 0xAA || rx_pkt.checksum != rx_chk) {
+    simulation_shutdown();
+    *motor_dir = 0;
+    return 0.0f;
+}
+</code></pre>
+<h2>Timing budget</h2>
+<table>
+<thead>
+<tr>
+  <th>Item</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Baud rate</td>
+  <td>921600, 8N1</td>
+</tr>
+<tr>
+  <td>One 12-byte frame on the wire</td>
+  <td>12 × 10 bits ÷ 921600 ≈ 130 µs</td>
+</tr>
+<tr>
+  <td>Measured host → MCU → host</td>
+  <td>0.32–0.50 ms (≈ 0.4 ms typical)</td>
+</tr>
+<tr>
+  <td>Control period</td>
+  <td>1 ms</td>
+</tr>
+<tr>
+  <td>Host poll timeout</td>
+  <td>3 ms</td>
+</tr>
+<tr>
+  <td>MCU watchdog (defined; not enabled in the current build)</td>
+  <td>5 ms</td>
+</tr>
+</tbody>
+</table>
+<p>The measured 0.4 ms includes the wire time in both directions plus USB stack latency on the host and device. It leaves roughly 60% of the control period unused, which is the margin that makes a 1 kHz HIL loop viable over USB CDC at all.</p>
+<p>The 3 ms poll timeout is three control periods: long enough to survive a scheduling hiccup, short enough that a dead board cannot stall the physics loop for a visible amount of time.</p>
+<h2>Failure behaviour</h2>
+<p>The host never applies a stale or corrupted command. Any transport error collapses to zero control effort and stops the loop.</p>
+<p><strong>Host.</strong> Any short write, poll timeout, short read, bad sync, or bad checksum closes the serial descriptor, prints <code>CONNECTION ERROR</code>, sets the shared <code>runloop</code> flag to false, and returns zero output. The simulation keeps running with the plant unpowered. Pressing <code>S</code> reopens the port and resumes.</p>
+<p>Closing the descriptor matters: it lets the next cycle call <code>open()</code> again, so a board that is unplugged and replugged recovers without restarting the simulator.</p>
+<p>This is the real cutoff if the board hangs. The next exchange waits 3 ms and then fails; worst case is one control period plus the poll timeout, so control effort is zero within roughly 4 ms of the MCU going silent, and stays zero until <code>S</code> is pressed. The plant is simulated, so the consequence is a stalled model, not a runaway actuator.</p>
+<p><strong>MCU.</strong> The firmware is interrupt-driven. It idles in <code>wfi</code>; a frame arrival is the only thing that produces a control update. There is no free-running control task, so when the host stops sending, the MCU stops computing and returns to its idle loop. The timer compare register keeps its last value, so the last commanded duty remains on the pin until the next frame arrives.</p>
+<p>A SysTick watchdog path exists in source — 5 ms, clears <code>compensator_enabled</code>, forces a re-sync so the controller does not resume with stale state — but <code>enable_systick()</code> is commented out in the USB build and the flags are not read by the compensator, so it does not run. Status is a constant <code>0x01</code>.</p>
+<p>That is appropriate for the intended use. This is a student bench, the actuator is not driving the simulated plant, and a controller that simply stops when its host stops is the correct behaviour. The watchdog code is documented here so it is not mistaken for an active safety function.</p>
+<p>Status bits are defined as:</p>
+<table>
+<thead>
+<tr>
+  <th>Bit</th>
+  <th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>0</td>
+  <td><code>HIL_STATUS_RUNNING</code> — PA0 button state</td>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>HIL_STATUS_TIMEOUT</code> — watchdog has tripped (defined, not currently produced)</td>
+</tr>
+</tbody>
+</table>
+<p>Neither is currently varied at runtime; the adapter writes <code>0x01</code> on every reply.</p>
+<h2>Portability assumptions</h2>
+<ul>
+<li>Both ends are little-endian. True for x86-64 and Cortex-M4, but not stated anywhere in the wire format.</li>
+<li>Both ends use IEEE-754 binary32 for <code>float</code>. True for GCC on both targets.</li>
+<li><code>float</code> is 4 bytes and <code>uint8_t</code> is 1 byte, enforced by <code>_Static_assert</code>.</li>
+</ul>
+<p>A portable version would serialise floats byte-by-byte in a defined order instead of relying on struct layout. For a single-vendor, single-toolchain bench link, the struct is the pragmatic choice and the assertion catches the realistic failure.</p>
+<h2>What I would add for a production link</h2>
+<ol>
+<li><strong>CRC-16 instead of XOR</strong>, if the transport is not USB.</li>
+<li><strong>A sequence counter</strong>, so a duplicated or reordered reply is detectable.</li>
+<li><strong>A protocol version byte</strong>, so host and firmware refuse to talk across a format change.</li>
+<li><strong>An explicit length field</strong>, if payloads ever become model-specific.</li>
+</ol>
+<p>None of these are needed for a 12-byte frame on a 30 cm USB cable with a checksum at the transport layer. All of them would be needed the moment the link leaves the bench.</p>
+        </article>
+        <div class="note-foot">
+            <div class="pn-row"><a class="pn prev" href="fixed-rate-timing-jitter.html"><span>&larr; Previous</span>Fixed-rate loops on Linux, and what the jitter alert measures</a><a class="pn next" href="float-only-cortex-m4.html"><span>Next &rarr;</span>Porting a compensator to Cortex-M4 without doubles</a></div>
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/03-hil-frame-protocol.md">docs/notes/03-hil-frame-protocol.md</a>
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>

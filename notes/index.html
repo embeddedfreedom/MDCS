@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>Engineering notes — Embedded Freedom</title>
+    <meta name="description" content="Six development notes from MDCS: float precision in a slow plant, fixed-rate Linux timing, a 12-byte HIL frame, a float-only Cortex-M4 port, HIL scope, and lockstep timing.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/">
+    <meta property="og:title" content="Engineering notes — Embedded Freedom">
+    <meta property="og:description" content="Six development notes from MDCS: float precision in a slow plant, fixed-rate Linux timing, a 12-byte HIL frame, a float-only Cortex-M4 port, HIL scope, and lockstep timing.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Engineering notes — Embedded Freedom">
+    <meta name="twitter:description" content="Six development notes from MDCS: float precision in a slow plant, fixed-rate Linux timing, a 12-byte HIL frame, a float-only Cortex-M4 port, HIL scope, and lockstep timing.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/">&larr; MDCS</a>
+            <h1>Engineering notes</h1>
+            <p class="note-meta">Six write-ups from building MDCS</p>
+        </header>
+        <section class="glass-card">
+            <p class="intro">
+                Each note is a problem that was actually hit during development, written in the same
+                order it was encountered: the symptom, the diagnosis, the fix, and the limits of the fix.
+                They are kept short on purpose. Nothing here is a tutorial, and nothing here claims more
+                than was measured.
+            </p>
+                <a class="note-row" href="float-precision-slow-plant.html">
+                    <span class="num">01</span>
+                    <span class="txt"><strong>A 20 kHz integrator that heats but never cools</strong><em>A thermal plant heated correctly but never cooled: at 32 °C the 50 µs step fell below half a float ULP, so every cooldown update rounded back to the previous state.</em></span>
+                </a>
+                <a class="note-row" href="fixed-rate-timing-jitter.html">
+                    <span class="num">02</span>
+                    <span class="txt"><strong>Fixed-rate loops on Linux, and what the jitter alert measures</strong><em>Why relative sleeps drift, how absolute CLOCK_MONOTONIC deadlines remove the drift, and what a jitter alert can and cannot tell you in a 20 kHz / 1 kHz loop.</em></span>
+                </a>
+                <a class="note-row" href="hil-frame-protocol.html">
+                    <span class="num">03</span>
+                    <span class="txt"><strong>A 12-byte HIL frame over USB CDC</strong><em>A fixed 12-byte host/MCU frame: sync hunting, the limits of an XOR checksum, a 3 ms poll deadline, and where control effort goes to zero when the board stops answering.</em></span>
+                </a>
+                <a class="note-row" href="float-only-cortex-m4.html">
+                    <span class="num">04</span>
+                    <span class="txt"><strong>Porting a compensator to Cortex-M4 without doubles</strong><em>Getting a control law onto a Cortex-M4 with no libm and no doubles: the float-only rules, and the three linker checks that catch an accidental double.</em></span>
+                </a>
+                <a class="note-row" href="what-hil-validates.html">
+                    <span class="num">05</span>
+                    <span class="txt"><strong>What HIL validates, and what it does not</strong><em>What hardware-in-the-loop testing actually proves when the plant is simulated: a validated link and firmware, unvalidated physics, and no safety claim.</em></span>
+                </a>
+                <a class="note-row" href="lockstep-host-clock.html">
+                    <span class="num">06</span>
+                    <span class="txt"><strong>Lockstep HIL: the host owns the clock</strong><em>Why the host owns the clock in a lockstep HIL rig: how a Linux preemption freezes plant and controller together, and the one condition that makes it valid.</em></span>
+                </a>
+        </section>
+        <div class="note-foot">
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/">docs/notes/</a> in the MDCS repository.
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>

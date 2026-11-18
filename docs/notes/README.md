@@ -2,6 +2,8 @@
 
 Short write-ups of problems that were actually hit while building MDCS, what caused them, and what fixed them. They are written for someone who is currently stuck on the same thing — symptom first, no overview, no marketing.
 
+Also published at [embeddedfreedom.dev/notes](https://embeddedfreedom.dev/notes/). These files are the source; the site pages are generated from them.
+
 | # | Note | The problem it answers |
 |---|---|---|
 | 1 | [A 20 kHz integrator that heats but never cools](01-float-precision-slow-plant.md) | A slow thermal plant converges in simulation until the step size falls below a `float` ULP, and then stops moving entirely. |

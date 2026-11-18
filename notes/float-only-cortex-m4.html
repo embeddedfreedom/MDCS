@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/embeddedfreedom.png?v=1">
+    <link rel="apple-touch-icon" href="/embeddedfreedom.png?v=1">
+    <title>Porting a compensator to Cortex-M4 without doubles — Embedded Freedom</title>
+    <meta name="description" content="Getting a control law onto a Cortex-M4 with no libm and no doubles: the float-only rules, and the three linker checks that catch an accidental double.">
+    <link rel="canonical" href="https://embeddedfreedom.dev/notes/float-only-cortex-m4.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://embeddedfreedom.dev/notes/float-only-cortex-m4.html">
+    <meta property="og:title" content="Porting a compensator to Cortex-M4 without doubles — Embedded Freedom">
+    <meta property="og:description" content="Getting a control law onto a Cortex-M4 with no libm and no doubles: the float-only rules, and the three linker checks that catch an accidental double.">
+    <meta property="og:site_name" content="Embedded Freedom">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Porting a compensator to Cortex-M4 without doubles — Embedded Freedom">
+    <meta name="twitter:description" content="Getting a control law onto a Cortex-M4 with no libm and no doubles: the float-only rules, and the three linker checks that catch an accidental double.">
+    <meta name="author" content="Embedded Freedom">
+    <link rel="stylesheet" href="notes.css">
+</head>
+<body>
+    <nav>
+        <a class="brand-terminal" href="/"><img src="/embeddedfreedom.png" alt="Logo" class="nav-logo"> EMBEDDEDFREEDOM.DEV</a>
+        <a class="nav-link" href="/">MDCS</a>
+        <a class="nav-link active" href="/notes/">NOTES</a>
+    </nav>
+    <main class="wrap">
+        <header class="note-head">
+            <a class="crumb" href="/notes/">&larr; Engineering notes</a>
+            <h1>Porting a compensator to Cortex-M4: the float-only rules, and how the linker tells you when you broke them</h1>
+            <p class="note-meta">MDCS development note &middot; November 2026</p>
+        </header>
+        <article class="glass-card note-body">
+<p><strong>Problem.</strong> The same compensator source file is compiled twice: once for the host simulation (x86-64, glibc, libm) and once for the STM32F411 firmware (bare metal, <code>-nostartfiles</code>, no libm). Code that compiles and runs correctly on the host can silently fail to link — or link and then trap — on the target.</p>
+<p>This note is the constraint set that makes one source file work in both places, and the three commands that verify it.</p>
+<h2>The target</h2>
+<pre><code>arm-none-eabi-gcc -O0 -mcpu=cortex-m4 -g -mthumb -nostartfiles \
+    -mhard-float -mfpu=fpv4-sp-d16 \
+    -fno-exceptions -fno-unwind-tables
+</code></pre>
+<ul>
+<li><code>-mfpu=fpv4-sp-d16</code> is the Cortex-M4F FPU. It is <strong>single precision only</strong>.</li>
+<li><code>-mhard-float</code> passes float arguments in FPU registers, per the hard-float ABI.</li>
+<li><code>-nostartfiles</code> and no <code>-lm</code> mean there is no C library to fall back on.</li>
+</ul>
+<h2>What <code>double</code> costs there</h2>
+<p>A <code>double</code> on this target is not a slower instruction. It is a software library call:</p>
+<pre><code>__aeabi_dadd  __aeabi_dsub  __aeabi_dmul  __aeabi_ddiv  __aeabi_d2f  __aeabi_f2d
+</code></pre>
+<p>These live in libgcc, pull in additional code, and — worse — mixing them into a hard-float build can produce ABI errors at link time that read like nonsense (<code>VFP register arguments do not support this operation</code>). The failure mode is not &quot;the control law is slightly slower&quot;. It is &quot;the firmware does not build&quot;, or builds with a soft-float helper that corrupts the calling convention.</p>
+<h2>The four ways a <code>double</code> sneaks in</h2>
+<p><strong>1. <code>M_PI</code> is a double.</strong></p>
+<p>In glibc and newlib, <code>M_PI</code> is defined as a <code>double</code> constant. This is correct C and completely wrong here:</p>
+<pre><code class="language-c">float w = 2.0 * M_PI * f;      /* the whole expression is double */
+</code></pre>
+<p>Every trig or wrap operation in the firmware uses a local float constant instead:</p>
+<pre><code class="language-c">#define PI_F 3.14159265358979323846f
+</code></pre>
+<p>or, where the compensator needs a wrap:</p>
+<pre><code class="language-c">static float wrap_pi(float a) {
+    while (a &gt;  PI_F) a -= 2.0f * PI_F;
+    while (a &lt; -PI_F) a += 2.0f * PI_F;
+    return a;
+}
+</code></pre>
+<p><strong>2. Unsuffixed decimal literals are <code>double</code>.</strong></p>
+<pre><code class="language-c">float k = 0.001;      /* double, then truncated — may also warn */
+float k = 0.001f;     /* correct */
+</code></pre>
+<p>This matters most in gain tables. A table of 40 unsuffixed gains is 40 implicit <code>double</code> constants, and depending on optimisation level the compiler may materialise them through <code>__aeabi_d2f</code>.</p>
+<p><strong>3. Implicit promotion in mixed expressions.</strong></p>
+<pre><code class="language-c">float y = x * 0.5;        /* x promoted to double, multiply in double */
+float y = x * 0.5f;       /* stays single */
+</code></pre>
+<p>The same applies to <code>int</code> division assigned to a float, and to <code>pow()</code>, <code>exp()</code>, <code>sin()</code> and <code>cos()</code> — all of which are double-precision in the default libm.</p>
+<p><strong>4. The math functions without the <code>f</code> suffix.</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Host code</th>
+  <th>Bare-metal replacement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>sqrt(x)</code></td>
+  <td><code>sqrtf(x)</code>, or a Newton loop if libm is absent</td>
+</tr>
+<tr>
+  <td><code>fabs(x)</code></td>
+  <td><code>fabsf(x)</code></td>
+</tr>
+<tr>
+  <td><code>round(x)</code></td>
+  <td><code>roundf(x)</code></td>
+</tr>
+<tr>
+  <td><code>fmod(x, y)</code></td>
+  <td><code>fmodf(x, y)</code></td>
+</tr>
+<tr>
+  <td><code>sin(x)</code>, <code>cos(x)</code></td>
+  <td><code>sinf(x)</code>, <code>cosf(x)</code> — or a lookup table</td>
+</tr>
+</tbody>
+</table>
+<p>The furnace compensator needs one square root, for the steady-state feedforward (<code>pwm = sqrt(P·R) / Vmax</code>). With no libm available, it uses a fixed-iteration Newton loop:</p>
+<pre><code class="language-c">static float sqrt_pos(float x) {
+    if (x &lt;= 0.0f) return 0.0f;
+    float r = x;
+    for (int i = 0; i &lt; 12; i++) {
+        r = 0.5f * (r + x / r);
+    }
+    return r;
+}
+</code></pre>
+<p>Twelve iterations from a rough initial guess is more than enough for a feedforward term that is afterwards clamped to <code>[0, 1]</code>. It is not a general-purpose <code>sqrtf</code>; it is the smallest correct thing for this call site.</p>
+<h2>Verification: three commands</h2>
+<p><strong>1. No unresolved symbols.</strong></p>
+<pre><code class="language-bash">arm-none-eabi-nm -u build/furnace_control/MDCS_HIL.out
+</code></pre>
+<p>Must print nothing. Any output means the link silently accepted an undefined reference.</p>
+<p><strong>2. No double-precision helpers.</strong></p>
+<pre><code class="language-bash">arm-none-eabi-nm build/furnace_control/MDCS_HIL.out | grep __aeabi_d
+</code></pre>
+<p>Must print nothing. This is the single most useful check: it finds <code>double</code> arithmetic that survived the source review, including constants materialised by the compiler.</p>
+<p><strong>3. The ABI is actually hard-float.</strong></p>
+<pre><code class="language-bash">arm-none-eabi-readelf -A build/furnace_control/MDCS_HIL.out | grep -E 'FP_arch|VFP_args'
+</code></pre>
+<p>Expected:</p>
+<pre><code>Tag_FP_arch: VFPv4-D16
+Tag_ABI_VFP_args: VFP registers
+</code></pre>
+<p>If <code>VFP_args</code> says <code>Base AAPCS</code> or is missing, the build is using the soft-float calling convention somewhere, and float arguments are being passed through integer registers.</p>
+<h2>The linker map is the real detector</h2>
+<p><code>output.map</code> records which objects pulled in which library members. If <code>__aeabi_dmul</code> appears, the map shows what referenced it. That is faster than bisecting the source, especially when the <code>double</code> came from a header macro rather than from anything you wrote.</p>
+<p>This is also why the firmware Makefile lists <code>.c</code> sources rather than <code>.h</code> dependencies: editing a header does not trigger a rebuild, so a change that introduces a <code>double</code> can sit unnoticed until a clean build. After any header edit, force it:</p>
+<pre><code class="language-bash">make -B -f Makefile_HIL
+</code></pre>
+<h2>Why the constraint is worth keeping</h2>
+<p>The compensator is shared between SIL and HIL on purpose. If the host build were allowed to use <code>double</code>, libm, and <code>printf(&quot;%f&quot;)</code>, the two builds would diverge: gains tuned in simulation would not be the gains that run on the MCU, and the numerical behaviour at the boundary would differ in ways that are hard to attribute.</p>
+<p>Float-only keeps a single source of truth. The cost is discipline in four specific places — constants, literals, promotions, and library calls — and the benefit is that &quot;it works in SIL&quot; means something for the firmware.</p>
+        </article>
+        <div class="note-foot">
+            <div class="pn-row"><a class="pn prev" href="hil-frame-protocol.html"><span>&larr; Previous</span>A 12-byte HIL frame over USB CDC</a><a class="pn next" href="what-hil-validates.html"><span>Next &rarr;</span>What HIL validates, and what it does not</a></div>
+            <p class="source-line">Source of truth:
+                <a href="https://github.com/embeddedfreedom/MDCS/blob/master/docs/notes/04-bare-metal-float-only-port.md">docs/notes/04-bare-metal-float-only-port.md</a>
+            </p>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-line">COPYRIGHT &copy; 2026 EMBEDDEDFREEDOM.DEV</div>
+        <div class="footer-line">
+            <strong>Licenses:</strong> <a href="/LICENSE-GPLv3">GPLv3</a> (SIL, main source &amp; documentation) &bull;
+            <a href="/LICENSE-MIT">MIT</a> (HIL firmware &amp; MCU compensators)
+        </div>
+        <div class="footer-line">CONTACT: <a href="mailto:embeddedfreedom@gmail.com">embeddedfreedom@gmail.com</a></div>
+    </footer>
+</body>
+</html>
