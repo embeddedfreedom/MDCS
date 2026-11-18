@@ -23,6 +23,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 **Executive Summary & Configuration:** This document serves as the installation and configuration manual and the architecture overview document for the MDCS simulation environment. It details the setup of the 20kHz simulation engine, the 1kHz compensator interface, and the virtual serial bridge configuration required for real-time visualization and control. This repository contains a collection of independent, hardcoded dynamical models. This manual also details the setup required to bridge these C-based simulations to the Python visualizers via virtual serial ports. 
 
+> **Project status (v2.0):** MDCS is stable and feature-complete. It is maintained as needed — bug fixes, documentation corrections, and build compatibility — but no new models or features are planned. Issues and questions are welcome; responses may take time.
+
 ### 🚀 Quick Start & Live Demo
 
 Before setting up the local environment, you can explore the system architecture and see the controllers in action via the official project resources:
