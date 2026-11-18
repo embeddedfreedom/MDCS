@@ -16,6 +16,10 @@ __pycache__/
 # Personal handwritten notes (kept on disk, not distributed)
 /converted_handwritten_notes.md
 
+# Private career documents (never committed, never released)
+CareerPlan.docx
+*.docx
+
 # Local backup copies (kept on disk, not distributed)
 *.bak
 *.bak2
