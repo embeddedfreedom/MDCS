@@ -13,6 +13,9 @@ __pycache__/
 .marktext/
 *.log
 
+# Personal handwritten notes (kept on disk, not distributed)
+/converted_handwritten_notes.md
+
 # Local backup copies (kept on disk, not distributed)
 *.bak
 *.bak2
