@@ -613,10 +613,10 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
         <div class="glass-card">
             <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Hardware-in-the-Loop (HIL)</h2>
             <p style="font-size: 1rem; color: #334155;">
-                MDCS includes a <b>complete Hardware-in-the-Loop (HIL) implementation</b> against a physical <strong>STM32F411</strong> microcontroller over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
+                MDCS includes a <b>complete Hardware-in-the-Loop (HIL) implementation</b> against a physical <strong>STM32F411E-DISCO</strong> Discovery kit over USB CDC at <b>921600 baud</b>. Only sensor values cross the link—the MCU derives velocity/state and runs the compensator law. Close the loop between your compensator and real hardware to validate control performance under real-world timing and noise.
             </p>
             <p style="font-size: 0.9rem; color: #475569;">
-                Measured on hardware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate. All models — including both flywheel profiles — have been run in HIL on the STM32F411.
+                Measured on hardware: one host→MCU→host exchange takes <b>≈ 0.4 ms</b> (0.32–0.50 ms), far inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator rate. All models — including both flywheel profiles — have been run in HIL on the STM32F411E-DISCO Discovery kit.
             </p>
 
             <p style="margin-top: 25px; margin-bottom: 12px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the HIL control loop and emulated hardware interfaces.</p>
