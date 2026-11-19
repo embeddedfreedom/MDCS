@@ -71,11 +71,11 @@ The SIL project is built for **Linux Desktop** environments and utilizes a **
 
 ![Diagram](general_architecture.png)
 
-**_SIL Architecture:_** Software-in-the-Loop environment. The compensator and plant model run together on the host PC; no physical MCU is involved.
+**_SIL Architecture: Software-in-the-Loop environment. The compensator and plant model run together on the host PC; no physical MCU is involved._**
 
 ![Diagram](general_architecture_hil.png)
 
-**_HIL Architecture:_** Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant.
+**_HIL Architecture: Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant._**
 
 #### 1.1 Modeling Fidelity & Abstractions
 
