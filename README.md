@@ -35,25 +35,25 @@ Before setting up the local environment, you can explore the system architecture
 
 ## What's new in v2.0
 
-| Addition | Details |
-|---|---|
+| Addition                       | Details                                                                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hardware-in-the-Loop (HIL)** | STM32F411E-DISCO (Discovery kit) over USB CDC at 921600 baud. Fixed 12-byte frames with XOR checksums. See §6 for build, flash, and pin mapping. |
-| **Flywheel with DC Motor** | Position and speed profiles, 20-bit quadrature encoder, Z-pulse drift compensation at revolution boundaries. |
-| **Furnace Control** | 2×2 coupled thermal LQI, dual PWM outputs (TIM3 CH1/PA6, CH2/PA7), industrial and bench parameter sets. |
-| **Automation** | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model. |
+| **Flywheel with DC Motor**     | Position and speed profiles, 20-bit quadrature encoder, Z-pulse drift compensation at revolution boundaries.                                     |
+| **Furnace Control**            | 2×2 coupled thermal LQI, dual PWM outputs (TIM3 CH1/PA6, CH2/PA7), industrial and bench parameter sets.                                          |
+| **Automation**                 | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model.                                                              |
 
 ## Engineering notes
 
 Six short write-ups of problems that were actually hit during development: symptom, diagnosis, fix, and scope of the fix. Written for anyone debugging the same failure.
 
-| Note | Problem |
-|---|---|
-| [Float precision in a slow plant](docs/notes/01-float-precision-slow-plant.md) | A thermal model heats but never cools, because a 20 kHz step is smaller than a `float` ULP. |
-| [Fixed-rate timing on Linux](docs/notes/02-fixed-rate-timing-and-jitter.md) | Why relative sleeps drift, how absolute deadlines fix it, what the jitter alert measures. |
-| [The 12-byte HIL frame](docs/notes/03-hil-frame-protocol.md) | Sync hunting, XOR checksums, a 3 ms poll deadline, and what happens when the host stops sending. |
-| [Float-only compensator port](docs/notes/04-bare-metal-float-only-port.md) | How a `double` reaches the firmware, and the three linker checks that catch it. |
-| [HIL scope](docs/notes/05-what-hil-validates.md) | What the hardware tests prove, and what they do not. |
-| [Lockstep HIL](docs/notes/06-lockstep-host-owns-the-clock.md) | Why the host owns the clock, and how plant and controller stay in phase when Linux preempts the host. |
+| Note                                                                           | Problem                                                                                               |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| [Float precision in a slow plant](docs/notes/01-float-precision-slow-plant.md) | A thermal model heats but never cools, because a 20 kHz step is smaller than a `float` ULP.           |
+| [Fixed-rate timing on Linux](docs/notes/02-fixed-rate-timing-and-jitter.md)    | Why relative sleeps drift, how absolute deadlines fix it, what the jitter alert measures.             |
+| [The 12-byte HIL frame](docs/notes/03-hil-frame-protocol.md)                   | Sync hunting, XOR checksums, a 3 ms poll deadline, and what happens when the host stops sending.      |
+| [Float-only compensator port](docs/notes/04-bare-metal-float-only-port.md)     | How a `double` reaches the firmware, and the three linker checks that catch it.                       |
+| [HIL scope](docs/notes/05-what-hil-validates.md)                               | What the hardware tests prove, and what they do not.                                                  |
+| [Lockstep HIL](docs/notes/06-lockstep-host-owns-the-clock.md)                  | Why the host owns the clock, and how plant and controller stay in phase when Linux preempts the host. |
 
 Index: [`docs/notes/README.md`](docs/notes/README.md)
 
@@ -71,11 +71,11 @@ The SIL project is built for **Linux Desktop** environments and utilizes a **
 
 ![Diagram](general_architecture.png)
 
-**_SIL Architecture: Software-in-the-Loop environment. The compensator and plant model run together on the host PC; no physical MCU is involved._**
+_**SIL Architecture**: Software-in-the-Loop environment. The compensator and plant model run together on the host PC; no physical MCU is involved._
 
 ![Diagram](general_architecture_hil.png)
 
-**_HIL Architecture: Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant._**
+_**HIL Architecture**: Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant._
 
 #### 1.1 Modeling Fidelity & Abstractions
 
@@ -107,7 +107,7 @@ Several paths are hardcoded in this repository. **You must change them to match 
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Socat PTY links (3D + graph)             | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in`    | C simulator source (`simulator/*.c`)                                                                                                                                                            |
 | `run_sim.py` paths (all models)          | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in`    | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
-| HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c` (host-side link); the Python visualizers read the socat links, not the MCU                                                                                                                                             |
+| HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c` (host-side link); the Python visualizers read the socat links, not the MCU                                                                                      |
 | Socat links inside Python files          | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`                                                         | `visualiser/*_telemetry.py`, `visualiser/*_animation.py`                                                                                                                                        |
 | VS Code `launch.json` (all models + hil) | `/home/dipto/st/.../ST-LINK_gdbserver`, `/home/dipto/Desktop/MDCS_Backup/MDCS/build/.../MDCS_HIL.out` | `.vscode/launch.json` (and `.vscode/launch.position.json`, `launch.speed.json` for flywheel)                                                                                                    |
 | HIL test defaults                        | `/dev/ttyUSB0`                                                                                        | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c`                                                                                                        |
@@ -220,7 +220,7 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 | Model    | Gain derivation                                                                                                                                                                            |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Furuta.pdf` §5 (pp. 12-13); reproduces all four checked-in gains                     |
+| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Furuta.pdf` §5 (pp. 12-13); reproduces all four checked-in gains                                   |
 | Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned                                 |
 | Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
 | Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies                                          |
@@ -579,10 +579,13 @@ Two separate compilations happen:
 1. **Host binary** — Compiled with host `gcc` from the simulator + `compensator/compensator_hil.c` (USB CDC link layer; flywheel uses `compensator/hil_control/compensator_hil.c`) + `get_keypress.c`. Outputs `build/<model>/<model>_sim_hil` (or `build/flywheel_control/{position,speed}/flywheel_hil_sim`).
 
 2. **MCU firmware** — `Makefile_HIL` recursively invokes `hil/hil_STM32F4/Makefile`, passing:
+   
    - `COMPENSATOR=<absolute path to model's MCU compensator .c file>`
+   
    - `OUTPUT_DIR=<absolute path to model's build folder>`
+   
    - Optional `EXTRA_CFLAGS` (e.g., `-DHIL_TWO_OUTPUTS` for furnace; the flywheel selects its profile by choosing the MCU source file)
-
+   
    The shared firmware Makefile compiles STM32F411 bare-metal code (TinyUSB stack + clock + GPIO + TIM3 PWM + CDC adapter + model's compensator), links with `arm-none-eabi-gcc`, then `arm-none-eabi-objcopy` produces `MDCS_HIL.bin` for flashing at `0x08000000`.
 
 **Key points:**
@@ -711,10 +714,10 @@ The 8 MHz value is baked into `PLL_Init_84MHZ()`: `PLLM = 4` gives a 2 MHz VCO i
 
 #### PLL values
 
-| Board | HSE | `PLLM` | `PLLN` | `PLLP` | `PLLQ` | SYSCLK | USB | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| STM32F411E-DISCO | 8 MHz | `4U` | `168U` | `/4` | `/7` | 84 MHz | 48 MHz | Run on hardware |
-| Blackpill (F411CE) | 25 MHz | `25U` | `336U` | `/4` | `/7` | 84 MHz | 48 MHz | Derived only — untested |
+| Board              | HSE    | `PLLM` | `PLLN` | `PLLP` | `PLLQ` | SYSCLK | USB    | Status                  |
+| ------------------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----------------------- |
+| STM32F411E-DISCO   | 8 MHz  | `4U`   | `168U` | `/4`   | `/7`   | 84 MHz | 48 MHz | Run on hardware         |
+| Blackpill (F411CE) | 25 MHz | `25U`  | `336U` | `/4`   | `/7`   | 84 MHz | 48 MHz | Derived only — untested |
 
 **The Blackpill row is arithmetic, not a tested build.** No Blackpill has been run with this project, and the 25 MHz figure comes from the vendor's schematic rather than from a board measured here. It follows from the RM0383 limits (`f(VCOin) = f(HSE) / PLLM` inside 1–2 MHz, `f(VCO) = f(VCOin) × PLLN` inside 100–432 MHz): `25/25 = 1 MHz` → `× 336 = 336 MHz` → `/4 = 84 MHz` → `/7 = 48 MHz`. Verify the crystal on your own board's schematic and confirm the constants before relying on them.
 
@@ -764,15 +767,15 @@ The STM32F411 firmware uses TIM3 for hardware PWM output. Pin assignments:
 
 MDCS uses multiple licenses depending on the component:
 
-| Component                                                           | License  | File                    |
-| ------------------------------------------------------------------- | -------- | ----------------------- |
+| Component                                                                 | License  | File                    |
+| ------------------------------------------------------------------------- | -------- | ----------------------- |
 | Documentation (READMEs, `AGENTS.md`, `docs/*.md`, `docs/*.pdf`, diagrams) | GPLv3    | `LICENSE-GPLv3`         |
-| All model source (`*.c`, `*.h`, `*.py`, `Makefile`, `Makefile_HIL`) | GPLv3    | `LICENSE-GPLv3`         |
-| Framework (`framework/`)                                            | GPLv3    | `LICENSE-GPLv3`         |
-| HIL shared firmware (`hil/hil_STM32F4/`)                            | MIT      | `LICENSE-MIT`           |
-| MCU compensators (`compensator_STM32F411.c`)                        | MIT      | `LICENSE-MIT`           |
-| `tinyusb-master/` (vendored stack)                                  | MIT      | `tinyusb-master/`       |
-| `printm.c` (printf implementation)                                  | LGPLv2.1 | `LICENSES/LGPL-2.1.txt` |
+| All model source (`*.c`, `*.h`, `*.py`, `Makefile`, `Makefile_HIL`)       | GPLv3    | `LICENSE-GPLv3`         |
+| Framework (`framework/`)                                                  | GPLv3    | `LICENSE-GPLv3`         |
+| HIL shared firmware (`hil/hil_STM32F4/`)                                  | MIT      | `LICENSE-MIT`           |
+| MCU compensators (`compensator_STM32F411.c`)                              | MIT      | `LICENSE-MIT`           |
+| `tinyusb-master/` (vendored stack)                                        | MIT      | `tinyusb-master/`       |
+| `printm.c` (printf implementation)                                        | LGPLv2.1 | `LICENSES/LGPL-2.1.txt` |
 
 - **`LICENSE-GPLv3`** — GPLv3, the primary license for MDCS source code and documentation.
 - **`LICENSE-MIT`** — MIT License, applies only to HIL firmware and MCU compensator files.
