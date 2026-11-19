@@ -37,7 +37,7 @@ Before setting up the local environment, you can explore the system architecture
 
 | Addition | Details |
 |---|---|
-| **Hardware-in-the-Loop (HIL)** | STM32F411 over USB CDC at 921600 baud. Fixed 12-byte frames with XOR checksums. See §6 for build, flash, and pin mapping. |
+| **Hardware-in-the-Loop (HIL)** | STM32F411E-DISCO (Discovery kit) over USB CDC at 921600 baud. Fixed 12-byte frames with XOR checksums. See §6 for build, flash, and pin mapping. |
 | **Flywheel with DC Motor** | Position and speed profiles, 20-bit quadrature encoder, Z-pulse drift compensation at revolution boundaries. |
 | **Furnace Control** | 2×2 coupled thermal LQI, dual PWM outputs (TIM3 CH1/PA6, CH2/PA7), industrial and bench parameter sets. |
 | **Automation** | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model. |
@@ -695,18 +695,34 @@ MCU code must stay fully bare-metal: no `-lm`, no newlib syscalls, single-precis
 
 ### 6.6 Board & Clock Configuration
 
-The HIL firmware is built for the **STM32F411** with an **8 MHz external crystal** (HSE). The clock tree is configured in:
+**Reference hardware: the STM32F411E-DISCO Discovery kit**, which carries an **8 MHz HSE crystal**. Every HIL measurement in this document was taken on that board.
+
+The clock tree is configured in:
 
 - `hil/hil_STM32F4/core_initialisation_STM32F411xe.h`
 - `hil/hil_STM32F4/src/core_initialisation_STM32F411xe.c`
 
-The firmware runs all variants of the STM32F411 family. The USB CDC stack itself is portable and works on a wider variety of STM32 boards (e.g., STM32F401 "Blackpill", STM32F407, etc.), but porting to a different board or crystal requires changing:
+The 8 MHz value is baked into `PLL_Init_84MHZ()`: `PLLM = 4` gives a 2 MHz VCO input, `PLLN = 168` gives a 336 MHz VCO, `PLLP = /4` gives 84 MHz SYSCLK and `PLLQ = /7` gives the 48 MHz USB clock. A board with a different HSE crystal will not run this image as-is. The PLL input must land in 1–2 MHz and the VCO in 100–432 MHz, so most other crystals put the PLL outside its operating range; and even when they do not, SYSCLK and the 48 MHz USB clock come out at the wrong frequency. In either case the board looks dead and `/dev/ttyACM0` never appears — there is no error message.
 
-- `PLL_Init_84MHZ()` in `core_initialisation_STM32F411xe.c` — PLL multiplication factors depend on the input crystal frequency
+#### PLL values
+
+| Board | HSE | `PLLM` | `PLLN` | `PLLP` | `PLLQ` | SYSCLK | USB | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| STM32F411E-DISCO | 8 MHz | `4U` | `168U` | `/4` | `/7` | 84 MHz | 48 MHz | Run on hardware |
+| Blackpill (F411CE) | 25 MHz | `25U` | `336U` | `/4` | `/7` | 84 MHz | 48 MHz | Derived only — untested |
+
+**The Blackpill row is arithmetic, not a tested build.** No Blackpill has been run with this project, and the 25 MHz figure comes from the vendor's schematic rather than from a board measured here. It follows from the RM0383 limits (`f(VCOin) = f(HSE) / PLLM` inside 1–2 MHz, `f(VCO) = f(VCOin) × PLLN` inside 100–432 MHz): `25/25 = 1 MHz` → `× 336 = 336 MHz` → `/4 = 84 MHz` → `/7 = 48 MHz`. Verify the crystal on your own board's schematic and confirm the constants before relying on them.
+
+Button polarity, LED pins, bootloader/ST-LINK arrangement and flash/SRAM size also differ between boards, and none of that has been validated here.
+
+`SystemCoreClock` stays `84000000U` and flash latency stays 2 wait states as long as the 84 MHz target is kept. `HSE_VALUE` is not defined or used in this project, so there is no CMSIS constant to update.
+
+Verify the target crystal before building; an 8 MHz HSE is assumed by default.
+
+Porting to an unrelated board also requires checking:
+
 - Any board-specific GPIO/pin assignments in `TIM3_PWM_Init()` and `usb_hardware_init()`
 - Linker script memory regions (`MDCS_HIL.ld`) if flash/SRAM sizes differ
-
-Verify the target crystal frequency before building; an 8 MHz HSE is assumed throughout.
 
 #### TIM3 PWM Pin Assignment
 
