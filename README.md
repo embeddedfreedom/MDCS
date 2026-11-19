@@ -70,7 +70,12 @@ The **core physics engine** is optimized for single-thread execution to ensure
 The SIL project is built for **Linux Desktop** environments and utilizes a **high-precision timing super-loop** to emulate a **Real-Time (Soft)** bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a **lockstep architecture** where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve **temporal determinism**. The system implements a **self-healing absolute timeline** that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.
 
 ![Diagram](general_architecture.png)
+
+**Figure 1 — SIL Architecture:** Software-in-the-Loop environment. The compensator and plant model run together on the host PC; no physical MCU is involved.
+
 ![Diagram](general_architecture_hil.png)
+
+**Figure 2 — HIL Architecture:** Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant.
 
 #### 1.1 Modeling Fidelity & Abstractions
 
