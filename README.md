@@ -527,6 +527,13 @@ make -f Makefile_HIL
 
 Host: `build/furnace_control/furnace_sim_hil` | Firmware: `build/furnace_control/MDCS_HIL.out/.bin` (built with `-DHIL_TWO_OUTPUTS`)
 
+> **⚠️ Flywheel HIL nesting:** The flywheel model lives three levels deep:
+> `models/flywheel_with_DC_motor/fixed_weight_flywheel/` — not `models/flywheel/`.
+> Run the HIL build from inside that folder:
+> `make -f Makefile_HIL position` or `make -f Makefile_HIL speed`.
+> Outputs go to `build/flywheel_control/position/` and `build/flywheel_control/speed/`
+> respectively — separate firmware images per profile.
+
 ### 6.2.5 Makefile Hierarchy & Build Mechanism
 
 MDCS uses a two-level Makefile system. Each model directory contains its own `Makefile` (SIL) and `Makefile_HIL` (HIL), while the shared STM32F411 firmware engine lives in `hil/hil_STM32F4/`.
