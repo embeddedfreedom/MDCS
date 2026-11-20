@@ -5,6 +5,9 @@
 AGENTS.md
 /.opencode/
 
+# Editor / IDE workspace settings (per-developer, not distributed)
+.vscode/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -109,18 +109,16 @@ Several paths are hardcoded in this repository. **You must change them to match 
 | `run_sim.py` paths (all models)          | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in`    | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
 | HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c` (host-side link); the Python visualizers read the socat links, not the MCU                                                                                      |
 | Socat links inside Python files          | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`                                                         | `visualiser/*_telemetry.py`, `visualiser/*_animation.py`                                                                                                                                        |
-| VS Code `launch.json` (all models + hil) | `/home/dipto/st/.../ST-LINK_gdbserver`, `/home/dipto/Desktop/MDCS_Backup/MDCS/build/.../MDCS_HIL.out` | `.vscode/launch.json` (and `.vscode/launch.position.json`, `launch.speed.json` for flywheel)                                                                                                    |
 | HIL test defaults                        | `/dev/ttyUSB0`                                                                                        | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c`                                                                                                        |
 
-**If you do not update these, the simulator will write telemetry to the wrong PTY files, the Python visualizers will read from the wrong serial ports, VS Code debugging will point to the wrong binary, and nothing will appear to work.**
+**If you do not update these, the simulator will write telemetry to the wrong PTY files, the Python visualizers will read from the wrong serial ports, and nothing will appear to work.**
 
 The paths must match **exactly** between:
 
 1. The `socat` commands you run,
 2. The C source files (simulator/compensator),
-3. `run_sim.py` for your chosen model,
-4. The Python visualizer files, and
-5. (for HIL debugging) your VS Code `launch.json`.
+3. `run_sim.py` for your chosen model, and
+4. The Python visualizer files.
 
 If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` (and `/dev/ttyUSB0` for tests) and replace them with your own paths.
 
@@ -256,7 +254,7 @@ In ideal situations, step b above should be run only. Steps a and c should be fo
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
-> 🔗 **See the red "Hardcoded Paths" warning box at the top of this README** — it lists every path that must be changed before building/running (socat PTY links, `run_sim.py`, HIL serial port, VS Code `launch.json`, HIL test defaults). Read it before proceeding.
+> 🔗 **See the red "Hardcoded Paths" warning box at the top of this README** — it lists every path that must be changed before building/running (socat PTY links, `run_sim.py`, HIL serial port, HIL test defaults). Read it before proceeding.
 
 #### Step 2: Source Code Path Configuration
 
@@ -293,7 +291,7 @@ Expected output: `arm-none-eabi-gcc (GNU Toolchain for the Arm Architecture 13.3
 
 **Note:** The cross-toolchain is used by `Makefile_HIL` to compile the STM32F411 firmware (`MDCS_HIL.out/.bin`). SIL builds (`make`) use the host compiler and do not require it.
 
-Flashing the resulting image is covered in [§6.3 Flashing Firmware](#63-flashing-firmware) — `st-flash`, OpenOCD, STM32CubeProgrammer or any tool of your choice, as long as the `.bin` lands at `0x08000000`.
+Flashing the resulting image is covered in [§6.3 Flashing Firmware](#63-flashing-firmware) — `st-flash` (the verified route), OpenOCD or STM32CubeProgrammer (both untested), or any tool of your choice, as long as the `.bin` lands at `0x08000000`.
 
 #### Step 3: Compilation
 
@@ -597,6 +595,8 @@ Two separate compilations happen:
 
 ### 6.3 Flashing Firmware
 
+> **Which of these has been tested?** Only **Option A (`st-flash`)**, which is also what `run_sim.py` uses. The OpenOCD and STM32CubeProgrammer commands in Options B and C follow the vendors' standard usage but have **not** been executed against this firmware — treat them as a starting point, and fall back to `st-flash` if one fails.
+
 `Makefile_HIL` links and then converts the ELF to a raw binary:
 
 ```
@@ -624,16 +624,18 @@ sudo apt install stlink-tools          # Debian/Ubuntu
 st-flash --reset write build/<model>/MDCS_HIL.bin 0x08000000
 ```
 
-#### Option B — OpenOCD
+#### Option B — OpenOCD (untested here)
 
 ```bash
 openocd -f interface/stlink.cfg -f target/stm32f4x.cfg \
         -c "program build/<model>/MDCS_HIL.bin 0x08000000 verify reset exit"
 ```
 
-On older OpenOCD releases the adapter config is named `interface/stlink-v2.cfg`.
+On older OpenOCD releases the adapter config is named `interface/stlink-v2.cfg`. On most Linux systems OpenOCD needs permission to open the ST-LINK USB device — either run it under `sudo` or install the shipped udev rules (`/usr/share/openocd/contrib/60-openocd.rules`) and re-plug the board.
 
-#### Option C — STM32CubeProgrammer
+#### Option C — STM32CubeProgrammer (untested here)
+
+The CLI is not on `PATH` by default on Linux; add STM32CubeProgrammer's `bin/` directory to `PATH`, use the full path, or launch it from the GUI terminal.
 
 CLI:
 
@@ -643,9 +645,9 @@ STM32_Programmer_CLI -c port=SWD -w build/<model>/MDCS_HIL.bin 0x08000000 -Rst
 
 GUI: connect over SWD (SWDIO, SWCLK, GND, 3V3), open the `.bin`, set the start address to `0x08000000`, then **Download**.
 
-#### Option D — your own tool
+#### Option D — any other tool
 
-The list above is just a starting point. `pyocd`, a J-Link, `dfu-util` (only if the ROM bootloader is enabled), an IDE's download button, or any programmer that can write a raw binary to an absolute address will all work. **Students are free to use whatever flashing tool they already know** — nothing in the firmware or in the host simulator depends on how the image gets onto the chip.
+The list above is just a starting point. `pyocd`, a J-Link, `dfu-util` (only if the ROM bootloader is enabled), or any programmer that can write a raw binary to an absolute address will all work. **Students are free to use whatever flashing tool they already know** — nothing in the firmware or in the host simulator depends on how the image gets onto the chip.
 
 If your tool asks for an address, it is always `0x08000000`. If it asks for a format, the file is a raw `.bin`, not an ELF or a hex file (use `MDCS_HIL.out` if you want the ELF for debugging, `MDCS_HIL.bin` for flashing).
 
