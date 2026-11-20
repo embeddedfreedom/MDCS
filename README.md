@@ -33,6 +33,24 @@ MDCS is built for **Linux Desktop environments only**. The core simulator uses `
 
 </div>
 
+<div style="color: white; font-weight: bold; background: #1a5276; padding: 15px; border: 2px solid #0e3d5c; border-radius: 8px; margin: 20px 0;">
+
+**🔧 Two Variants: SIL and HIL**
+
+MDCS ships with two build variants for every model:
+
+| Variant | What it means | Hardware needed | Best for |
+|---------|--------------|-----------------|----------|
+| **SIL** — Software-in-the-Loop | Physics + compensator run together on your PC | None | Learning, testing control laws |
+| **HIL** — Hardware-in-the-Loop | Physics on PC; compensator on real STM32F411 over USB CDC | STM32F411E-DISCO | Validating on real embedded hardware |
+
+**Start with SIL.** It requires no hardware and works immediately. Move to HIL only when you want to run the compensator on the actual chip.
+
+- **SIL setup:** §4 Installation & Setup → §5 Execution  
+- **HIL setup:** §6 Hardware-in-the-Loop (HIL)
+
+</div>
+
 **Executive Summary & Configuration:** This document serves as the installation and configuration manual and the architecture overview document for the MDCS simulation environment. It details the setup of the 20kHz simulation engine, the 1kHz compensator interface, and the virtual serial bridge configuration required for real-time visualization and control. This repository contains a collection of independent, hardcoded dynamical models. This manual also details the setup required to bridge these C-based simulations to the Python visualizers via virtual serial ports. 
 
 > **Project status (v2.0):** MDCS is stable and feature-complete. It is maintained as needed — bug fixes, documentation corrections, and build compatibility — but no new models or features are planned. Issues and questions are welcome; responses may take time.
