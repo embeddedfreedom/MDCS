@@ -207,6 +207,13 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
 | Flywheel (`flywheel_with_DC_motor/fixed_weight_flywheel`) | ✅ (`make position\|speed`) | ✅ (`make -f Makefile_HIL position\|speed`) | Multi-profile: separate position/speed MCU laws and build folders.          |
 | Furnace (`furnace_control`)                               | ✅                          | ✅                                          | 2×2 thermal LQI, dual PWM outputs. HIL outputs to `build/furnace_control/`. |
 
+> **⚠️ Flywheel nesting:** The flywheel model lives three levels deep:
+> `models/flywheel_with_DC_motor/fixed_weight_flywheel/` — not `models/flywheel/`.
+> Its HIL build outputs are split into two profile folders:
+> `build/flywheel_control/position/` and `build/flywheel_control/speed/`,
+> not a single `build/flywheel_control/`. Use `make position` or `make speed`
+> (not plain `make`) for SIL builds.
+
 --- 
 
 ---
@@ -314,6 +321,10 @@ make
 ```
 
 The resulting binary will be placed in the root `build/[model_name]` directory.
+
+> **⚠️ Flywheel compilation:** The flywheel model is multi-profile. Run `make position`
+> or `make speed` (not plain `make`) from inside
+> `models/flywheel_with_DC_motor/fixed_weight_flywheel/`. Plain `make` will not work.
 
 ---
 
