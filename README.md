@@ -21,6 +21,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 **Version:** 2.0
 
+<div style="color: white; font-weight: bold; background: #b30000; padding: 15px; border: 2px solid #7a0000; border-radius: 8px; margin: 20px 0;">
+
+**🐧 Linux Only — No Windows or macOS Support**
+
+MDCS is built for **Linux Desktop environments only**. The core simulator uses `clock_nanosleep(CLOCK_MONOTONIC, ...)` and other Linux-specific system calls that are not available on Windows or macOS.
+
+- **Tested on:** Linux Mint 21.3 / Ubuntu 22.04+
+- **Not supported:** Windows (including WSL for HIL), macOS
+- **If you are on Windows or macOS:** You will need a Linux VM or a separate Linux machine to build and run MDCS.
+
+</div>
+
 **Executive Summary & Configuration:** This document serves as the installation and configuration manual and the architecture overview document for the MDCS simulation environment. It details the setup of the 20kHz simulation engine, the 1kHz compensator interface, and the virtual serial bridge configuration required for real-time visualization and control. This repository contains a collection of independent, hardcoded dynamical models. This manual also details the setup required to bridge these C-based simulations to the Python visualizers via virtual serial ports. 
 
 > **Project status (v2.0):** MDCS is stable and feature-complete. It is maintained as needed — bug fixes, documentation corrections, and build compatibility — but no new models or features are planned. Issues and questions are welcome; responses may take time.
