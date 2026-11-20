@@ -964,4 +964,19 @@ This is **not an exhaustive list**. It covers the most common first-time issues;
 
 ---
 
+### First-Time Student Checklist
+
+If this is your first time setting up MDCS, work through this list in order:
+
+- **Use two terminals.** Run the simulator binary (or `run_sim.py`) in one terminal, and the Python visualizer in another. Running both in one terminal will block the visualizer from starting.
+- **Furnace gains live in two files.** The SIL law (`compensator/compensator.c`) and the MCU law (`compensator/compensator_hil_STM32F4.c`) must be edited identically — setpoints, `IND_KX_*`, `IND_KI_*`. Rebuild both SIL (`make`) and HIL (`make -f Makefile_HIL`) after any change.
+- **`make clean` removes everything.** It deletes the entire `build/<model>/` folder, including both SIL and HIL binaries (and both flywheel profiles). There is no undo — rebuild after cleaning.
+- **Visualizer paths are hardcoded too.** The Python files (`visualiser/*_telemetry.py`, `*_animation.py`) contain `/home/dipto/sim_3d` and `/home/dipto/sim_graph` — update them to match your socat links, not just the C source files.
+- **One model at a time.** Running two models simultaneously causes socat PTY conflicts and data corruption.
+- **Linux only.** `clock_nanosleep(CLOCK_MONOTONIC, ...)` and other system calls are Linux-specific. Windows and macOS are not supported.
+
+This checklist covers the most common first-time gotchas. For deeper issues, see §10 Troubleshooting above.
+
+---
+
 **Support via PayPal:** [Donate via PayPal](https://paypal.me/embeddedfreedom)
