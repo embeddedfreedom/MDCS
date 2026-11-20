@@ -942,19 +942,11 @@ This is **not an exhaustive list**. It covers the most common first-time issues;
 | Wrong binary flashed | Each model (and each flywheel profile) produces its own `MDCS_HIL.bin`. Flash the `.bin` that sits next to the host binary you are running (see §6.3 table). |
 
 ### Symptom: Temperature doesn't move (furnace)
-
 | Possible cause | Check / Fix |
 |----------------|-------------|
 | Compensator disabled | Press **`S`** — PWM stays at 0 until you enable it. |
 | Setpoint changed but gains not retuned | The LQI gains are linearized at 75/75 °C. Changing setpoints (e.g. to 83/67 °C) requires recomputing gains via `docs/furnace_lqi_design.py` — see §17 in `models/furnace_control/docs/LQI_DERIVATION.md`. |
 | Physically saturated | Heaters are PWM-only (no active cooling). Slab 1 cannot exceed ~72 °C while slab 2 sits at 67 °C with heater 2 off — the 36 W heater limit is reached. |
-
-### Symptom: "Timing Jitter Alert" prints repeatedly
-
-| Possible cause | Check / Fix |
-|----------------|-------------|
-| System under load | Close CPU-heavy applications. The 20 kHz physics loop needs a quiet machine. |
-| Wrong CPU governor | On laptops, set the CPU governor to `performance` to reduce frequency-scaling jitter. |
 
 ### General
 
