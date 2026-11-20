@@ -142,6 +142,15 @@ If you move the repo to a different user or machine, do a repo-wide search for `
 sudo apt update && sudo apt install socat
 ```
 
+- **User permissions:** add your user to the `dialout` group so the HIL host can open `/dev/ttyACM0` without `sudo`:
+
+**bash**
+
+```
+sudo usermod -a -G dialout $USER
+```
+Log out and back in for the group change to take effect.
+
 ### Environment & Python Packages
 
 It is highly recommended to use **Conda** or **Python 3 venv** to prevent dependency conflicts.
