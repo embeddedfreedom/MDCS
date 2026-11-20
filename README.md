@@ -899,4 +899,69 @@ python3 run_sim.py --help             # Show usage help
 
 ---
 
+## 10. Troubleshooting
+
+This is **not an exhaustive list**. It covers the most common first-time issues; if your problem is not listed here, check the model-specific `README.md` and `AGENTS.md` in the model folder, or the `docs/notes/` write-ups referenced in §0.
+
+### Symptom: Nothing appears in the visualizer / telemetry plotter
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| Socat bridges not running | `ls -l /home/dipto/sim_3d /home/dipto/sim_graph`. If missing, run the socat commands from §4 Step 1 (or let `run_sim.py` create them). |
+| Paths don't match | The PTY links in socat, C source files, `run_sim.py`, and the Python visualizers must all use the **exact same** paths. See the red "Hardcoded Paths" box in §1. |
+| Wrong model directory | Run `run_sim.py` from **inside** the model directory (e.g. `cd models/rotary_inverted_pendulum && python3 run_sim.py`). |
+| Simulator not producing output | Press **`S`** in the simulator terminal to enable the compensator. Without it, PWM is 0 and the plant may appear static. |
+
+### Symptom: HIL host cannot open `/dev/ttyACM0` (permission denied)
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| User not in `dialout` group | `groups` should list `dialout`. If not: `sudo usermod -a -G dialout $USER`, then log out and back in. |
+| Another process holding the port | Only one program can own `/dev/ttyACM0` at a time. Close other serial terminals, visualizers, or `screen`/`minicom` sessions. |
+| Board not enumerated | `lsusb` should show `cafe:4001 MDCS_HIL`. If missing, the board may not be flashed, the crystal may be wrong (see §6.6), or the cable/port is faulty. |
+
+### Symptom: `make -f Makefile_HIL` fails with "arm-none-eabi-gcc: command not found"
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| ARM cross-toolchain not installed or not on `PATH` | Install `arm-none-eabi-gcc` (see §4 Step 2.5) and verify with `arm-none-eabi-gcc --version`. |
+| `PATH` not exported | Add `export PATH=/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin:$PATH` to your `~/.bashrc`. |
+
+### Symptom: Firmware changes don't take effect (header edited, rebuild seems ignored)
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| Firmware Makefile tracks `.c` files only | Editing a `.h` does not force a rebuild. Run `make -B -f Makefile_HIL` or delete `MDCS_HIL.out` before rebuilding. |
+| Stale `EXTRA_CFLAGS` | `EXTRA_CFLAGS` is not a make dependency. Clean (`make clean`) if defines changed. |
+
+### Symptom: Board flashes OK but `/dev/ttyACM0` never appears
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| Wrong HSE crystal | Firmware assumes an **8 MHz HSE** (STM32F411E-DISCO). A different crystal breaks the PLL and USB clock — the board looks dead with no error message. See §6.6. |
+| Wrong binary flashed | Each model (and each flywheel profile) produces its own `MDCS_HIL.bin`. Flash the `.bin` that sits next to the host binary you are running (see §6.3 table). |
+
+### Symptom: Temperature doesn't move (furnace)
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| Compensator disabled | Press **`S`** — PWM stays at 0 until you enable it. |
+| Setpoint changed but gains not retuned | The LQI gains are linearized at 75/75 °C. Changing setpoints (e.g. to 83/67 °C) requires recomputing gains via `docs/furnace_lqi_design.py` — see §17 in `models/furnace_control/docs/LQI_DERIVATION.md`. |
+| Physically saturated | Heaters are PWM-only (no active cooling). Slab 1 cannot exceed ~72 °C while slab 2 sits at 67 °C with heater 2 off — the 36 W heater limit is reached. |
+
+### Symptom: "Timing Jitter Alert" prints repeatedly
+
+| Possible cause | Check / Fix |
+|----------------|-------------|
+| System under load | Close CPU-heavy applications. The 20 kHz physics loop needs a quiet machine. |
+| Wrong CPU governor | On laptops, set the CPU governor to `performance` to reduce frequency-scaling jitter. |
+
+### General
+
+- **Only one model at a time.** Running two models simultaneously causes socat PTY conflicts and data corruption.
+- **Do not close the terminal running socat.** Closing it destroys the bridges.
+- **Linux only.** MDCS uses Linux-specific system calls (`clock_nanosleep`, etc.). It will not build or run on Windows or macOS natively.
+
+---
+
 **Support via PayPal:** [Donate via PayPal](https://paypal.me/embeddedfreedom)
