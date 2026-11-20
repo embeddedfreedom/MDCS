@@ -690,6 +690,8 @@ For the furnace model, probing the compensator code on the MCU directly, with se
 
 Every reply carried `status = 0x01` (running) and a valid XOR checksum.
 
+> **Setpoint changes:** The furnace heater model is nonlinear (`P = V²/R`), so the LQI gains are valid only near their linearization point (75/75 °C). Changing setpoints requires recomputing gains via `docs/furnace_lqi_design.py` — see §17 "Nonlinear plant — setpoint changes require gain recomputation" in `models/furnace_control/docs/LQI_DERIVATION.md`.
+
 **MCU integrator cadence:** the MCU law keeps no clock of its own. Each frame it receives advances the integral by a fixed `q += e * 0.001f`, i.e. it assumes exactly one host call per millisecond. The host calls the compensator once per 20 physics steps (1 kHz), so the two rates agree as long as the host loop meets its deadline. If the host falls behind, the integral simply advances more slowly in wall time — invisible at τ ≈ 1000 s, but do not change the host cadence without also changing that `0.001f`.
 
 ### 6.5 Bare-Metal Firmware Rules

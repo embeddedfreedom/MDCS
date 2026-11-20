@@ -848,9 +848,45 @@ Implemented in `compensator.c` with clamping.
 | Less heater activity       | Increase `r_u`                                        |
 | Reduce steady-state offset | Increase `q_I`                                        |
 | Less overshoot             | Increase `q_T` relative to `q_I`                      |
-| Different setpoint         | Change `T1_SETPOINT`, `T2_SETPOINT`                   |
-| Different plant (bench)    | Change `C1`, `C2` in `furnace_sim.c`; recompute gains |
+| Different setpoint         | Change `T1_SETPOINT`, `T2_SETPOINT`, then **recompute gains** (see §17)   |
+| Different plant (bench)    | Change `C1`, `C2` in `furnace_sim.c`; recompute gains                   |
 
+---
+
+## 17. Nonlinear plant — setpoint changes require gain recomputation
+
+The furnace heater model is **nonlinear in PWM duty cycle**:
+
+$P = \frac{(V_{max} \cdot pwm)^2}{R}$
+
+The control effectiveness — how much temperature changes per unit of PWM — depends on the operating point:
+
+$\frac{dP}{dpwm} = \frac{2 \cdot V_{max}^2 \cdot pwm}{R}$
+
+This means the **B matrix** (how much each heater affects its zone's temperature derivative) is not constant. It is linearized at the steady-state operating point PWM ($pwm_{sp1}$, $pwm_{sp2}$):
+
+$B = \begin{bmatrix} \frac{2 \cdot V_{max}^2 \cdot pwm_{sp1}}{R \cdot C_1} & 0 \\ 0 & \frac{2 \cdot V_{max}^2 \cdot pwm_{sp2}}{R \cdot C_2} \end{bmatrix}$
+
+### What this means for setpoint changes
+
+The checked-in LQI gains (`IND_KX_*`, `IND_KI_*`) were computed by linearizing at **75/75 °C**, where `pwm_sp ≈ [0.8333, 0.7454]`. If you change the setpoints:
+
+| Change | Effect on plant |
+|--------|-----------------|
+| Higher setpoint (e.g. 83 °C) | Higher steady-state PWM → higher control effectiveness → same gains feel more aggressive |
+| Lower setpoint | Lower steady-state PWM → lower control effectiveness → same gains feel more sluggish |
+| Asymmetric setpoints (e.g. 83/67 °C) | Slab 2's feedforward may clamp to 0 (needs cooling, not heating); slab 1 may be physically power-limited |
+
+The integral term will still drive steady-state error to zero, but **transient response (rise time, overshoot, settling) will not be optimal** without retuning.
+
+### What to do when changing setpoints
+
+1. Edit `T1_SETPOINT` and `T2_SETPOINT` in `compensator/compensator.c` (SIL) **and** `compensator/compensator_hil_STM32F4.c` (MCU).
+2. Run `python3 docs/furnace_lqi_design.py` with the new setpoints to recompute `A`, `B`, gains, and `pwm_sp`.
+3. Copy the printed `IND_KX_*` / `IND_KI_*` values into **both** C files.
+4. Rebuild SIL (`make`) and HIL (`make -f Makefile_HIL`).
+
+This same rule applies to any model where the actuator-to-plant map is nonlinear in its input — the gains are valid only near the linearization point.
 ---
 
 ## 13. Code mapping
