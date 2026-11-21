@@ -99,6 +99,8 @@ The **core physics engine** is optimized for single-thread execution to ensure
 
 The SIL project is built for **Linux Desktop** environments and utilizes a **high-precision timing super-loop** to emulate a **Real-Time (Soft)** bare-metal microcontroller environment. To mitigate general-purpose OS jitter, the framework employs a **lockstep architecture** where the physics solver and compensator are synchronously coupled; if the OS introduces a scheduling delay, the entire simulation state remains frozen to preserve **temporal determinism**. The system implements a **self-healing absolute timeline** that automatically corrects for OS-induced blocking to prevent cumulative timing drift against the wall clock, maintaining seamless visual realism regardless of background CPU load.
 
+> **Split-rate design note:** The physics loop runs at 20 kHz while the compensator runs at 1 kHz (every 20 physics steps). Because the compensator rate (1 ms) is much faster than the plant time constants (τ ≈ 1055 s for the furnace), the plant can be treated as continuous between compensator updates. This allows gain design using **continuous algebraic Riccati equation (CARE)** rather than requiring discrete algebraic Riccati equation (DARE) discretization — the continuous-time gains apply directly at the 1 kHz cadence.
+
 ![Diagram](general_architecture.png)
 
 _**SIL Architecture**: Software-in-the-Loop environment. The compensator and plant model run together on the host PC; no physical MCU is involved._
