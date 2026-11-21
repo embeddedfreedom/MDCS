@@ -132,7 +132,7 @@ int main() {
         .R_disc = 0.075f,               // Radius = 15cm / 2 = 7.5cm = 0.075m
         .motor_shaft_radius = 0.005f,   // Standardized hardware values passed down
         .motor_shaft_mass = 0.06f,
-        .b1 = 0.0001f, 
+        .b1 = 0.002f, 
         .g = 9.81f, 
         .kt = 0.12f, 
         .kb = 0.12f, 
