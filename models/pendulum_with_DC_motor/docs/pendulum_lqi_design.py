@@ -29,6 +29,7 @@ kt = 0.12         # N*m/A, motor torque constant
 kb = 0.12         # V*s/rad, back-EMF constant
 R = 2.5           # ohm, armature resistance
 deadzone = 0.4    # V, motor deadzone
+motor_coast_on_zero = True  # motor fully disengages at zero PWM
 
 # ============================================================================
 # 2. PLANT MATRICES

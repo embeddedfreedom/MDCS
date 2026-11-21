@@ -55,6 +55,7 @@ kb = 0.12                # V*s/rad, back-EMF constant
 R = 2.5                  # ohm, armature resistance
 Vmax = 12.0              # V, supply rail
 deadzone = 0.4           # V, motor + driver stiction band
+motor_coast_on_zero = True  # motor fully disengages at zero PWM
 
 theta_ref_deg = 90.0     # position test target
 omega_ref = 15.0         # rad/s, speed test target

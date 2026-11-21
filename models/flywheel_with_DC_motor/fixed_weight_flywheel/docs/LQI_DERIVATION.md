@@ -145,6 +145,7 @@ Using the parameters in `simulator/flywheel_sim.c`:
 | $R$ | 2.5 | Ω | armature resistance |
 | $V_{max}$ | 12.0 | V | supply rail |
 | $d_z$ | 0.4 | V | deadzone |
+| `motor_coast_on_zero` | `true` | — | motor fully disengages at zero PWM |
 
 Derived:
 
@@ -1118,6 +1119,7 @@ This is the price of the soft integral gain. Increasing $|K_I|$ moves the slow p
 |---|---|---|
 | Requested voltage | $V_{req} = pwm\,V_{max}\,dir$ | `float V_requested = motor_pwm * p->Vmax * (float)motor_dir;` |
 | Deadzone | $V_{eff} = V_{req} - \operatorname{sign}(V_{req})d_z$ | `if (fabsf(V_requested) > p->deadzone) V_effective = (V_requested > 0) ? (V_requested - p->deadzone) : (V_requested + p->deadzone);` |
+| Coasting at zero PWM | $\tau_m = 0$ when $V_{eff} = 0$ | `if (fabsf(V_effective) < 0.001f && p->motor_coast_on_zero) {`<br>`    tau_motor = 0.0f;`<br>`}` |
 | Motor torque | $\tau_m = (k_t/R)(V_{eff}-k_b\omega)$ | `float tau_motor = (p->kt / p->R) * (V_effective - p->kb * d);` |
 | Shaft inertia | $I_{shaft} = \frac{1}{2}m_s r_s^2$ | `float I_shaft = 0.5f * p->motor_shaft_mass * p->motor_shaft_radius * p->motor_shaft_radius;` |
 | Disc inertia | $I_{disc} = \frac{1}{2}M_d R_d^2$ | `float I_disc = 0.5f * p->M_disc * p->R_disc * p->R_disc;` |
