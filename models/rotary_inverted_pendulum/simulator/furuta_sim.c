@@ -182,7 +182,7 @@ int main() {
     runloop = false;
     FurutaParams p = { .M1=0.12f, .M2=0.15f, .M3=0.05f, .L1=0.2f, .L2=0.4f, .L3=0.2f, 
                        .r1=0.01f, .r2=0.01f, .r3=0.01f, .shaft_radius=0.005f, .shaft_mass=0.06f,
-                       .b1=0.003f, .b2=0.001f, .g=9.81f, .kt=0.12f, .kb=0.12f, .Vmax=12.0f, .R=2.5f,
+                       .b1=0.008f, .b2=0.001f, .g=9.81f, .kt=0.12f, .kb=0.12f, .Vmax=12.0f, .R=2.5f,
                        .deadzone=0.4f, .motor_coast_on_zero=true};
     
     FurutaState s = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}; 
