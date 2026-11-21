@@ -43,6 +43,7 @@ These parameters form the basis of the numerical matrices below.
 | Terminal Resistance         | $R$            | **2.5 $\Omega$**     |
 | Gravitational Acceleration  | $g$            | **9.81 m/s²**        |
 | Minimum Motor Voltage       | $V_{deadzone}$ | **0.4 V**            |
+| Motor Coast at Zero PWM     | motor_coast_on_zero | **true** (motor fully disengages at zero PWM) |
 
 ---
 
