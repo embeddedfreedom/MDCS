@@ -149,7 +149,7 @@ It is mirrored (auto-generated) into:
 python3 scripts/gen_mdcs_config.py
 ```
 
-This regenerates the `.py` and `.sh` so C, Python and shell stay in sync. There is nothing else to change — no more per-file path edits in `simulator/*.c`, `run_sim.py`, `compensator_hil.c` or the visualisers.
+**You only need to run this once after each path change** — it regenerates the `.py` and `.sh` so C, Python and shell stay in sync automatically. There is nothing else to change — no more per-file path edits in `simulator/*.c`, `run_sim.py`, `compensator_hil.c` or the visualisers.
 
 **If you do not update these, the simulator will write telemetry to the wrong PTY files, the Python visualizers will read from the wrong serial ports, and nothing will appear to work.**
 
