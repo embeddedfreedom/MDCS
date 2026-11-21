@@ -514,16 +514,16 @@ Let's walk through one complete 1 kHz cycle using the industrial parameters and 
 
 - T1sp = 75°C, T2sp = 75°C
 
-**Gains (from Riccati solution, Section 10):**
+**Gains (from Riccati solution, Section 10 — match `compensator/compensator.c` and `docs/furnace_lqi_design.py`):**
 
 ```
-Kx = [[46.145,  2.223],
-     [ 2.470, 44.159]]
-Ki = [[ 2.000, -0.005],
-     [ 0.005,  2.000]]
+Kx = [[20.766772,  0.044152],
+     [ 0.043879, 20.767721]]
+Ki = [[ 2.000000,  0.000249],
+     [-0.000249,  2.000000]]
 ```
 
-**Limits:** U_MIN = 0, U_MAX = 100
+**Limits:** PWM_MIN = 0.0, PWM_MAX = 1.0
 
 **Current cycle (1st cycle, cold start):**
 
@@ -533,19 +533,27 @@ Ki = [[ 2.000, -0.005],
 
 ---
 
-### Step 1: Compute feedforward `pwm_sp` (done once at init)
+### Step 1: Feedforward `pwm_sp` (done once at init)
+
+The steady-state power to hold 75/75 °C against ambient loss:
 
 $P_{sp1} = (K_{12} + h_{a1}A_{a1})T_{1sp} - K_{12}T_{2sp} - h_{a1}A_{a1}T_{amb}$
 
 $P_{sp1} = (2.5 + 0.5) \times 75 - 2.5 \times 75 - 0.5 \times 25$
 
-$u_{sp1} = 3.0 \times 75 - 187.5 - 12.5 = 225 - 200 = \mathbf{25.0}$
+$P_{sp1} = 3.0 \times 75 - 187.5 - 12.5 = 225 - 200 = \mathbf{25.0\ W}$
 
 $P_{sp2} = (K_{12} + h_{a2}A_{a2})T_{2sp} - K_{12}T_{1sp} - h_{a2}A_{a2}T_{amb}$
 
 $P_{sp2} = (2.5 + 0.4) \times 75 - 2.5 \times 75 - 0.4 \times 25$
 
-$u_{sp2} = 2.9 \times 75 - 187.5 - 10 = 217.5 - 197.5 = \mathbf{20.0}$
+$P_{sp2} = 2.9 \times 75 - 187.5 - 10 = 217.5 - 197.5 = \mathbf{20.0\ W}$
+
+Convert power to PWM duty cycle: $pwm = \sqrt{P \cdot R} / V_{max}$
+
+$pwm_{sp1} = \sqrt{25.0 \times 4.0} / 12.0 = \sqrt{100.0} / 12.0 = 10.0 / 12.0 = \mathbf{0.8333}$
+
+$pwm_{sp2} = \sqrt{20.0 \times 4.0} / 12.0 = \sqrt{80.0} / 12.0 = 8.9443 / 12.0 = \mathbf{0.7454}$
 
 ---
 
@@ -570,48 +578,48 @@ $q_{2\_next} = q_2 + e_2 \times dt = 0 + (-30.0) \times 0.001 = \mathbf{-0.030}$
 ### Step 4: State feedback term `−Kx · e`
 
 For heater 1:
-$-(k_{x00} \cdot e_1 + k_{x01} \cdot e_2) = -(46.145 \times (-25.0) + 2.223 \times (-30.0))$
+$-(k_{x00} \cdot e_1 + k_{x01} \cdot e_2) = -(20.766772 \times (-25.0) + 0.044152 \times (-30.0))$
 
-$= -(-1153.625 + (-66.69)) = -(-1220.315) = \mathbf{+1220.315}$
+$= -(-519.1693 - 1.32456) = -(-520.49386) = \mathbf{+520.4939}$
 
 For heater 2:
-$-(k_{x10} \cdot e_1 + k_{x11} \cdot e_2) = -(2.470 \times (-25.0) + 44.159 \times (-30.0))$
+$-(k_{x10} \cdot e_1 + k_{x11} \cdot e_2) = -(0.043879 \times (-25.0) + 20.767721 \times (-30.0))$
 
-$= -(-61.75 + (-1324.77)) = -(-1386.52) = \mathbf{+1386.52}$
+$= -(-1.096975 - 623.03163) = -(-624.128605) = \mathbf{+624.1286}$
 
 ---
 
 ### Step 5: Integral feedback term `−Ki · q`
 
 For heater 1:
-$-(k_{i00} \cdot q_1 + k_{i01} \cdot q_2) = -(2.000 \times (-0.025) + (-0.005) \times (-0.030))$
+$-(k_{i00} \cdot q_1 + k_{i01} \cdot q_2) = -(2.000000 \times (-0.025) + 0.000249 \times (-0.030))$
 
-$= -(-0.050 + 0.00015) = -(-0.04985) = \mathbf{+0.050}$
+$= -(-0.050000 - 0.00000747) = -(-0.05000747) = \mathbf{+0.0500}$
 
 For heater 2:
-$-(k_{i10} \cdot q_1 + k_{i11} \cdot q_2) = -(0.005 \times (-0.025) + 2.000 \times (-0.030))$
+$-(k_{i10} \cdot q_1 + k_{i11} \cdot q_2) = -((-0.000249) \times (-0.025) + 2.000000 \times (-0.030))$
 
-$= -(-0.000125 + (-0.060)) = -(-0.060125) = \mathbf{+0.060}$
+$= -(0.000006225 - 0.060000) = -(-0.059993775) = \mathbf{+0.0600}$
 
 ---
 
 ### Step 6: Assemble total control `pwm = pwm_sp − Kx·e − Ki·q`
 
 **Heater 1:**
-$out1 = 25.0 + 1220.315 + 0.050 = \mathbf{1245.365}$
+$out1 = 0.8333 + 520.4939 + 0.0500 = \mathbf{521.3772}$
 
 **Heater 2:**
-$out2 = 20.0 + 1386.52 + 0.060 = \mathbf{1406.580}$
+$out2 = 0.7454 + 624.1286 + 0.0600 = \mathbf{624.9340}$
 
 ---
 
-### Step 7: Apply saturation `[0, 100]`
+### Step 7: Apply saturation `[0.0, 1.0]`
 
-Both values exceed 100, so they clamp:
+Both values exceed 1.0, so they clamp:
 
-$pwm_1 = clamp(1245.365, 0, 1) = \mathbf{1.0}$
+$pwm_1 = clamp(521.3772, 0.0, 1.0) = \mathbf{1.0}$
 
-$pwm_2 = clamp(1406.580, 0, 1) = \mathbf{1.0}$
+$pwm_2 = clamp(624.9340, 0.0, 1.0) = \mathbf{1.0}$
 
 **Result: both heaters at 100%** — this matches the telemetry we saw during cold start in the 5-minute test.
 
@@ -619,7 +627,7 @@ $pwm_2 = clamp(1406.580, 0, 1) = \mathbf{1.0}$
 
 ### Step 8: Anti-windup decision
 
-Since both outputs saturated (hit U_MAX = 100), the integral states are **not committed**:
+Since both outputs saturated (hit PWM_MAX = 1.0), the integral states are **not committed**:
 
 - q1 stays at 0 (not −0.025)
 - q2 stays at 0 (not −0.030)
@@ -640,17 +648,22 @@ $A = \begin{bmatrix} -\frac{2.5 + 0.5}{5} & \frac{2.5}{5} \\ \frac{2.5}{4.5} & -
 **B matrix** (linearized at operating point pwm_sp=[0.8333, 0.7454], dT/dpwm = 2·Vmax²·pwm_sp/(R·C)):
 $B = \begin{bmatrix} \frac{1}{5} & 0 \\ 0 & \frac{1}{4.5} \end{bmatrix} = \begin{bmatrix} 0.2 & 0 \\ 0 & 0.2222 \end{bmatrix}$
 
-Solving the ARE with the same Q/R weights gives:
+**Bench gains (hardcoded in `compensator/compensator.c`, `BEN_*` macros):**
 
-$K_x = \begin{bmatrix} 17.861 & 2.033 \\ 2.259 & 17.895 \end{bmatrix}$
+```
+Kx = [[3.6,  0.18],
+     [ 0.20, 3.5]]
+Ki = [[ 0.04,  0.00],
+     [ 0.00,  0.04]]
+```
 
-$K_i = \begin{bmatrix} 2.000 & -0.011 \\ 0.011 & 2.000 \end{bmatrix}$
+**Feedforward** (same as industrial — depends on temperatures, not capacitance):
 
-**Feedforward:**
 $u_{sp1} = (2.5 + 0.5) \times 75 - 2.5 \times 75 - 0.5 \times 25 = 25.0$
+
 $u_{sp2} = (2.5 + 0.4) \times 75 - 2.5 \times 75 - 0.4 \times 25 = 20.0$
 
-Note: pwm_sp is the same as industrial because it depends on temperatures, conductances, Vmax and R, not on capacitance. The gains are smaller because the bench plant responds faster (lower thermal mass = less gain needed).
+Note: pwm_sp is the same as industrial because it depends on temperatures, conductances, Vmax and R, not on capacitance. The bench gains are smaller because the bench plant responds faster (lower thermal mass = less gain needed).
 
 **Closed-loop poles:** [-4.063, -4.534, -0.097, -0.100] — stable, but with two slow poles from the integral states.
 
