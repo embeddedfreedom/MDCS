@@ -202,21 +202,54 @@ def compute_lqr():
 
 ### 6.0 Code-to-Equation Mapping
 
-The table below maps each equation in the derivation to the corresponding line of code in the simulator (`simulator/pendulum_sim.c`) and the compensator (`compensator/compensator.c`).
+The tables below map every line of the implementation back to the derivation, in execution order. Function names are given instead of line numbers so the mapping survives code edits.
 
-| Equation | Line in `pendulum_sim.c` | Line in `compensator/compensator.c` | Description |
-|----------|-------------------------|-------------------------------------|-------------|
-| $\ddot{\theta} = \frac{\tau_{motor} - b_1\dot{\theta} - \frac{M_1 g L_1}{2}\sin\theta}{I_{tot}}$ | Line 83 | — | Equation of motion (RK4 step) |
-| $\tau_{motor} = \frac{K_t}{R}(V_{eff} - K_b\dot{\theta})$ | Line 73 | — | Motor torque computation |
-| $\tau_{motor} = 0$ when PWM=0 | Lines 100-101 | — | Motor coasts when disabled |
-| $u = k_1(\theta - \pi) + k_2\dot{\theta}_2 + k_i\int(\theta - \pi)dt$ | `compensator/compensator.c:80` | — | Compensator control law |
-| $k_1 = -220.111605f$ | `compensator/compensator.c:72` | — | Pendulum position gain |
-| $k_2 = -26.203211f$ | `compensator/compensator.c:73` | — | Pendulum velocity gain |
-| $k_i = -75.0f$ | `compensator/compensator.c:74` | — | Pendulum integral gain |
+#### 6.0.1 `simulator/pendulum_sim.c` — plant physics (Sections 1–2)
 
-The mapping follows the compensator equation:
-$$u = k_1(\theta - \pi) + k_2\dot{\theta}_2 + k_i\int(\theta - \pi)dt$$
+| Derivation | Equation | C code |
+|------------|----------|--------|
+| Requested motor voltage | $V_{req} = u\,V_{max}\,\mathrm{sgn}(dir)$ | `float V_requested = motor_pwm * p->Vmax * (float)motor_dir;` |
+| Deadzone | $V_{eff} = V_{req} - \mathrm{sgn}(V_{req})V_{dz}$ if $\lvert V_{req}\rvert > V_{dz}$, else $0$ | `if (fabsf(V_requested) > p->deadzone) {`<br>`    V_effective = (V_requested > 0) ? (V_requested - p->deadzone) : (V_requested + p->deadzone);`<br>`}` |
+| Motor torque | $\tau_m = \frac{K_t}{R}\left(V_{eff} - K_b\dot{\theta}\right)$ | `tau_motor = (p->kt / p->R) * (V_effective - p->kb * d);` |
+| Coasting at zero PWM | $\tau_m = 0$ when $V_{eff} = 0$ | `if (fabsf(V_effective) < 0.001f && p->motor_coast_on_zero) {`<br>`    tau_motor = 0.0f;`<br>`}` |
+| Shaft inertia | $I_{sh} = \frac{1}{2} m_{sh} r_{sh}^2$ | `float I_shaft = 0.5f * p->motor_shaft_mass * p->motor_shaft_radius * p->motor_shaft_radius;` |
+| Pendulum inertia | $I_{pend} = \frac{1}{3}M_1 L_1^2 + \frac{1}{4}M_1 r_3^2$ | `float I_pend = (1.0f/3.0f) * p->M1 * p->L1 * p->L1 + 0.25f * p->M1 * p->r3 * p->r3;` |
+| Total inertia | $I_{tot} = I_{sh} + I_{pend}$ | `float I_tot = I_shaft + I_pend;` |
+| Equation of motion | $\ddot{\theta} = \frac{\tau_m - b_1\dot{\theta} - \frac{M_1 g L_1}{2}\sin\theta}{I_{tot}}$ | `dx->theta_dot = (tau_motor - p->b1 * d - (p->M1 * p->g * p->L1 / 2.0f) * sinf(t)) / I_tot;` |
+| RK4 integration | $x_{n+1} = x_n + \frac{\Delta t}{6}\left(k_1 + 2k_2 + 2k_3 + k_4\right)$ | `x->theta += (dt/6.0f)*(k1.theta + 2*k2.theta + 2*k3.theta + k4.theta);`<br>`x->theta_dot += (dt/6.0f)*(k1.theta_dot + 2*k2.theta_dot + 2*k3.theta_dot + k4.theta_dot);` |
+| Angle wrapping | $\theta \in (-\pi, \pi]$ | `normalize_angle(&x->theta);` |
 
+#### 6.0.2 `compensator/compensator.c` — LQR + integral controller (Sections 3–5)
+
+| Derivation | Equation | C code |
+|------------|----------|--------|
+| Encoder decoding | accumulate 20 kHz quadrature samples into the 1 kHz state | `for (int i = 0; i < bus->n_pend; i++) { decoder_process(&dec_pend, bus->pend_states[i]); }` |
+| Z-pulse drift correction | snap count to nearest full revolution | `if (bus->z_pend) {`<br>`    dec_pend.count = (int)(roundf((float)dec_pend.count / 4096.0f) * 4096.0f);`<br>`}` |
+| Counts to radians | $\theta = \text{count}\cdot\frac{2\pi}{4096}$ | `const float COUNT_TO_RAD = (2.0f * PI / 4096.0f);`<br>`float t = (float)dec_pend.count * COUNT_TO_RAD;` |
+| Numerical velocity | $\dot{\theta}_{raw} = \frac{\theta_k - \theta_{k-1}}{\Delta t}$ with $\Delta t = 1$ ms | `float d_raw = (t - t_prev) / 0.001f;` |
+| Velocity low-pass filter | $\dot{\theta}_f \leftarrow 0.8\dot{\theta}_f + 0.2\dot{\theta}_{raw}$ | `d_filt = (0.80f * d_filt) + (0.20f * d_raw);` |
+| Error relative to upright | $e = \theta - \pi$ | `float angle_err = t - PI;` |
+| Angle wrapping | $e \leftarrow e \bmod 2\pi$ | `while (angle_err >  PI) angle_err -= 2.0f * PI;`<br>`while (angle_err < -PI) angle_err += 2.0f * PI;` |
+| Catch condition | balance when $\lvert e\rvert < 0.5$ rad and $\lvert\dot{\theta}_f\rvert < 3$ rad/s | `bool in_catch_zone = (fabsf(angle_err) < 0.50f);`<br>`bool is_slow = (fabsf(d_filt) < 3.0f);`<br>`if (in_catch_zone && is_slow) {` |
+| LQR gains | $k_1, k_2$ | `float k1 = -220.111605f;`<br>`float k2 = -26.203211f;` |
+| Integral gain | $k_i$ | `float ki = -75.0f;` |
+| Integral state | $q \leftarrow q + e\,\Delta t$ | `error_sum += angle_err * 0.001f;` |
+| Anti-windup clamp | $q \in [-2, 2]$ | `if (error_sum > 2.0f) error_sum = 2.0f;`<br>`if (error_sum < -2.0f) error_sum = -2.0f;` |
+| Control law | $u = k_1 e + k_2\dot{\theta}_f + k_i q$ | `u = (k1 * angle_err) + (k2 * d_filt) + (ki * error_sum);` |
+| Deadzone compensation | $u \leftarrow u + \mathrm{sgn}(u)V_{dz}$ when $\lvert e\rvert > 0.001$ | `if (fabsf(angle_err) > 0.001f) {`<br>`    u += (u > 0) ? p->deadzone : -p->deadzone;`<br>`}` |
+| Voltage saturation | $u \in [-V_{max}, V_{max}]$ | `if (u > p->Vmax) u = p->Vmax;`<br>`if (u < -p->Vmax) u = -p->Vmax;` |
+| Direction and duty cycle | $dir = \mathrm{sgn}(u)$, $\text{PWM} = \frac{\lvert u\rvert}{V_{max}}$ | `*motor_dir = (u >= 0) ? 1 : -1;`<br>`return fabsf(u) / p->Vmax;` |
+
+The swing-up branch (`else` block) is an energy-pumping heuristic, not part of the LQR derivation above; it is mapped in the table only for completeness:
+
+| Heuristic | Purpose | C code |
+|-----------|---------|--------|
+| Clear integrator | reset $q$ outside the catch zone | `error_sum = 0;` |
+| Pump energy at the bottom | push in the direction of motion when $\cos\theta > 0$ | `if (cosf(t) > 0) {`<br>`    u = (d_filt >= 0) ? p->Vmax : -p->Vmax;`<br>`} else {`<br>`    u = 0;`<br>`}` |
+| Kickstart from rest | nudge when hanging still at the bottom | `if (fabsf(fmodf(t, 2*PI)) < 0.1f && fabsf(d_filt) < 0.1f) {`<br>`    u = p->Vmax;`<br>`}` |
+
+
+### 7.1 Final LQR Results
 
 The table below summarizes the gains derived from the LQR optimization. The **"Ideal"** values represent standard mathematical weights, while the **"Implementation"** values reflect the high-stiffness tuning required to dominate hardware friction and stiction.
 

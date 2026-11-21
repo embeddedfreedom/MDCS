@@ -376,26 +376,59 @@ print(f"k4 (Arm Velocity): {k4_arm_vel:.2f}")  # Should be ~ +7
 
 ### 6.0 Code-to-Equation Mapping
 
-The table below maps each equation in the derivation to the corresponding line of code in the simulator (`simulator/furuta_sim.c`) and the compensator (`compensator/compensator.c`).
+The tables below map every line of the implementation back to the derivation, in execution order. Function names are given instead of line numbers so the mapping survives code edits.
 
-| Equation | Line in `furuta_sim.c` | Line in `compensator/compensator.c` | Description |
-|----------|-------------------------|-------------------------------------|-------------|
-| $a = J_{sh} + J_1 + J_2 + M_3(L_2/2)^2$ | Line 114 | — | Total arm-side inertia |
-| $b = M_3(L_3/2)^2$ | Line 117 | — | Pendulum rotational inertia |
-| $c = J_3 + M_3(L_3/2)^2$ | Line 120 | — | Total pendulum-side inertia |
-| $d = M_3(L_2/2)(L_3/2)$ | Line 123 | — | Coupling inertia |
-| $\tau_{motor} = \frac{K_t}{R}(V_{eff} - K_b\dot{\theta}_1)$ | Line 103 | — | Motor torque (with coasting when PWM=0) |
-| $\tau_{motor} = 0$ when PWM=0 | Lines 100-101 | — | Motor coasts when disabled |
-| $a\ddot{\theta}_1 - d\ddot{\theta}_2 = \sigma_1\dot{\theta}_1 + \frac{K_t}{R}V$ | Line 132 | — | Arm equation of motion (RK4 step) |
-| $-d\ddot{\theta}_1 + c\ddot{\theta}_2 + \gamma_p\Delta\theta_2 = -b_2\dot{\theta}_2$ | Line 132 | — | Pendulum equation of motion (RK4 step) |
-| $u = k_1(\theta_2 - \pi) + k_2\dot{\theta}_2 + k_3\theta_1 + k_4\dot{\theta}_1$ | Line 87 | — | Compensator control law |
-| $k_1 = -100.950921f$ | Line 82 | — | Pendulum position gain |
-| $k_2 = -12.400330f$ | Line 83 | — | Pendulum velocity gain |
-| $k_3 = 10.000000f$ | Line 84 | — | Arm position gain |
-| $k_4 = 7.198537f$ | Line 85 | — | Arm velocity gain |
+#### 6.0.1 `simulator/furuta_sim.c` — plant physics (Sections 1–5)
 
-The mapping follows the compensator equation:
-$$u = k_1(\theta_2 - \pi) + k_2\dot{\theta}_2 + k_3\theta_1 + k_4\dot{\theta}_1$$
+| Derivation | Equation | C code |
+|------------|----------|--------|
+| Requested motor voltage | $V_{req} = u\,V_{max}\,\mathrm{sgn}(dir)$ | `float V_requested = motor_pwm * p->Vmax * (float)motor_dir;` |
+| Deadzone | $V_{eff} = V_{req} - \mathrm{sgn}(V_{req})V_{dz}$ if $\lvert V_{req}\rvert > V_{dz}$, else $0$ | `if (fabsf(V_requested) > deadzone) {`<br>`    if (V_requested > 0) {`<br>`        V_effective = V_requested - deadzone;`<br>`    } else {`<br>`        V_effective = V_requested + deadzone;`<br>`    }`<br>`} else {`<br>`    V_effective = 0.0f;`<br>`}` |
+| Motor torque | $\tau_m = \frac{K_t}{R}\left(V_{eff} - K_b\dot{\theta}_1\right)$ | `tau_motor = (p->kt / p->R) * (V_effective - p->kb * d1);` |
+| Coasting at zero PWM | $\tau_m = 0$ when $V_{eff} = 0$ | `if (fabsf(V_effective) < 0.001f && p->motor_coast_on_zero) {`<br>`    tau_motor = 0.0f;`<br>`}` |
+| Shaft inertia | $J_{sh} = \frac{1}{2} m_{sh} r_{sh}^2$ | `float J_shaft = 0.5f * p->shaft_mass * p->shaft_radius * p->shaft_radius;` |
+| Riser inertia | $J_1 = \frac{1}{2} M_1 r_1^2$ | `float J_rod1 = 0.5f * p->M1 * p->r1 * p->r1;` |
+| Arm inertia | $J_2 = \frac{1}{12}M_2 L_2^2 + \frac{1}{4}M_2 r_2^2$ | `float J_rod2 = (1.0f/12.0f) * p->M2 * p->L2 * p->L2 + 0.25f * p->M2 * p->r2 * p->r2;` |
+| Pendulum inertia | $J_3 = \frac{1}{12}M_3 L_3^2 + \frac{1}{4}M_3 r_3^2$ | `float J3_com = (1.0f/12.0f) * p->M3 * p->L3 * p->L3 + 0.25f * p->M3 * p->r3 * p->r3;` |
+| Constant $a$ | $a = J_{sh} + J_1 + J_2 + M_3\left(\frac{L_2}{2}\right)^2$ | `float alpha = J_shaft + J_rod1 + J_rod2 + p->M3 * (p->L2 * p->L2 / 4.0f);` |
+| Constant $b$ | $b = M_3\left(\frac{L_3}{2}\right)^2$ | `float beta = p->M3 * (p->L3 * p->L3 / 4.0f);` |
+| Constant $c$ | $c = J_3 + M_3\left(\frac{L_3}{2}\right)^2$ | `float gamma = J3_com + beta;` |
+| Constant $d$ | $d = M_3\frac{L_2}{2}\frac{L_3}{2}$ | `float delta = p->M3 * (p->L2 / 2.0f) * (p->L3 / 2.0f);` |
+| Mass matrix $a_{11}$ | $a_{11} = a + b\sin^2\theta_2$ | `float a11 = alpha + beta * s2 * s2;` |
+| Mass matrix $a_{12}$ | $a_{12} = d\cos\theta_2$ | `float a12 = delta * c2;` |
+| Mass matrix $a_{22}$ | $a_{22} = c$ | `float a22 = gamma;` |
+| Arm generalized force | $a\ddot{\theta}_1 - d\ddot{\theta}_2 = \tau_m - b_1\dot{\theta}_1 - 2b\sin\theta_2\cos\theta_2\dot{\theta}_1\dot{\theta}_2 + d\sin\theta_2\dot{\theta}_2^2$ | `float rhs1 = tau_motor - p->b1 * d1 - 2.0f * beta * s2c2 * d1 * d2 + delta * s2 * d2 * d2;` |
+| Pendulum generalized force | $-d\ddot{\theta}_1 + c\ddot{\theta}_2 = -b_2\dot{\theta}_2 + b\sin\theta_2\cos\theta_2\dot{\theta}_1^2 - M_3 g\frac{L_3}{2}\sin\theta_2$ | `float rhs2 = -p->b2 * d2 + beta * s2c2 * d1 * d1 - p->M3 * p->g * (p->L3 / 2.0f) * s2;` |
+| Determinant of $A$ | $\det A = a_{11}a_{22} - a_{12}^2$ | `float det = a11 * a22 - a12 * a12;` |
+| Arm acceleration | $\ddot{\theta}_1 = \frac{a_{22}\,\text{rhs}_1 - a_{12}\,\text{rhs}_2}{\det A}$ | `dx->theta1_dot = (a22 * rhs1 - a12 * rhs2) / det;` |
+| Pendulum acceleration | $\ddot{\theta}_2 = \frac{a_{11}\,\text{rhs}_2 - a_{12}\,\text{rhs}_1}{\det A}$ | `dx->theta2_dot = (a11 * rhs2 - a12 * rhs1) / det;` |
+| RK4 integration | $x_{n+1} = x_n + \frac{\Delta t}{6}\left(k_1 + 2k_2 + 2k_3 + k_4\right)$ | `x->theta1 += (dt/6.0f)*(k1.theta1 + 2*k2.theta1 + 2*k3.theta1 + k4.theta1);`<br>`x->theta1_dot += (dt/6.0f)*(k1.theta1_dot + 2*k2.theta1_dot + 2*k3.theta1_dot + k4.theta1_dot);`<br>`x->theta2 += (dt/6.0f)*(k1.theta2 + 2*k2.theta2 + 2*k3.theta2 + k4.theta2);`<br>`x->theta2_dot += (dt/6.0f)*(k1.theta2_dot + 2*k2.theta2_dot + 2*k3.theta2_dot + k4.theta2_dot);` |
+| Angle wrapping | $\theta \in (-\pi, \pi]$ | `normalize_angle(&x->theta1);`<br>`normalize_angle(&x->theta2);` |
+
+#### 6.0.2 `compensator/compensator.c` — LQR controller (Sections 5–6)
+
+| Derivation | Equation | C code |
+|------------|----------|--------|
+| Encoder decoding | accumulate 20 kHz quadrature samples into the 1 kHz state | `for (int i = 0; i < bus->n_arm; i++) decoder_process(&dec_arm, bus->arm_states[i]);`<br>`for (int i = 0; i < bus->n_pend; i++) decoder_process(&dec_pend, bus->pend_states[i]);` |
+| Z-pulse drift correction | snap count to nearest full revolution | `if (bus->z_arm) {`<br>`    dec_arm.count = (int)(roundf((float)dec_arm.count / 4096.0f) * 4096.0f);`<br>`}` |
+| Counts to radians | $\theta = \text{count}\cdot\frac{2\pi}{4096}$ | `const float COUNT_TO_RAD = (2.0f * M_PI / 4096.0f);`<br>`float t1 = (float)dec_arm.count * COUNT_TO_RAD;`<br>`float t2 = (float)dec_pend.count * COUNT_TO_RAD;` |
+| Numerical velocity | $\dot{\theta} = \frac{\theta_k - \theta_{k-1}}{\Delta t}$ with $\Delta t = 1$ ms | `float d1 = (t1 - t1_prev) / 0.001f;`<br>`float d2 = (t2 - t2_prev) / 0.001f;` |
+| Error relative to upright | $e = \theta_2 - \pi$ | `float angle_err = t2 - M_PI;` |
+| Angle wrapping | $e \leftarrow e \bmod 2\pi$ | `wrap_angle(&angle_err);` |
+| Catch window | stabilize when $\lvert e\rvert < 0.45$ rad | `if (fabsf(angle_err) < 0.45f) {` |
+| LQR gains | $k_1, k_2, k_3, k_4$ | `float k1 = -100.950921f;`<br>`float k2 = -12.400330f;`<br>`float k3 = 10.000000f;`<br>`float k4 = 7.198537f;` |
+| Control law | $u = k_1(\theta_2-\pi) + k_2\dot{\theta}_2 + k_3\theta_1 + k_4\dot{\theta}_1$ | `u = (k1 * angle_err) + (k2 * d2) + (k3 * t1) + (k4 * d1);` |
+| Soft centre | reduce gain near $\theta_2 = \pi$ | `if (fabsf(angle_err) < 0.03f) {`<br>`    u *= 0.7f;`<br>`}` |
+| Voltage saturation | $u \in [-V_{max}, V_{max}]$ | `if (u > p->Vmax) u = p->Vmax;`<br>`if (u < -p->Vmax) u = -p->Vmax;` |
+| Direction and duty cycle | $dir = \mathrm{sgn}(u)$, $\text{PWM} = \frac{\lvert u\rvert}{V_{max}}$ | `*motor_dir = (u >= 0) ? 1 : -1;`<br>`return fabsf(u) / p->Vmax;` |
+
+The swing-up branch (`else` block) is an energy-pumping heuristic, not part of the LQR derivation above; it is mapped in the table only for completeness:
+
+| Heuristic | Purpose | C code |
+|-----------|---------|--------|
+| Swing voltage | drive the arm at $0.85V_{max}$ | `float swing_volts = p->Vmax * 0.85f;` |
+| Direction of pump | push with the pendulum velocity | `float direction = (d2 > 0) ? -1.0f : 1.0f;`<br>`u = direction * swing_volts;` |
+| Arm centring | pull the arm back toward $\theta_1 = 0$ | `u -= 12.0f * t1;` |
 
 
 #### 6.1 Final LQR Results
