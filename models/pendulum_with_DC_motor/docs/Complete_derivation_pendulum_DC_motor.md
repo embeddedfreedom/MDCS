@@ -185,7 +185,7 @@ from scipy.linalg import solve_continuous_are
 def compute_lqr():
     # Parameters from Table
     M1, L1, I_tot = 0.2, 0.3, 0.00600575
-    g, b1, kt, kb, R = 9.81, 0.008, 0.12, 0.12, 2.5
+    g, b1, kt, kb, R = 9.81, 0.002, 0.12, 0.12, 2.5
 
     # Jacobian Matrices
     A = np.array([[0, 1], [(M1*g*L1)/(2*I_tot), -(b1 + (kt*kb/R))/I_tot]])

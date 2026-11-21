@@ -44,7 +44,7 @@ These parameters form the basis of the numerical matrices below.
 | Shaft/Hub | Msh, Rsh | Mshaft = 0.06 (kg), Rshaft = 0.005 (m) |
 | Dimensions | L1, L2, L3 | L1 = 0.2, L2 = 0.4, L3 = 0.2 (m). L2 sits on L1 as a T joint, middle of L2 attached to L1 rigidly |
 | Radii (Rods) | r1, r2, r3 | r1 = r2 = r3 = 0.01 (m) |
-| Damping/Gravity | b1, b2, g | b1 = 0.008 Nms/rad, b2 = 0.001 Nms/rad, g = 9.81 m/s² |
+| Damping/Gravity | b1, b2, g | b1 = 0.002 Nms/rad, b2 = 0.001 Nms/rad, g = 9.81 m/s² |
 | Motor Specs | Kt, Kb, R | Kt = 0.12, Kb = 0.12, R = 2.5 Ω |
 | Voltage/Drive | Vmax, Deadzone | Vmax = 12.0 V, Deadzone = 0.4 V |
 
@@ -318,7 +318,7 @@ p = {
     'L1': 0.2, 'L2': 0.4, 'L3': 0.2,
     'r1': 0.01, 'r2': 0.01, 'r3': 0.01,
     's_rad': 0.005, 's_mass': 0.06,
-    'b1': 0.008, 'b2': 0.001, 'g': 9.81,
+    'b1': 0.002, 'b2': 0.001, 'g': 9.81,
     'kt': 0.12, 'kb': 0.12, 'R': 2.5
 }
 
