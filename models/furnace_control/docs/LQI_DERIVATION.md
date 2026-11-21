@@ -949,7 +949,7 @@ This same rule applies to any model where the actuator-to-plant map is nonlinear
 | Integral feedback  | $-K_i \cdot q$                               | `-(ki00 * q1_next + ki01 * q2_next)`<br>`-(ki10 * q1_next + ki11 * q2_next)`       |
 | Feedforward        | $pwm_{sp} = \sqrt{P_{sp} \cdot R} / V_{max}$ | `pwm_sp1 = ...`<br>`pwm_sp2 = ...`                                                 |
 | Full control law   | $pwm = pwm_{sp} - K_x e - K_i q$             | `float out1 = pwm_sp1 - (...) - (...);`<br>`float out2 = pwm_sp2 - (...) - (...);` |
-| Output saturation  | $u \in [0, 100]$                             | `clampf(&out1, U_MIN, U_MAX);`<br>`clampf(&out2, U_MIN, U_MAX);`                   |
+| Output saturation  | $u \in [0.0, 1.0]$                          | `clampf(&out1, PWM_MIN, PWM_MAX);`<br>`clampf(&out2, PWM_MIN, PWM_MAX);`         |
 | Anti-windup commit | skip q update if saturated                   | `if (!sat1) q1 = q1_next;`<br>`if (!sat2) q2 = q2_next;`                           |
 | Output assignment  | $pwm_1, pwm_2$                               | `*pwm1 = out1;`<br>`*pwm2 = out2;`                                                 |
 
