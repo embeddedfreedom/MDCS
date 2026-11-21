@@ -26,10 +26,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #endif
 
 // LQR Gains computed from sim-matched parameters (M_disc=1.3872, R_disc=0.075,
-// shaft_m=0.06, shaft_r=0.005, b1=0.008, kt=kb=0.12, R=2.5, I_tot=0.0039022)
+// shaft_m=0.06, shaft_r=0.005, b1=0.002, kt=kb=0.12, R=2.5, I_tot=0.0039022)
 // u = K_POS*error_pos + K_VEL*error_vel + K_INT*pos_integral  (all restoring, positive)
-#define K_POS  11.3921f  // LQR position gain (retuned: R=1.0 to reduce rail saturation)
-#define K_VEL  1.8192f   // LQR velocity gain
+#define K_POS  11.3836f  // LQR position gain
+#define K_VEL  1.9305f   // LQR velocity gain
 #define K_INT  7.0711f   // LQR integral gain
 
 // The simulator flags a +/-0.1 deg index window (~291 counts at 20-bit), but a

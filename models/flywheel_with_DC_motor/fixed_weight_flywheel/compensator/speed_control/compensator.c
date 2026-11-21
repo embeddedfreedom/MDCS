@@ -24,7 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define OMEGA_REF_RAD_S     15.0f
 #define K2_SPEED  -1.0f
 #define KI_SPEED  -0.05f
-#define V_FF      4.7000f
+#define V_FF      2.8250f
 
 static bool initialized = false;
 static Decoder20 dec_flywheel;

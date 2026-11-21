@@ -22,7 +22,7 @@ p = {
     'motor_shaft_radius': 0.005,     # m
     'M_disc': 1.3872,                # kg (Steel flywheel)
     'R_disc': 0.075,                 # m
-    'b1': 0.008,                     # Nms/rad (Viscous friction coefficient)
+    'b1': 0.002,                     # Nms/rad (Viscous friction coefficient)
     'R': 2.5,                        # Ohms (Armature resistance)
     'kt': 0.12,                      # Nm/A (Torque constant)
     'kb': 0.12,                      # Vs/rad (Back-EMF constant)

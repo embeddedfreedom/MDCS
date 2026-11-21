@@ -24,7 +24,7 @@ p = {
     'R_disc': 0.075,               # Disc radius (15cm diameter -> 0.075m)
     'motor_shaft_radius': 0.005,   # Shaft radius (m)
     'motor_shaft_mass': 0.06,      # Shaft mass (kg)
-    'b1': 0.008,                   # Viscous friction coefficient (Nms/rad)
+    'b1': 0.002,                   # Viscous friction coefficient (Nms/rad)
     'kt': 0.12,                    # Motor torque constant (Nm/A)
     'kb': 0.12,                    # Back-EMF constant (Vs/rad)
     'Vmax': 12.0,                  # Maximum motor rails (V)

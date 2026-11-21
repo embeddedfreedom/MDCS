@@ -111,7 +111,7 @@ int main() {
     char key;
     PendulumParams p = { .M1=0.2f, .L1=0.3f, .r3=0.01f, 
                          .motor_shaft_radius=0.005f, .motor_shaft_mass=0.06f,
-                         .b1=0.008f, .g=9.81f, .kt=0.12f, .kb=0.12f, 
+                         .b1=0.002f, .g=9.81f, .kt=0.12f, .kb=0.12f, 
                          .Vmax=12.0f, .R=2.5f, .deadzone=0.4f,
                          .motor_coast_on_zero=true};
     

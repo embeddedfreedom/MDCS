@@ -21,7 +21,7 @@ p = {
     'R_disc': 0.075,
     'motor_shaft_radius': 0.005,
     'motor_shaft_mass': 0.06,
-    'b1': 0.008,
+    'b1': 0.002,
     'kt': 0.12,
     'kb': 0.12,
     'Vmax': 12.0,
