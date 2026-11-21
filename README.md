@@ -107,6 +107,8 @@ _**SIL Architecture**: Software-in-the-Loop environment. The compensator and pla
 
 _**HIL Architecture**: Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant._
 
+The same compensator code that runs in SIL is flashed to the STM32F411 and executes bare-metal at 1 kHz. Host and MCU exchange fixed **12-byte frames** with XOR checksums at 921600 baud — host→MCU carries sensor values (angles/temperatures), MCU→host returns control efforts (PWM/voltage). Measured host↔MCU↔host round-trip is **≈ 0.4 ms**, well inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator cadence. This lets you validate control performance on real silicon before deploying to hardware. See §6 Hardware-in-the-Loop (HIL) for build, flash, and run instructions.
+
 #### 1.1 Modeling Fidelity & Abstractions
 
 Bridging the digital-to-physical gap with intentional modeling choices:
