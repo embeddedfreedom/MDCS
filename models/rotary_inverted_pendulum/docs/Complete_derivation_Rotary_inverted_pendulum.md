@@ -410,7 +410,7 @@ The tables below map every line of the implementation back to the derivation, in
 | Derivation | Equation | C code |
 |------------|----------|--------|
 | Encoder decoding | accumulate 20 kHz quadrature samples into the 1 kHz state | `for (int i = 0; i < bus->n_arm; i++) decoder_process(&dec_arm, bus->arm_states[i]);`<br>`for (int i = 0; i < bus->n_pend; i++) decoder_process(&dec_pend, bus->pend_states[i]);` |
-| Z-pulse drift correction | snap count to nearest full revolution | `if (bus->z_arm) {`<br>`    dec_arm.count = (int)(roundf((float)dec_arm.count / 4096.0f) * 4096.0f);`<br>`}` |
+| Z-pulse drift correction | snap count to nearest full revolution | `if (bus->z_arm) {`<br>`    dec_arm.count = (int)(roundf((float)dec_arm.count / 4096.0f) * 4096.0f);`<br>`}`<br>`if (bus->z_pend) {`<br>`    dec_pend.count = (int)(roundf((float)dec_pend.count / 4096.0f) * 4096.0f);`<br>`}` |
 | Counts to radians | $\theta = \text{count}\cdot\frac{2\pi}{4096}$ | `const float COUNT_TO_RAD = (2.0f * M_PI / 4096.0f);`<br>`float t1 = (float)dec_arm.count * COUNT_TO_RAD;`<br>`float t2 = (float)dec_pend.count * COUNT_TO_RAD;` |
 | Numerical velocity | $\dot{\theta} = \frac{\theta_k - \theta_{k-1}}{\Delta t}$ with $\Delta t = 1$ ms | `float d1 = (t1 - t1_prev) / 0.001f;`<br>`float d2 = (t2 - t2_prev) / 0.001f;` |
 | Error relative to upright | $e = \theta_2 - \pi$ | `float angle_err = t2 - M_PI;` |
@@ -427,7 +427,7 @@ The swing-up branch (`else` block) is an energy-pumping heuristic, not part of t
 | Heuristic | Purpose | C code |
 |-----------|---------|--------|
 | Swing voltage | drive the arm at $0.85V_{max}$ | `float swing_volts = p->Vmax * 0.85f;` |
-| Direction of pump | push with the pendulum velocity | `float direction = (d2 > 0) ? -1.0f : 1.0f;`<br>`u = direction * swing_volts;` |
+| Direction of pump | push with the pendulum velocity | `if (fabsf(d2) < 0.5f) {`<br>`    u = (t1 > 0) ? -swing_volts : swing_volts;`<br>`} else {`<br>`    float direction = (d2 > 0) ? -1.0f : 1.0f;`<br>`    u = direction * swing_volts;`<br>`}` |
 | Arm centring | pull the arm back toward $\theta_1 = 0$ | `u -= 12.0f * t1;` |
 
 
