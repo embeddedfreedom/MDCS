@@ -240,12 +240,14 @@ The tables below map every line of the implementation back to the derivation, in
 | Voltage saturation | $u \in [-V_{max}, V_{max}]$ | `if (u > p->Vmax) u = p->Vmax;`<br>`if (u < -p->Vmax) u = -p->Vmax;` |
 | Direction and duty cycle | $dir = \mathrm{sgn}(u)$, $\text{PWM} = \frac{\lvert u\rvert}{V_{max}}$ | `*motor_dir = (u >= 0) ? 1 : -1;`<br>`return fabsf(u) / p->Vmax;` |
 
-The swing-up branch (`else` block) is an energy-pumping heuristic, not part of the LQR derivation above; it is mapped in the table only for completeness:
+The swing-up branch (`else` block) is an energy-shaping heuristic, not part of the LQR derivation above; it is mapped in the table only for completeness:
 
 | Heuristic | Purpose | C code |
 |-----------|---------|--------|
 | Clear integrator | reset $q$ outside the catch zone | `error_sum = 0;` |
-| Pump energy at the bottom | push in the direction of motion when $\cos\theta > 0$ | `if (cosf(t) > 0) {`<br>`    u = (d_filt >= 0) ? p->Vmax : -p->Vmax;`<br>`} else {`<br>`    u = 0;`<br>`}` |
+| Energy shaping | compute total energy vs energy needed to reach upright | `float E = 0.5f * I_tot * d_filt * d_filt + (M1*g*L1/2)*(1-cosf(t));`<br>`float E_target = M1 * g * L1;` |
+| Pump below target | add energy in bottom half when $E < 0.9 E_{target}$ | `if (E < E_target * 0.9f) {`<br>`    if (cosf(t) > 0) {`<br>`        u = (d_filt >= 0) ? p->Vmax : -p->Vmax;`<br>`    } else {`<br>`        u = 0;`<br>`    }`<br>`}` |
+| Damp near target | remove excess energy to prevent propeller/overshoot | `u = -30.0f * d_filt;`<br>`u += -80.0f * angle_err;` |
 | Kickstart from rest | nudge when hanging still at the bottom | `if (fabsf(fmodf(t, 2*PI)) < 0.1f && fabsf(d_filt) < 0.1f) {`<br>`    u = p->Vmax;`<br>`}` |
 
 
