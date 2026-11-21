@@ -47,6 +47,7 @@ These parameters form the basis of the numerical matrices below.
 | Damping/Gravity | b1, b2, g | b1 = 0.002 Nms/rad, b2 = 0.001 Nms/rad, g = 9.81 m/s² |
 | Motor Specs | Kt, Kb, R | Kt = 0.12, Kb = 0.12, R = 2.5 Ω |
 | Voltage/Drive | Vmax, Deadzone | Vmax = 12.0 V, Deadzone = 0.4 V |
+| Motor Coast | motor_coast_on_zero | true (motor fully disengages at zero PWM) |
 
 ---
 
