@@ -300,7 +300,7 @@ Bash
 ls -l <sim_3d> <sim_graph>    # paths as set in framework/common/mdcs_config.h
 ```
 
-In ideal situations, step b above should be run only. Steps a and c should be followed during troubleshooting. This step must be started before starting the simulator, plotter or the visualiser. If not done, and the front end appears non responsive, start the applications again. No need to redo the socat commands. 
+Run `./scripts/socat_bridges.sh` once, in a terminal you leave open. This creates all four PTY links. If the bridges already exist, no need to re-run. This step must be started before starting the simulator, plotter or the visualiser. If not done, and the front end appears non-responsive, start the applications again.
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
