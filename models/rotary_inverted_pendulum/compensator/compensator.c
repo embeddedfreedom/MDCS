@@ -79,10 +79,10 @@ float run_compensator_cycle(EncoderBus *bus, FurutaParams *p, int *motor_dir) {
         // float k2 = -9.23f;  // Was -9.0f
         // float k3 = 8.18f;   // Was 8.0f
         // float k4 = 3.09f;   // Was 3.0f
-        float k1 = -100.950921f; 
-        float k2 = -12.400330f;  
-        float k3 = 10.000000f;  
-        float k4 = 7.198537f;  
+        float k1 = -101.01f; 
+        float k2 = -12.41f;  
+        float k3 = 10.00f;  
+        float k4 = 7.33f;  
 
         u = (k1 * angle_err) + (k2 * d2) + (k3 * t1) + (k4 * d1);
 

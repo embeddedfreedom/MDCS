@@ -69,8 +69,8 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
 
     if (in_catch_zone && is_slow) { 
         // --- BALANCE MODE (LQR + I) ---
-        float k1 = -220.111605f;
-        float k2 = -26.203211f;  
+        float k1 = -220.0f;
+        float k2 = -26.0f;  
         float ki = -75.0f; // High gain to force 180.000 precision
 
         error_sum += angle_err * 0.001f;
@@ -85,34 +85,17 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
         }
     } 
     else {
-        // --- ROBUST SWING-UP (Energy Shaping) ---
+        // --- ROBUST SWING-UP (Energy Pump) ---
         error_sum = 0; // Clear integrator memory
 
-        // Compute total energy relative to bottom (t = 0, hanging down)
-        // Kinetic: 0.5 * I_tot * d^2   Potential: M1 * g * L1/2 * (1 - cos(t))
-        float I_shaft = 0.5f * p->motor_shaft_mass * p->motor_shaft_radius * p->motor_shaft_radius;
-        float I_pend  = (1.0f/3.0f) * p->M1 * p->L1 * p->L1 + 0.25f * p->M1 * p->r3 * p->r3;
-        float I_tot   = I_shaft + I_pend;
-
-        float E  = 0.5f * I_tot * d_filt * d_filt + (p->M1 * p->g * p->L1 / 2.0f) * (1.0f - cosf(t));
-        float E_target = p->M1 * p->g * p->L1;  // Energy needed to reach upright from bottom
-
-        if (E < E_target * 0.9f) {
-            // Below target energy — pump energy in bottom half, coast in top half
-            if (cosf(t) > 0) {
-                // Push in the direction of motion to add energy
-                u = (d_filt >= 0) ? p->Vmax : -p->Vmax;
-            } else {
-                // Coast in the top half to allow LQR to "catch" it cleanly
-                u = 0;
-            }
+        // Calculate if we are in the bottom half (cos > 0) or top half (cos < 0)
+        // This prevents the "propeller" by only pushing at the bottom.
+        if (cosf(t) > 0) {
+            // Push in the direction of motion to add energy
+            u = (d_filt >= 0) ? p->Vmax : -p->Vmax;
         } else {
-            // Near or above target energy — do NOT pump more.
-            // Apply damping to remove excess kinetic energy so we don't
-            // overshoot the top and go into propeller mode.
-            // A small restoring term nudges toward the upright position.
-            u = -30.0f * d_filt;   // velocity damping
-            u += -80.0f * angle_err; // position restoring toward pi
+            // Coast in the top half to allow LQR to "catch" it cleanly
+            u = 0; 
         }
 
         // Kickstart if perfectly still at the bottom

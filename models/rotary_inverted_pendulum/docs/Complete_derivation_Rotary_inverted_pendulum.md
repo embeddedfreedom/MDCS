@@ -416,7 +416,7 @@ The tables below map every line of the implementation back to the derivation, in
 | Error relative to upright | $e = \theta_2 - \pi$ | `float angle_err = t2 - M_PI;` |
 | Angle wrapping | $e \leftarrow e \bmod 2\pi$ | `wrap_angle(&angle_err);` |
 | Catch window | stabilize when $\lvert e\rvert < 0.45$ rad | `if (fabsf(angle_err) < 0.45f) {` |
-| LQR gains | $k_1, k_2, k_3, k_4$ | `float k1 = -100.950921f;`<br>`float k2 = -12.400330f;`<br>`float k3 = 10.000000f;`<br>`float k4 = 7.198537f;` |
+| LQR gains | $k_1, k_2, k_3, k_4$ | `float k1 = -101.01f;`<br>`float k2 = -12.41f;`<br>`float k3 = 10.00f;`<br>`float k4 = 7.33f;` |
 | Control law | $u = k_1(\theta_2-\pi) + k_2\dot{\theta}_2 + k_3\theta_1 + k_4\dot{\theta}_1$ | `u = (k1 * angle_err) + (k2 * d2) + (k3 * t1) + (k4 * d1);` |
 | Soft centre | reduce gain near $\theta_2 = \pi$ | `if (fabsf(angle_err) < 0.03f) {`<br>`    u *= 0.7f;`<br>`}` |
 | Voltage saturation | $u \in [-V_{max}, V_{max}]$ | `if (u > p->Vmax) u = p->Vmax;`<br>`if (u < -p->Vmax) u = -p->Vmax;` |

@@ -319,7 +319,7 @@ A_pi = np.array([
 poles_pi = np.linalg.eigvals(A_pi)
 zoh_pi, _ = discrete_poles(A_pi, 0.001)
 
-print("\nImplemented PI + feedforward: K2 = -1.0, KI = -0.05, V_FF = 4.7 V")
+print(f"\nImplemented PI + feedforward: K2 = -1.0, KI = -0.05, V_FF = {V_ff_speed:.4f} V")
 print("A_pi = [[-alpha + beta*K2, beta*KI], [1, 0]] =")
 print(np.round(A_pi, 6))
 print("poles (continuous, 1/s):", np.round(poles_pi, 6))

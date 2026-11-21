@@ -19,8 +19,8 @@
 #define VMAX       12.0f
 #define DEADZONE    0.4f
 
-#define K_POS      11.3921f
-#define K_VEL       1.8192f
+#define K_POS      11.3836f
+#define K_VEL       1.9305f
 #define K_INT       7.0711f
 #define THETA_REF_RAD (23.0f * (PI / 180.0f))
 #define INT_CLAMP   2.0f

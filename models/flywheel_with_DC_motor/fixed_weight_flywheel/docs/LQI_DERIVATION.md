@@ -32,7 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 | Profile | Plant order | Controller | Feedback states | Feedforward | Why this choice |
 |---|---|---|---|---|---|
 | Position | 2nd order: $\theta$, $\omega$ | LQI | position error, velocity, integral of position error | actuator deadzone inverse | The plant is Type 1, so PD can hold a step in the ideal model; the integral state rejects the constant residual disturbances (friction, deadzone mismatch, quantization) that would otherwise leave a standing offset. |
-| Speed | 1st order: $\omega$ | PI + feedforward | speed error, integral of speed error | $V_{FF} = 4.7$ V | The plant is Type 0; the feedforward supplies the exact operating voltage and the integral trims the residual. For a first-order plant, LQI is structurally identical to PI — there is no second plant state to feed back. |
+| Speed | 1st order: $\omega$ | PI + feedforward | speed error, integral of speed error | $V_{FF} = 2.825$ V | The plant is Type 0; the feedforward supplies the exact operating voltage and the integral trims the residual. For a first-order plant, LQI is structurally identical to PI — there is no second plant state to feed back. |
 
 The rest of this document derives both, proves the claims, and maps every equation to the code.
 
@@ -139,7 +139,7 @@ Using the parameters in `simulator/flywheel_sim.c`:
 | $R_{disc}$ | 0.075 | m | disc radius (15 cm diameter) |
 | $m_{shaft}$ | 0.06 | kg | shaft mass |
 | $r_{shaft}$ | 0.005 | m | shaft radius |
-| $b_1$ | 0.008 | N·m·s/rad | viscous friction |
+| $b_1$ | 0.002 | N·m·s/rad | viscous friction (flywheel motor) |
 | $k_t$ | 0.12 | N·m/A | torque constant |
 | $k_b$ | 0.12 | V·s/rad | back-EMF constant |
 | $R$ | 2.5 | Ω | armature resistance |
@@ -154,21 +154,21 @@ $I_{disc} = \frac{1}{2}(1.3872)(0.075)^2 = 3.9015\times10^{-3}\ \text{kg·m}^2$
 
 $I_{tot} = 3.90225\times10^{-3}\ \text{kg·m}^2$
 
-$\alpha = \frac{0.008 + (0.12)(0.12)/2.5}{0.00390225} = 3.5261708\ \text{s}^{-1}$
+$\alpha = \frac{0.002 + (0.12)(0.12)/2.5}{0.00390225} = 1.9885963\ \text{s}^{-1}$
 
 $\beta = \frac{0.12}{(2.5)(0.00390225)} = 12.3005958\ \text{rad/(s}^2\text{·V)}$
 
 The open-loop speed time constant is
 
-$\tau = \frac{1}{\alpha} = 0.28359375\ \text{s}$
+$\tau = \frac{1}{\alpha} = 0.50286727\ \text{s}$
 
 The speed DC gain is
 
-$\frac{\beta}{\alpha} = 3.4883721\ \text{rad/s/V}$
+$\frac{\beta}{\alpha} = 6.1855670\ \text{rad/s/V}$
 
 At the 12 V rail, after the 0.4 V deadzone, the no-load speed is
 
-$\omega_{max} = \frac{12 - 0.4}{0.008(2.5)/0.12 + 0.12} = 40.4651163\ \text{rad/s}$
+$\omega_{max} = \frac{12 - 0.4}{0.002(2.5)/0.12 + 0.12} = 71.7525773\ \text{rad/s}$
 
 These numbers are printed by `docs/flywheel_lqi_design.py`.
 
@@ -248,17 +248,17 @@ $y = \begin{bmatrix} 1 & 0 \end{bmatrix}\mathbf{x}$
 
 Numerically:
 
-$\mathbf{A} = \begin{bmatrix} 0 & 1 \\ 0 & -3.5261708 \end{bmatrix}, \qquad \mathbf{B} = \begin{bmatrix} 0 \\ 12.3005958 \end{bmatrix}$
+$\mathbf{A} = \begin{bmatrix} 0 & 1 \\ 0 & -1.9885963 \end{bmatrix}, \qquad \mathbf{B} = \begin{bmatrix} 0 \\ 12.3005958 \end{bmatrix}$
 
 The position transfer function is
 
-$G_\theta(s) = \mathbf{C}(s\mathbf{I}-\mathbf{A})^{-1}\mathbf{B} = \frac{\beta}{s(s+\alpha)} = \frac{12.3005958}{s(s+3.5261708)}$
+$G_\theta(s) = \mathbf{C}(s\mathbf{I}-\mathbf{A})^{-1}\mathbf{B} = \frac{\beta}{s(s+\alpha)} = \frac{12.3005958}{s(s+1.9885963)}$
 
 The speed transfer function is
 
-$G_\omega(s) = \frac{\beta}{s+\alpha} = \frac{12.3005958}{s+3.5261708}$
+$G_\omega(s) = \frac{\beta}{s+\alpha} = \frac{12.3005958}{s+1.9885963}$
 
-**Poles:** $0$ and $-3.5261708$ for position; $-3.5261708$ for speed. There are no finite zeros.
+**Poles:** $0$ and $-1.9885963$ for position; $-1.9885963$ for speed. There are no finite zeros.
 
 **Interpretation:**
 
@@ -314,7 +314,7 @@ The integral term removes this residual without needing the parameters to be exa
 - **Feedforward** carries the nominal operating point (fast, no waiting for the integrator).
 - **Integral** trims the model error (slow, but exact).
 
-A pure integrator without feedforward would have to build the entire 4.7 V from zero, which is slow and causes windup. Pure feedforward without integral would be exact only on paper. The implemented scheme uses both.
+A pure integrator without feedforward would have to build the entire 2.825 V from zero, which is slow and causes windup. Pure feedforward without integral would be exact only on paper. The implemented scheme uses both.
 
 ### 4.3 The unified view
 
@@ -369,7 +369,7 @@ $\mathbf{B}_{aug} = \begin{bmatrix} \mathbf{B} \\ 0 \end{bmatrix} = \begin{bmatr
 
 Numerically:
 
-$\mathbf{A}_{aug} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & -3.5261708 & 0 \\ 1 & 0 & 0 \end{bmatrix}, \qquad \mathbf{B}_{aug} = \begin{bmatrix} 0 \\ 12.3005958 \\ 0 \end{bmatrix}$
+$\mathbf{A}_{aug} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & -1.9885963 & 0 \\ 1 & 0 & 0 \end{bmatrix}, \qquad \mathbf{B}_{aug} = \begin{bmatrix} 0 \\ 12.3005958 \\ 0 \end{bmatrix}$
 
 ### 5.5 Why the augmentation is controllable
 
@@ -434,7 +434,7 @@ $\mathbf{P} = \begin{bmatrix} 23.414905 & 0.926145 & 14.890379 \\ 0.926145 & 0.1
 
 and the gain is
 
-$\mathbf{K}_{aug} = \begin{bmatrix} 11.39213581 & 1.81915096 & 7.07106781 \end{bmatrix}$
+$\mathbf{K}_{aug} = \begin{bmatrix} 11.3836 & 1.9305 & 7.0711 \end{bmatrix}$
 
 The closed-loop poles are
 
@@ -573,7 +573,7 @@ so a fresh build holds **23°**, not 90°. The 90° results quoted in Section 15
 
 ## 7.8 Worked numerical example
 
-Take the 90° target, $r = \pi/2 = 1.5707963$ rad, and the current gains $K_\theta = 11.3921358$, $K_\omega = 1.8191510$, $K_q = 7.0710678$.
+Take the 90° target, $r = \pi/2 = 1.5707963$ rad, and the current gains $K_\theta = 11.3836$, $K_\omega = 1.9305$, $K_q = 7.0711$.
 
 ### Snapshot A — standstill at zero, start of the step
 
@@ -581,9 +581,9 @@ $\theta = 0,\ \omega = 0,\ q_e = 0$
 
 $e = r - \theta = 1.5707963$
 
-$u = 11.3921358(1.5707963) + 1.8191510(0) + 7.0710678(0) = 17.8948\ \text{V}$
+$u = 11.3836(1.5707963) + 1.9305(0) + 7.0711(0) = 17.8813\ \text{V}$
 
-Deadzone inverse: $u \to 18.2948$ V. This exceeds the 12 V rail, so the output saturates:
+Deadzone inverse: $u \to 18.2813$ V. This exceeds the 12 V rail, so the output saturates:
 
 $pwm = 1.0,\quad dir = +1,\quad V_{eff} = 11.6\ \text{V}$
 
@@ -599,25 +599,25 @@ $\theta = 80^\circ = 1.3962634,\ \omega = 5\ \text{rad/s},\ q_e = 0.01$
 
 $e = 90^\circ - 80^\circ = 10^\circ = 0.1745329$
 
-$K_\theta e = 11.3921358(0.1745329) = 1.9883$
+$K_\theta e = 11.3836(0.1745329) = 1.9868$
 
-$K_\omega(-\omega) = 1.8191510(-5) = -9.0958$
+$K_\omega(-\omega) = 1.9305(-5) = -9.6525$
 
 $K_q q_e = 7.0710678(0.01) = 0.0707$
 
-$u = 1.9883 - 9.0958 + 0.0707 = -7.0368\ \text{V}$
+$u = 1.9868 - 9.6525 + 0.0707 = -7.5950\ \text{V}$
 
-The velocity term dominates: the controller is already braking hard. Deadzone inverse gives $u \to -7.4368$ V, so $dir = -1$ and
+The velocity term dominates: the controller is already braking hard. Deadzone inverse gives $u \to -7.9950$ V, so $dir = -1$ and
 
-$pwm = \frac{7.4368}{12} = 0.6197$
+$pwm = \frac{7.9950}{12} = 0.6663$
 
-The effective voltage is $-7.0368$ V. The resulting torque is
+The effective voltage is $-7.5950$ V. The resulting torque is
 
-$\tau_m = \frac{0.12}{2.5}\left(-7.0368 - 0.12(5)\right) = -0.3666\ \text{N·m}$
+$\tau_m = \frac{0.12}{2.5}\left(-7.5950 - 0.12(5)\right) = -0.3934\ \text{N·m}$
 
 and the angular acceleration is
 
-$\dot{\omega} = \frac{-0.3666 - 0.008(5)}{0.00390225} = -104.2\ \text{rad/s}^2$
+$\dot{\omega} = \frac{-0.3666 - 0.002(5)}{0.00390225} = -96.6\ \text{rad/s}^2$
 
 This is the deceleration phase that produces the overshoot behaviour: the disc has inertia, the velocity filter lags, and the controller cannot remove the stored kinetic energy instantaneously.
 
@@ -677,7 +677,7 @@ $\boxed{V_{eff} = \left(\frac{b_1 R}{k_t} + k_b\right)\omega_{ref}}$
 
 The bracket has units of V·s/rad. Numerically:
 
-$\frac{b_1 R}{k_t} = \frac{0.008 \times 2.5}{0.12} = 0.1666667\ \text{V·s/rad}$
+$\frac{b_1 R}{k_t} = \frac{0.002 \times 2.5}{0.12} = 0.0416667\ \text{V·s/rad}$
 
 $k_b = 0.12\ \text{V·s/rad}$
 
@@ -685,24 +685,24 @@ $\frac{\alpha}{\beta} = 0.2866667\ \text{V·s/rad}$
 
 At $\omega_{ref} = 15$ rad/s:
 
-$V_{eff} = 0.2866667 \times 15 = 4.30\ \text{V}$
+$V_{eff} = 0.1616667 \times 15 = 2.425\ \text{V}$
 
 Add the deadzone:
 
-$V_{FF} = 4.30 + 0.4 = 4.70\ \text{V}$
+$V_{FF} = 2.425 + 0.4 = 2.825\ \text{V}$
 
-This is exactly the `#define V_FF 4.7000f` in the speed compensator.
+This is exactly the `#define V_FF 2.8250f` in the speed compensator.
 
 ### 8.3 Physical check at 15 rad/s
 
 The numbers balance exactly:
 
 - Back-EMF: $k_b\omega = 0.12 \times 15 = 1.80$ V.
-- Effective voltage: 4.30 V.
-- Armature current: $(4.30 - 1.80)/2.5 = 1.00$ A.
-- Motor torque: $0.12 \times 1.00 = 0.120$ N·m.
-- Viscous friction: $b_1\omega = 0.008 \times 15 = 0.120$ N·m.
-- Net torque: $0.120 - 0.120 = 0$.
+- Effective voltage: 2.425 V.
+- Armature current: $(2.425 - 1.80)/2.5 = 0.25$ A.
+- Motor torque: $0.12 \times 0.25 = 0.030$ N·m.
+- Viscous friction: $b_1\omega = 0.002 \times 15 = 0.030$ N·m.
+- Net torque: $0.030 - 0.030 = 0$.
 
 The feedforward voltage is not a tuning knob; it is the exact solution of the steady-state torque balance. That is why it removes the bulk of the speed error immediately.
 
@@ -710,18 +710,18 @@ The feedforward voltage is not a tuning knob; it is the exact solution of the st
 
 | $\omega_{ref}$ (rad/s) | $V_{eff}$ (V) | $V_{FF}$ (V) | Note |
 |---:|---:|---:|---|
-| 5 | 1.433 | 1.833 | |
-| 10 | 2.867 | 3.267 | |
-| 15 | 4.300 | 4.700 | measured operating point |
-| 20 | 5.733 | 6.133 | |
-| 30 | 8.600 | 9.000 | |
-| 40.465 | 11.600 | 12.000 | 12 V rail, no-load maximum |
+| 5 | 0.808 | 1.208 | |
+| 10 | 1.617 | 2.017 | |
+| 15 | 2.425 | 2.825 | measured operating point |
+| 20 | 3.233 | 3.633 | |
+| 30 | 4.850 | 5.250 | |
+| 71.753 | 11.588 | 11.988 | 12 V rail, no-load maximum |
 
-The linear feedforward is valid up to the rail. Beyond 40.465 rad/s the requested voltage exceeds 12 V and the motor cannot reach the setpoint; the integral would wind up unless anti-windup stops it. The current speed setpoint of 15 rad/s has plenty of margin.
+The linear feedforward is valid up to the rail. Beyond 71.753 rad/s the requested voltage exceeds 12 V and the motor cannot reach the setpoint; the integral would wind up unless anti-windup stops it. The current speed setpoint of 15 rad/s has plenty of margin.
 
 ### 8.5 Why the speed loop needs feedforward more than the position loop
 
-The position loop's equilibrium voltage is zero, so a missing feedforward only affects the transient. The speed loop's equilibrium voltage is 4.3 V effective, which is a large fraction of the 12 V rail. Without feedforward, the integral must build that 4.3 V from zero, and the loop starts with a large error and a long windup. With feedforward, the loop starts at the correct operating point and the integral only has to trim a small residual. This is the main reason the speed response in Section 15 is smooth despite the soft gains.
+The position loop's equilibrium voltage is zero, so a missing feedforward only affects the transient. The speed loop's equilibrium voltage is 2.425 V effective, which is a large fraction of the 12 V rail. Without feedforward, the integral must build that 2.425 V from zero, and the loop starts with a large error and a long windup. With feedforward, the loop starts at the correct operating point and the integral only has to trim a small residual. This is the main reason the speed response in Section 15 is smooth despite the soft gains.
 
 ---
 
@@ -753,7 +753,7 @@ The ratios are what matter, not the absolute numbers. The position weight is 40�
 | Design | $\mathbf{Q}_{aug}$ | $R$ | $K_\theta$ | $K_\omega$ | $K_q$ | Poles (s⁻¹) | Comment |
 |---|---|---:|---:|---:|---:|---|---|
 | Aggressive (original) | diag(250, 2.5, 100) | 0.05 | 75.5403 | 7.6105 | 44.7214 | −86.47, −10.04, −0.634 | large gains, more rail activity and filter excitation |
-| **Current** | **diag(100, 2.5, 50)** | **1.0** | **11.3921** | **1.8192** | **7.0711** | **−18.63, −6.56, −0.712** | **0.01% rail, 7.97° overshoot, flat hold** |
+| **Current** | **diag(100, 2.5, 50)** | **1.0** | **11.3836** | **1.9305** | **7.0711** | **−18.63, −6.56, −0.712** | **0.01% rail, 7.97° overshoot, flat hold** |
 | Bryson tight | diag(131.31, 0.04, 131.31) | 0.006944 | 142.8022 | 5.1042 | 137.5131 | −32.66 ± 24.997j, −1.000 | very aggressive; not used |
 
 The current design is not the "textbook optimal" for a 5° position tolerance; it is a deliberately softer design. The aggressive set proves the point: it has 6.6× the position gain and 6.3× the integral gain, and its fast pole at −86.5 rad/s is much closer to the velocity-filter corner (223 rad/s) and the 1 kHz sample rate. The current set keeps the fastest LQI design pole at −18.6 rad/s (before the measurement filter), where the filter lag is only 4.26° (Section 10.4). That is the engineering trade-off: a little slower, much less sensitive to the measurement chain and the rail.
@@ -784,7 +784,7 @@ which are much softer. Why?
 
 1. **The fast LQI pole sits where the measurement filter has significant lag.** The 0.8/0.2 filter has 25.48° of phase lag at 123.05 rad/s (Section 10.4). A loop whose crossover is near that frequency loses phase margin, and the 20-bit quantization noise is amplified by the high proportional gain.
 2. **The speed loop is first-order; LQI is PI.** There is no second plant state whose feedback could justify a full state-feedback design. The only design freedom is the two PI gains, and the LQI gains are just one choice of them.
-3. **The feedforward carries the operating point.** With $V_{FF}=4.7$ V, the feedback only has to trim a small residual. A soft proportional gain is enough, and it keeps the rail activity low.
+3. **The feedforward carries the operating point.** With $V_{FF}=2.825$ V, the feedback only has to trim a small residual. A soft proportional gain is enough, and it keeps the rail activity low.
 4. **The measured result meets the requirement.** The 5-minute run reached 14.999561 rad/s with standard deviation 0.000434 rad/s and 0.022% rail saturation. The 60-second value was 15.0042 rad/s, still converging on the slow integral pole.
 
 The cost of the soft integral gain is the 25.7 s time constant. If faster convergence is needed, increase $|K_I|$ (for example to 0.5) and re-check ripple and rail activity; the LQI table gives the aggressive end of the trade-off. The current choice is the smooth end.
@@ -793,8 +793,8 @@ The cost of the soft integral gain is the 25.7 s time constant. If faster conver
 
 | Profile | Structure | Gains | Why |
 |---|---|---|---|
-| Position | LQI | 11.3921, 1.8192, 7.0711 | second-order plant, zero steady-state error, moderate bandwidth, 0.01% rail |
-| Speed | PI + FF | −1.0, −0.05, 4.7 V | first-order plant, feedforward carries the operating point, soft gains avoid filter/quantization excitation |
+| Position | LQI | 11.3836, 1.9305, 7.0711 | second-order plant, zero steady-state error, moderate bandwidth, 0.01% rail |
+| Speed | PI + FF | −1.0, −0.05, 2.825 V | first-order plant, feedforward carries the operating point, soft gains avoid filter/quantization excitation |
 
 ---
 
@@ -816,7 +816,7 @@ $\mathbf{P} = \begin{bmatrix} 23.414905 & 0.926145 & 14.890379 \\ 0.926145 & 0.1
 
 **Gain:**
 
-$\mathbf{K} = \begin{bmatrix} 11.39213581 & 1.81915096 & 7.07106781 \end{bmatrix}$
+$\mathbf{K} = \begin{bmatrix} 11.3836 & 1.9305 & 7.0711 \end{bmatrix}$
 
 **Continuous poles:**
 
@@ -855,7 +855,7 @@ The filter moves the fast position/velocity pair from $(-18.63,-6.56)$ to $(-22.
 
 **Textbook LQI:**
 
-$\mathbf{A}_s = \begin{bmatrix} -3.5261708 & 0 \\ 1 & 0 \end{bmatrix}, \quad \mathbf{B}_s = \begin{bmatrix} 12.3005958 \\ 0 \end{bmatrix}$
+$\mathbf{A}_s = \begin{bmatrix} -1.9885963 & 0 \\ 1 & 0 \end{bmatrix}, \quad \mathbf{B}_s = \begin{bmatrix} 12.3005958 \\ 0 \end{bmatrix}$
 
 $\mathbf{Q}_s = \operatorname{diag}(100, 50), \quad R_s = 1$
 
@@ -889,7 +889,7 @@ ZOH poles at 1 kHz: $0.98433616,\ 0.99996105$.
 
 States $[\omega,\ q,\ d_{filt}]$:
 
-$\mathbf{A}_{pi,f} = \begin{bmatrix} -3.526171 & -0.615030 & -12.300596 \\ 0 & 0 & 1 \\ 223.143551 & 0 & -223.143551 \end{bmatrix}$
+$\mathbf{A}_{pi,f} = \begin{bmatrix} -1.988596 & -0.615030 & -12.300596 \\ 0 & 0 & 1 \\ 223.143551 & 0 & -223.143551 \end{bmatrix}$
 
 Poles:
 
@@ -965,7 +965,7 @@ i.e. below one 20-bit count. The loop is at the measurement floor.
 
 $\frac{15 \times 0.001}{5.992112\times10^{-6}} = 2503.3\ \text{counts/ms}$
 
-and at the 40.465 rad/s no-load speed it produces 6753.1 counts/ms. The HIL bus is sized at 32768 states to cover 4.85 ms at the maximum speed, well above the 1 ms control window.
+and at the 71.753 rad/s no-load speed it produces 11976.8 counts/ms. The HIL bus is sized at 32768 states to cover 2.74 ms at the maximum speed, well above the 1 ms control window.
 
 ### 10.5 The Z index pulse
 
@@ -1080,7 +1080,7 @@ This is the price of the soft integral gain. Increasing $|K_I|$ moves the slow p
 | Zero position offset | Keep $K_q > 0$; verify the one-shot Z and the 64-count tolerance | a coarse Z window can inject a standing offset |
 | Faster speed convergence | Increase $|K_I|$ (e.g. −0.5) | more ripple, more rail activity, possible filter interaction |
 | Less speed ripple | Decrease $|K_2|$ or $|K_I|$; increase the filter coefficient | more phase lag, slower response |
-| Different speed setpoint | Change `OMEGA_REF_RAD_S`; recompute $V_{FF} = 0.2866667\,\omega_{ref} + 0.4$ | check the 12 V rail; no-load maximum is 40.465 rad/s |
+| Different speed setpoint | Change `OMEGA_REF_RAD_S`; recompute $V_{FF} = 0.1616667\,\omega_{ref} + 0.4$ | check the 12 V rail; no-load maximum is 71.753 rad/s |
 | Different position setpoint | Change `theta_ref` | the decoder wraps at ±180°; the error wrap chooses the shortest path |
 | Different plant | Edit the parameters in `docs/flywheel_lqi_design.py` and re-run | copy the printed `#define`s into the C files |
 | Different encoder resolution | Update the codec and the velocity quantum | the 20-bit codec is shared with the other models; do not break the 4096 API |
@@ -1172,7 +1172,7 @@ This is the price of the soft integral gain. Increasing $|K_I|$ moves the slow p
 The hardware-in-the-loop profile uses the same 20-bit host path:
 
 - `compensator/hil_control/compensator_hil.c` uses `Decoder20` and `decoder20_process`.
-- `MAX_BUS_STATES` is 32768, enough for 4.85 ms at the 40.465 rad/s no-load speed.
+- `MAX_BUS_STATES` is 32768, enough for 2.74 ms at the 71.753 rad/s no-load speed.
 - `Makefile_HIL` defines `-DHIL_PROFILE`, so `flywheel_sim.c` enables the 20-bit codec for HIL as well.
 - Both directions use the shared **12-byte** frame (an 8-byte packet belongs to an older adapter): host→MCU `sync 0xAA 0x55 | float pos1 | float pos2 | uint8 cmd | uint8 checksum`, MCU→host `sync 0x55 0xAA | float out1 | float out2 | uint8 status | uint8 checksum`.
 - `pos1` carries the angle in **radians** (not raw counts, wrapped to ±π) with `pos2 = 0`; the MCU returns the signed motor voltage in `out1` and echoes `pos2` in `out2`. 921600 baud, 3 ms poll timeout. The 20-bit change therefore needs no CPR or packet-format change on the MCU side.
@@ -1300,16 +1300,16 @@ The key output for the current design is:
 
 ```
 Position:
-  K = [11.39213581, 1.81915096, 7.07106781]
+  K = [11.3836, 1.9305, 7.0711]
   poles = [-18.632682, -6.558357, -0.711772] 1/s
-  #define K_POS  11.3921f
-  #define K_VEL  1.8192f
+  #define K_POS  11.3836f
+  #define K_VEL  1.9305f
   #define K_INT  7.0711f
 
 Speed:
   K2_SPEED = -1.0000
   KI_SPEED = -0.0500
-  V_FF     =  4.7000 V
+  V_FF     =  2.8250 V
   poles = [-15.787811, -0.038956] 1/s
 ```
 
@@ -1323,7 +1323,7 @@ The flywheel has two control objectives with different plant structures, so it u
 
 **Position is second-order.** The voltage drives acceleration; acceleration integrates to speed; speed integrates to angle. A full LQI feeds back all three relevant quantities: position error, velocity, and the integral of position error. The velocity term supplies damping, the position term supplies stiffness, and the integral term removes the standing error caused by friction, deadzone mismatch, quantization, and model error. The gains are chosen by the ARE with a deliberate control-effort penalty ($R=1$) that keeps the loop off the rail and below the velocity-filter corner. The result is a 0.00021° hold error, 4.8 s settling to 1°, and 0.01% rail saturation.
 
-**Speed is first-order.** The voltage drives speed directly through a first-order lag. For a first-order plant, LQI has only two states — speed and the integral of speed error — which is exactly PI. There is no second plant state to justify a larger state-feedback structure. The feedforward computes the exact steady-state voltage (4.30 V effective, 4.70 V requested) from the torque balance, so the feedback only has to trim a small residual. The PI gains are deliberately soft because the velocity measurement is quantized and filtered; the aggressive LQI gains would put the loop bandwidth near the filter's 25° phase-lag point. The result is 14.999561 rad/s at 5 minutes, 0.000434 rad/s standard deviation, and 0.022% rail saturation.
+**Speed is first-order.** The voltage drives speed directly through a first-order lag. For a first-order plant, LQI has only two states — speed and the integral of speed error — which is exactly PI. There is no second plant state to justify a larger state-feedback structure. The feedforward computes the exact steady-state voltage (2.425 V effective, 2.825 V requested) from the torque balance, so the feedback only has to trim a small residual. The PI gains are deliberately soft because the velocity measurement is quantized and filtered; the aggressive LQI gains would put the loop bandwidth near the filter's 25° phase-lag point. The result is 14.999561 rad/s at 5 minutes, 0.000434 rad/s standard deviation, and 0.022% rail saturation.
 
 The split is therefore not an arbitrary mixture of techniques. It is the same LQI principle applied at the order of each plant:
 

@@ -948,12 +948,12 @@ The controller stays single precision to match the MCU, but the **plant state mu
 
 At the top of the industrial range the fastest passive cooling rate is
 
-$$\dot{T}_1 = -\frac{h_{a1}A_{a1}(T_1 - T_{amb})}{C_1}
-           = -\frac{0.5 \times (75-25)}{500} = -0.05\ \text{°C/s}$$
+$\dot{T}_1 = -\frac{h_{a1}A_{a1}(T_1 - T_{amb})}{C_1}
+           = -\frac{0.5 \times (75-25)}{500} = -0.05\ \text{°C/s}$
 
 so one 50 µs RK4 step moves the temperature by
 
-$$\Delta T = 0.05 \times 5\times10^{-5} = 2.5\times10^{-6}\ \text{°C}.$$
+$\Delta T = 0.05 \times 5\times10^{-5} = 2.5\times10^{-6}\ \text{°C}.$
 
 A `float` has a 24-bit mantissa, so its spacing (ULP) near 75 °C is $2^{-17} \approx 7.6\times10^{-6}$ and half an ULP is $3.8\times10^{-6}$. The RK4 increment is *smaller than half an ULP*, so
 
