@@ -200,10 +200,23 @@ def compute_lqr():
     K = np.linalg.inv(R_mat) @ B.T @ P
     print(f"LQR Gains: k1={-K[0,0]:.4f}, k2={-K[0,1]:.4f}")
 
-compute_lqr()
-```
+### 6.0 Code-to-Equation Mapping
 
-### 7.1 Final LQR Results
+The table below maps each equation in the derivation to the corresponding line of code in the simulator (`simulator/pendulum_sim.c`) and the compensator (`compensator/compensator.c`).
+
+| Equation | Line in `pendulum_sim.c` | Line in `compensator/compensator.c` | Description |
+|----------|-------------------------|-------------------------------------|-------------|
+| $\ddot{\theta} = \frac{\tau_{motor} - b_1\dot{\theta} - \frac{M_1 g L_1}{2}\sin\theta}{I_{tot}}$ | Line 83 | — | Equation of motion (RK4 step) |
+| $\tau_{motor} = \frac{K_t}{R}(V_{eff} - K_b\dot{\theta})$ | Line 73 | — | Motor torque computation |
+| $\tau_{motor} = 0$ when PWM=0 | Lines 100-101 | — | Motor coasts when disabled |
+| $u = k_1(\theta - \pi) + k_2\dot{\theta}_2 + k_i\int(\theta - \pi)dt$ | `compensator/compensator.c:80` | — | Compensator control law |
+| $k_1 = -220.111605f$ | `compensator/compensator.c:72` | — | Pendulum position gain |
+| $k_2 = -26.203211f$ | `compensator/compensator.c:73` | — | Pendulum velocity gain |
+| $k_i = -75.0f$ | `compensator/compensator.c:74` | — | Pendulum integral gain |
+
+The mapping follows the compensator equation:
+$$u = k_1(\theta - \pi) + k_2\dot{\theta}_2 + k_i\int(\theta - \pi)dt$$
+
 
 The table below summarizes the gains derived from the LQR optimization. The **"Ideal"** values represent standard mathematical weights, while the **"Implementation"** values reflect the high-stiffness tuning required to dominate hardware friction and stiction.
 

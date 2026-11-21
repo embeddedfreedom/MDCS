@@ -374,6 +374,30 @@ print(f"k3 (Arm Position): {k3_arm_pos:.2f}")  # Should be ~ +10
 print(f"k4 (Arm Velocity): {k4_arm_vel:.2f}")  # Should be ~ +7
 ```
 
+### 6.0 Code-to-Equation Mapping
+
+The table below maps each equation in the derivation to the corresponding line of code in the simulator (`simulator/furuta_sim.c`) and the compensator (`compensator/compensator.c`).
+
+| Equation | Line in `furuta_sim.c` | Line in `compensator/compensator.c` | Description |
+|----------|-------------------------|-------------------------------------|-------------|
+| $a = J_{sh} + J_1 + J_2 + M_3(L_2/2)^2$ | Line 114 | — | Total arm-side inertia |
+| $b = M_3(L_3/2)^2$ | Line 117 | — | Pendulum rotational inertia |
+| $c = J_3 + M_3(L_3/2)^2$ | Line 120 | — | Total pendulum-side inertia |
+| $d = M_3(L_2/2)(L_3/2)$ | Line 123 | — | Coupling inertia |
+| $\tau_{motor} = \frac{K_t}{R}(V_{eff} - K_b\dot{\theta}_1)$ | Line 103 | — | Motor torque (with coasting when PWM=0) |
+| $\tau_{motor} = 0$ when PWM=0 | Lines 100-101 | — | Motor coasts when disabled |
+| $a\ddot{\theta}_1 - d\ddot{\theta}_2 = \sigma_1\dot{\theta}_1 + \frac{K_t}{R}V$ | Line 132 | — | Arm equation of motion (RK4 step) |
+| $-d\ddot{\theta}_1 + c\ddot{\theta}_2 + \gamma_p\Delta\theta_2 = -b_2\dot{\theta}_2$ | Line 132 | — | Pendulum equation of motion (RK4 step) |
+| $u = k_1(\theta_2 - \pi) + k_2\dot{\theta}_2 + k_3\theta_1 + k_4\dot{\theta}_1$ | Line 87 | — | Compensator control law |
+| $k_1 = -100.950921f$ | Line 82 | — | Pendulum position gain |
+| $k_2 = -12.400330f$ | Line 83 | — | Pendulum velocity gain |
+| $k_3 = 10.000000f$ | Line 84 | — | Arm position gain |
+| $k_4 = 7.198537f$ | Line 85 | — | Arm velocity gain |
+
+The mapping follows the compensator equation:
+$$u = k_1(\theta_2 - \pi) + k_2\dot{\theta}_2 + k_3\theta_1 + k_4\dot{\theta}_1$$
+
+
 #### 6.1 Final LQR Results
 
 | **State Variable** | **Symbol** | **Expected Gain** | **Logic**                   |
