@@ -367,15 +367,39 @@ The resulting binary will be placed in the root `build/[model_name]` directory.
 > or `make speed` (not plain `make`) from inside
 > `models/flywheel_with_DC_motor/fixed_weight_flywheel/`. Plain `make` will not work.
 
+#### 4.4 Where Binaries Land and How to Run Them
+
+All `make` commands are run from inside the model directory. Compiled binaries land in
+`build/<model-dir>/` relative to the repo root. Run the simulator from inside the model
+directory using a relative path up to `build/`:
+
+| Model | Model directory | Build command | Binary (SIL) | Run from | Example run command |
+|-------|----------------|---------------|--------------|----------|---------------------|
+| Furuta | `models/rotary_inverted_pendulum/` | `make` | `build/furuta/furuta_sim` | model dir | `../../build/furuta/furuta_sim` |
+| Pendulum | `models/pendulum_with_DC_motor/` | `make` | `build/inverted_pendulum/inverted_pendulum_sim` | model dir | `../../build/inverted_pendulum/inverted_pendulum_sim` |
+| Furnace | `models/furnace_control/` | `make` | `build/furnace_control/furnace_sim` | model dir | `../../build/furnace_control/furnace_sim` |
+| Flywheel position | `models/flywheel_with_DC_motor/fixed_weight_flywheel/` | `make position` | `build/flywheel_control/flywheel_position_sim` | model dir | `../../../build/flywheel_control/flywheel_position_sim` |
+| Flywheel speed | `models/flywheel_with_DC_motor/fixed_weight_flywheel/` | `make speed` | `build/flywheel_control/flywheel_speed_sim` | model dir | `../../../build/flywheel_control/flywheel_speed_sim` |
+
+HIL binaries and firmware land alongside SIL outputs:
+
+| Model | HIL binary | HIL firmware | Example run command |
+|-------|-----------|--------------|---------------------|
+| Furuta | `build/furuta/furuta_sim_hil` | `build/furuta/MDCS_HIL.bin` | `../../build/furuta/furuta_sim_hil` |
+| Pendulum | `build/inverted_pendulum/inverted_pendulum_sim_hil` | `build/inverted_pendulum/MDCS_HIL.bin` | `../../build/inverted_pendulum/inverted_pendulum_sim_hil` |
+| Furnace | `build/furnace_control/furnace_sim_hil` | `build/furnace_control/MDCS_HIL.bin` | `../../build/furnace_control/furnace_sim_hil` |
+| Flywheel position | `build/flywheel_control/position/flywheel_hil_sim` | `build/flywheel_control/position/MDCS_HIL.bin` | `../../../build/flywheel_control/position/flywheel_hil_sim` |
+| Flywheel speed | `build/flywheel_control/speed/flywheel_hil_sim` | `build/flywheel_control/speed/MDCS_HIL.bin` | `../../../build/flywheel_control/speed/flywheel_hil_sim` |
+
+Keys while running: `S` = enable compensator, `T` = disable, `Q` = quit.
+
 ---
 
 ## 5. Execution
 
 ##### **5.1** Binary Operation Manual
 
-Start the Binary: Run the compiled simulator/compensator from the `build` folder.
-
-For example **./furuta_sim** in case of the Inverted_rotary_pendulum 
+Start the simulator binary from inside the model directory using a relative path up to `build/` (see §4.4 for the full table of binary locations per model).
 
 The simulator does not pass the "true" angle to the compensator. Instead, it converts the continuous physics angle into discrete **Gray Code states** (`phase_to_gray`).
 
