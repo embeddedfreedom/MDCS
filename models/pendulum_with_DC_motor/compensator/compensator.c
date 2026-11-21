@@ -69,8 +69,8 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
 
     if (in_catch_zone && is_slow) { 
         // --- BALANCE MODE (LQR + I) ---
-        float k1 = -220.0f;
-        float k2 = -26.0f;  
+        float k1 = -220.111605f;
+        float k2 = -26.203211f;  
         float ki = -75.0f; // High gain to force 180.000 precision
 
         error_sum += angle_err * 0.001f;
