@@ -244,6 +244,7 @@ Each experimental setup (e.g., rotary_inverted_pendulum) contains the following 
   - **`Model Derivations:`** Full Lagrangian or Newtonian derivations of the equations of motion (EOM) for each system.
   
   - **`Design Diagrams:`** Includes the **System Block Diagrams**. These visualize the control architecture, showing how sensor data is filtered, passed through the compensator, and converted into actuator commands (Torque/Voltage).
+   > **💡 Viewing Tip:** The `.md` derivation files contain LaTeX math notation (`$...$`) and complex tables. They render best in [**MarkText**](https://marktext.app/), a free WYSIWYG Markdown editor that renders LaTeX equations and tables correctly. Standard Markdown viewers may display the LaTeX as raw source code rather than formatted equations.
 
 - **`Makefile`**: Every model folder includes a Makefile. Run `make` to compile the compensator and simulator into a single executable binary. The flywheel is multi-profile: use `make position` or `make speed` instead of a plain `make`.
 
