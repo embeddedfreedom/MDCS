@@ -220,10 +220,16 @@ int main() {
             double elapsed_ms = (current_time.tv_sec - last_comp_time.tv_sec) * 1000.0 +
                                 (current_time.tv_nsec - last_comp_time.tv_nsec) / 1000000.0;
 
+            static int print_throttle = 0;
             if (elapsed_ms > 1.05 || elapsed_ms < 0.95) {
-                printf("Timing Jitter Alert: Cycle took %.4f ms\n", elapsed_ms);
+                printf("\rTiming Jitter Alert: Cycle took %.4f ms     \r", elapsed_ms);
+                if (++print_throttle > 200) { 
+                    printf("\rTiming Jitter Alert: Cycle took %.4f ms     \r", elapsed_ms);
+                    fflush(stdout); // Force immediate flush to prevent buffer locking
+                    print_throttle = 0;
+                }
             }
-            last_comp_time = current_time; 
+            last_comp_time = current_time;
 
             // Output to visualizers
             if (sim_3d_in >= 0 && sim_graph_in >= 0) {
