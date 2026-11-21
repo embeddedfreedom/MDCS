@@ -39,9 +39,9 @@ MDCS is built for **Linux Desktop environments only**. The core simulator uses `
 
 MDCS ships with two build variants for every model:
 
-| Variant | What it means | Hardware needed | Best for |
-|---------|--------------|-----------------|----------|
-| **SIL** — Software-in-the-Loop | Physics + compensator run together on your PC | None | Learning, testing control laws |
+| Variant                        | What it means                                             | Hardware needed  | Best for                             |
+| ------------------------------ | --------------------------------------------------------- | ---------------- | ------------------------------------ |
+| **SIL** — Software-in-the-Loop | Physics + compensator run together on your PC             | None             | Learning, testing control laws       |
 | **HIL** — Hardware-in-the-Loop | Physics on PC; compensator on real STM32F411 over USB CDC | STM32F411E-DISCO | Validating on real embedded hardware |
 
 **Start with SIL.** It requires no hardware and works immediately. Move to HIL only when you want to run the compensator on the actual chip.
@@ -89,7 +89,7 @@ Index: [`docs/notes/README.md`](docs/notes/README.md)
 
 ## 1. Architecture Overview
 
-MDCS provides a **Real-Time (Soft) Hardware-Emulated environment—a Software-in-the-Loop (SIL) Digital Twin** that faithfully models a system using Lagrangian mechanics and the RK4 solver. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk. It utilizes C, the industry standard for embedded systems, ensuring the transition from simulation to real hardware is seamless.
+MDCS provides a **Real-Time (Soft) Hardware-Emulated environment—a Software-in-the-Loop (SIL) Digital Twin and also HIL running on STM32F411** that faithfully models a system using Lagrangian mechanics and the RK4 solver. Unlike theoretical scripts, this is designed to be interacted with as if it were a real plant sitting on your desk. It utilizes C, the industry standard for embedded systems, ensuring the transition from simulation to real hardware is seamless.
 
 To enrich the student experience further, the project includes a **High-Fidelity 3D Visualizer** and **Real-Time Telemetry Graphs**. By mimicking noisy feedback and hardware signals, a bench-like environment is provided that challenges you to solve real-world problems like sensor jitter and encoder drift.
 
@@ -108,6 +108,7 @@ _**SIL Architecture**: Software-in-the-Loop environment. The compensator and pla
 _**HIL Architecture**: Hardware-in-the-Loop architecture. The host simulator connects to a physical STM32F411E-DISCO over USB CDC at 921600 baud; the MCU runs the compensator law and the host runs the plant._
 
 The same compensator code that runs in SIL is flashed to the STM32F411 and executes bare-metal at 1 kHz. Host and MCU exchange fixed **12-byte frames** with XOR checksums at 921600 baud — host→MCU carries sensor values (angles/temperatures), MCU→host returns control efforts (PWM/voltage). Measured host↔MCU↔host round-trip is **≈ 0.4 ms**, well inside the 3 ms poll timeout, so USB does not limit the 1 kHz compensator cadence. This lets you validate control performance on real silicon before deploying to hardware. See §6 Hardware-in-the-Loop (HIL) for build, flash, and run instructions.
+
 
 #### 1.1 Modeling Fidelity & Abstractions
 
@@ -138,6 +139,7 @@ All machine-specific paths (socat PTY links, HIL serial port, HIL test port) are
 **`framework/common/mdcs_config.h`** — the source of truth, read by every C simulator and `compensator_hil.c`.
 
 It is mirrored (auto-generated) into:
+
 - **`framework/common/mdcs_config.py`** — imported by every `run_sim.py` and Python visualiser.
 - **`framework/common/mdcs_config.sh`** — sourced by `scripts/socat_bridges.sh`.
 
@@ -187,6 +189,7 @@ sudo apt update && sudo apt install socat
 ```
 sudo usermod -a -G dialout $USER
 ```
+
 Log out and back in for the group change to take effect.
 
 ### Environment & Python Packages
@@ -765,12 +768,12 @@ Every reply carried `status = 0x01` (running) and a valid XOR checksum.
 
 `hil/hil_STM32F4/test/host_HIL_test.c` is a standalone **transport** test, not a control-law test. It sends synthetic frames at 1 kHz for 1000 cycles and verifies each reply:
 
-| Check | Catches |
-|-------|---------|
+| Check                                         | Catches                    |
+| --------------------------------------------- | -------------------------- |
 | Sync is `0x55 0xAA` (or raw echo `0xAA 0x55`) | byte slip / framing errors |
-| XOR checksum matches | corrupted or dropped bytes |
-| `out1` / `out2` are finite | broken float transfer |
-| `abs(out1), abs(out2) ≤ 50` | grossly implausible values |
+| XOR checksum matches                          | corrupted or dropped bytes |
+| `out1` / `out2` are finite                    | broken float transfer      |
+| `abs(out1), abs(out2) ≤ 50`                   | grossly implausible values |
 
 It does **not** compare outputs to inputs or validate gains — the MCU runs the real compensator, so the outputs are control efforts. The synthetic inputs are fixed sinusoids (`1.25·sin`, `-0.75·cos`), so for the furnace they look like temperatures far below setpoint and both PWMs saturate at `1.0`.
 
@@ -958,48 +961,49 @@ This is **not an exhaustive list**. It covers the most common first-time issues;
 
 ### Symptom: Nothing appears in the visualizer / telemetry plotter
 
-| Possible cause | Check / Fix |
-|----------------|-------------|
-| Socat bridges not running | `ls -l <sim_3d> <sim_graph>` (paths from `mdcs_config.h`). If missing, run `./scripts/socat_bridges.sh` (or let `run_sim.py` create them). |
-| Paths don't match | The PTY links in socat, C source files, `run_sim.py`, and the Python visualizers must all use the **exact same** paths. They are centralised in `framework/common/mdcs_config.h` — edit it and run `python3 scripts/gen_mdcs_config.py`. See §1. |
-| Wrong model directory | Run `run_sim.py` from **inside** the model directory (e.g. `cd models/rotary_inverted_pendulum && python3 run_sim.py`). |
-| Simulator not producing output | Press **`S`** in the simulator terminal to enable the compensator. Without it, PWM is 0 and the plant may appear static. |
+| Possible cause                 | Check / Fix                                                                                                                                                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Socat bridges not running      | `ls -l <sim_3d> <sim_graph>` (paths from `mdcs_config.h`). If missing, run `./scripts/socat_bridges.sh` (or let `run_sim.py` create them).                                                                                                       |
+| Paths don't match              | The PTY links in socat, C source files, `run_sim.py`, and the Python visualizers must all use the **exact same** paths. They are centralised in `framework/common/mdcs_config.h` — edit it and run `python3 scripts/gen_mdcs_config.py`. See §1. |
+| Wrong model directory          | Run `run_sim.py` from **inside** the model directory (e.g. `cd models/rotary_inverted_pendulum && python3 run_sim.py`).                                                                                                                          |
+| Simulator not producing output | Press **`S`** in the simulator terminal to enable the compensator. Without it, PWM is 0 and the plant may appear static.                                                                                                                         |
 
 ### Symptom: HIL host cannot open `/dev/ttyACM0` (permission denied)
 
-| Possible cause | Check / Fix |
-|----------------|-------------|
-| User not in `dialout` group | `groups` should list `dialout`. If not: `sudo usermod -a -G dialout $USER`, then log out and back in. |
-| Another process holding the port | Only one program can own `/dev/ttyACM0` at a time. Close other serial terminals, visualizers, or `screen`/`minicom` sessions. |
-| Board not enumerated | `lsusb` should show `cafe:4001 MDCS_HIL`. If missing, the board may not be flashed, the crystal may be wrong (see §6.6), or the cable/port is faulty. |
+| Possible cause                   | Check / Fix                                                                                                                                           |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User not in `dialout` group      | `groups` should list `dialout`. If not: `sudo usermod -a -G dialout $USER`, then log out and back in.                                                 |
+| Another process holding the port | Only one program can own `/dev/ttyACM0` at a time. Close other serial terminals, visualizers, or `screen`/`minicom` sessions.                         |
+| Board not enumerated             | `lsusb` should show `cafe:4001 MDCS_HIL`. If missing, the board may not be flashed, the crystal may be wrong (see §6.6), or the cable/port is faulty. |
 
 ### Symptom: `make -f Makefile_HIL` fails with "arm-none-eabi-gcc: command not found"
 
-| Possible cause | Check / Fix |
-|----------------|-------------|
-| ARM cross-toolchain not installed or not on `PATH` | Install `arm-none-eabi-gcc` (see §4 Step 2.5) and verify with `arm-none-eabi-gcc --version`. |
-| `PATH` not exported | Add `export PATH=/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin:$PATH` to your `~/.bashrc`. |
+| Possible cause                                     | Check / Fix                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| ARM cross-toolchain not installed or not on `PATH` | Install `arm-none-eabi-gcc` (see §4 Step 2.5) and verify with `arm-none-eabi-gcc --version`.           |
+| `PATH` not exported                                | Add `export PATH=/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin:$PATH` to your `~/.bashrc`. |
 
 ### Symptom: Firmware changes don't take effect (header edited, rebuild seems ignored)
 
-| Possible cause | Check / Fix |
-|----------------|-------------|
+| Possible cause                           | Check / Fix                                                                                                        |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Firmware Makefile tracks `.c` files only | Editing a `.h` does not force a rebuild. Run `make -B -f Makefile_HIL` or delete `MDCS_HIL.out` before rebuilding. |
-| Stale `EXTRA_CFLAGS` | `EXTRA_CFLAGS` is not a make dependency. Clean (`make clean`) if defines changed. |
+| Stale `EXTRA_CFLAGS`                     | `EXTRA_CFLAGS` is not a make dependency. Clean (`make clean`) if defines changed.                                  |
 
 ### Symptom: Board flashes OK but `/dev/ttyACM0` never appears
 
-| Possible cause | Check / Fix |
-|----------------|-------------|
-| Wrong HSE crystal | Firmware assumes an **8 MHz HSE** (STM32F411E-DISCO). A different crystal breaks the PLL and USB clock — the board looks dead with no error message. See §6.6. |
-| Wrong binary flashed | Each model (and each flywheel profile) produces its own `MDCS_HIL.bin`. Flash the `.bin` that sits next to the host binary you are running (see §6.3 table). |
+| Possible cause       | Check / Fix                                                                                                                                                    |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wrong HSE crystal    | Firmware assumes an **8 MHz HSE** (STM32F411E-DISCO). A different crystal breaks the PLL and USB clock — the board looks dead with no error message. See §6.6. |
+| Wrong binary flashed | Each model (and each flywheel profile) produces its own `MDCS_HIL.bin`. Flash the `.bin` that sits next to the host binary you are running (see §6.3 table).   |
 
 ### Symptom: Temperature doesn't move (furnace)
-| Possible cause | Check / Fix |
-|----------------|-------------|
-| Compensator disabled | Press **`S`** — PWM stays at 0 until you enable it. |
+
+| Possible cause                         | Check / Fix                                                                                                                                                                                               |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Compensator disabled                   | Press **`S`** — PWM stays at 0 until you enable it.                                                                                                                                                       |
 | Setpoint changed but gains not retuned | The LQI gains are linearized at 75/75 °C. Changing setpoints (e.g. to 83/67 °C) requires recomputing gains via `docs/furnace_lqi_design.py` — see §17 in `models/furnace_control/docs/LQI_DERIVATION.md`. |
-| Physically saturated | Heaters are PWM-only (no active cooling). Slab 1 cannot exceed ~72 °C while slab 2 sits at 67 °C with heater 2 off — the 36 W heater limit is reached. |
+| Physically saturated                   | Heaters are PWM-only (no active cooling). Slab 1 cannot exceed ~72 °C while slab 2 sits at 67 °C with heater 2 off — the 36 W heater limit is reached.                                                    |
 
 ### General
 
