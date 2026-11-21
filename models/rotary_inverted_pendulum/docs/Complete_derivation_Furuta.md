@@ -66,31 +66,31 @@ We start with the position of the pendulum center of mass (P₃).
 
 The base rotates by θ₁ and the pendulum by θ₂.
 
-$$x_3 = \frac{L_2}{2}\cos\theta_1 - \frac{L_3}{2}\sin\theta_2\sin\theta_1$$
+$x_3 = \frac{L_2}{2}\cos\theta_1 - \frac{L_3}{2}\sin\theta_2\sin\theta_1$
 
-$$y_3 = \frac{L_2}{2}\sin\theta_1 + \frac{L_3}{2}\sin\theta_2\cos\theta_1$$
+$y_3 = \frac{L_2}{2}\sin\theta_1 + \frac{L_3}{2}\sin\theta_2\cos\theta_1$
 
-$$z_3 = L_1 - \frac{L_3}{2}\cos\theta_2$$
+$z_3 = L_1 - \frac{L_3}{2}\cos\theta_2$
 
 ### Velocity Expansion
 
 Taking the time derivative (d/dt) of each component:
 
-$$\dot{x}_3 = -\frac{L_2}{2}\dot{\theta}_1\sin\theta_1 - \frac{L_3}{2}\dot{\theta}_2\cos\theta_2\sin\theta_1 - \frac{L_3}{2}\dot{\theta}_1\sin\theta_2\cos\theta_1$$
+$\dot{x}_3 = -\frac{L_2}{2}\dot{\theta}_1\sin\theta_1 - \frac{L_3}{2}\dot{\theta}_2\cos\theta_2\sin\theta_1 - \frac{L_3}{2}\dot{\theta}_1\sin\theta_2\cos\theta_1$
 
-$$\dot{y}_3 = \frac{L_2}{2}\dot{\theta}_1\cos\theta_1 + \frac{L_3}{2}\dot{\theta}_2\cos\theta_2\cos\theta_1 - \frac{L_3}{2}\dot{\theta}_1\sin\theta_2\sin\theta_1$$
+$\dot{y}_3 = \frac{L_2}{2}\dot{\theta}_1\cos\theta_1 + \frac{L_3}{2}\dot{\theta}_2\cos\theta_2\cos\theta_1 - \frac{L_3}{2}\dot{\theta}_1\sin\theta_2\sin\theta_1$
 
-$$\dot{z}_3 = \frac{L_3}{2}\dot{\theta}_2\sin\theta_2$$
+$\dot{z}_3 = \frac{L_3}{2}\dot{\theta}_2\sin\theta_2$
 
 ### The Velocity Square (v₃²)
 
 To find $v_3^2 = \dot{x}_3^2 + \dot{y}_3^2 + \dot{z}_3^2$, we square the terms. Notice that when summing $\dot{x}_3^2 + \dot{y}_3^2$, the cross-terms containing $\sin\theta_1\cos\theta_1$ cancel out. After applying $\sin^2\theta + \cos^2\theta = 1$ repeatedly, we get:
 
-$$v_3^2 = \frac{L_2^2}{4}\dot{\theta}_1^2 + \frac{L_3^2}{4}\dot{\theta}_2^2\cos^2\theta_2 + \frac{L_3^2}{4}\dot{\theta}_1^2\sin^2\theta_2 + \frac{L_2L_3}{2}\dot{\theta}_1\dot{\theta}_2\cos\theta_2 + \frac{L_3^2}{4}\dot{\theta}_2^2\sin^2\theta_2$$
+$v_3^2 = \frac{L_2^2}{4}\dot{\theta}_1^2 + \frac{L_3^2}{4}\dot{\theta}_2^2\cos^2\theta_2 + \frac{L_3^2}{4}\dot{\theta}_1^2\sin^2\theta_2 + \frac{L_2L_3}{2}\dot{\theta}_1\dot{\theta}_2\cos\theta_2 + \frac{L_3^2}{4}\dot{\theta}_2^2\sin^2\theta_2$
 
 Combining $\cos^2\theta_2$ and $\sin^2\theta_2$ for the $\dot{\theta}_2^2$ term:
 
-$$v_3^2 = \dot{\theta}_1^2 \left( \frac{L_2^2}{4} + \frac{L_3^2}{4}\sin^2\theta_2 \right) + \dot{\theta}_2^2 \left( \frac{L_3^2}{4} \right) + \dot{\theta}_1\dot{\theta}_2 \left( \frac{L_2 L_3}{2}\cos\theta_2 \right)$$
+$v_3^2 = \dot{\theta}_1^2 \left( \frac{L_2^2}{4} + \frac{L_3^2}{4}\sin^2\theta_2 \right) + \dot{\theta}_2^2 \left( \frac{L_3^2}{4} \right) + \dot{\theta}_1\dot{\theta}_2 \left( \frac{L_2 L_3}{2}\cos\theta_2 \right)$
 
 ## 2. Energy and Lagrangian
 
@@ -102,15 +102,15 @@ $$v_3^2 = \dot{\theta}_1^2 \left( \frac{L_2^2}{4} + \frac{L_3^2}{4}\sin^2\theta_
 
 ### Kinetic Energy (T):
 
-$$T = \frac{1}{2}J_{hub}\dot{\theta}_1^2 + \frac{1}{2}M_3 v_3^2 + \frac{1}{2}J_{pend}\dot{\theta}_2^2$$
+$T = \frac{1}{2}J_{hub}\dot{\theta}_1^2 + \frac{1}{2}M_3 v_3^2 + \frac{1}{2}J_{pend}\dot{\theta}_2^2$
 
 Substitute $v_3^2$:
 
-$$T = \frac{1}{2}J_{hub}\dot{\theta}_1^2 + \frac{1}{2}M_3 \left[ \dot{\theta}_1^2 \left( \frac{L_2^2}{4} + \frac{L_3^2}{4}\sin^2\theta_2 \right) + \dot{\theta}_2^2 \frac{L_3^2}{4} + \dot{\theta}_1\dot{\theta}_2 \frac{L_2 L_3}{2}\cos\theta_2 \right] + \frac{1}{2}J_{pend}\dot{\theta}_2^2$$
+$T = \frac{1}{2}J_{hub}\dot{\theta}_1^2 + \frac{1}{2}M_3 \left[ \dot{\theta}_1^2 \left( \frac{L_2^2}{4} + \frac{L_3^2}{4}\sin^2\theta_2 \right) + \dot{\theta}_2^2 \frac{L_3^2}{4} + \dot{\theta}_1\dot{\theta}_2 \frac{L_2 L_3}{2}\cos\theta_2 \right] + \frac{1}{2}J_{pend}\dot{\theta}_2^2$
 
 ### Potential Energy (V):
 
-$$V = M_3 g (L_1 - \frac{L_3}{2}\cos\theta_2)$$
+$V = M_3 g (L_1 - \frac{L_3}{2}\cos\theta_2)$
 
 ### Explicit Definitions of a, b, c, d
 
@@ -118,19 +118,19 @@ Now we group these into the four physical constants used in the Lagrangian. Thes
 
 - **a (Total Arm-side Inertia):** Includes everything that rotates with the motor shaft, plus the pendulum's mass acting as a point-load at the end of the arm (L₂/2).
 
-  $$a = J_{sh} + J_1 + J_2 + M_3 \left( \frac{L_2}{2} \right)^2$$
+  $a = J_{sh} + J_1 + J_2 + M_3 \left( \frac{L_2}{2} \right)^2$
 
 - **b (Centrifugal Coefficient):** Specifically the pendulum's mass moving in a circle around its pivot.
 
-  $$b = M_3 \left( \frac{L_3}{2} \right)^2$$
+  $b = M_3 \left( \frac{L_3}{2} \right)^2$
 
 - **c (Total Pendulum-side Inertia):** The pendulum's own inertia plus its mass offset from the pivot (via the Parallel Axis Theorem).
 
-  $$c = J_3 + M_3 \left( \frac{L_3}{2} \right)^2 = \left( \frac{1}{12} M_3 L_3^2 + \frac{1}{4} M_3 R_3^2 \right) + \frac{1}{4} M_3 L_3^2$$
+  $c = J_3 + M_3 \left( \frac{L_3}{2} \right)^2 = \left( \frac{1}{12} M_3 L_3^2 + \frac{1}{4} M_3 R_3^2 \right) + \frac{1}{4} M_3 L_3^2$
 
 - **d (Coupling Inertia):** The geometric "bridge" between the arm and the pendulum.
 
-  $$d = M_3 \left( \frac{L_2}{2} \right) \left( \frac{L_3}{2} \right)$$
+  $d = M_3 \left( \frac{L_2}{2} \right) \left( \frac{L_3}{2} \right)$
 
 Your Hardware Parameters: $M_{sh}=0.06, M_1=0.12, M_2=0.15, M_3=0.05$   $L_1=0.2, L_2=0.4, L_3=0.2$   $R_{sh}=0.005, R_{arm}=0.01, R_{pend}=0.01$
 
@@ -153,7 +153,7 @@ Your Hardware Parameters: $M_{sh}=0.06, M_1=0.12, M_2=0.15, M_3=0.05$   $L_1=0.2
 
 ## 3. The Lagrangian (L = T − V):
 
-$$L = \frac{1}{2}(a + b\sin^2\theta_2)\dot{\theta}_1^2 + \frac{1}{2}c\dot{\theta}_2^2 + 2d\dot{\theta}_1\dot{\theta}_2\cos\theta_2 + \frac{M_3 g L_3}{2}\cos\theta_2$$
+$L = \frac{1}{2}(a + b\sin^2\theta_2)\dot{\theta}_1^2 + \frac{1}{2}c\dot{\theta}_2^2 + 2d\dot{\theta}_1\dot{\theta}_2\cos\theta_2 + \frac{M_3 g L_3}{2}\cos\theta_2$
 
 ## 4. The Euler-Lagrange Equations
 
@@ -161,11 +161,11 @@ Using $\frac{d}{dt}(\frac{\partial L}{\partial \dot{\theta}_i}) - \frac{\partial
 
 **For the Arm (θ₁):**
 
-$$(a + b\sin^2\theta_2)\ddot{\theta}_1 + (2d\cos\theta_2)\ddot{\theta}_2 + b\sin(2\theta_2)\dot{\theta}_1\dot{\theta}_2 - 2d\sin\theta_2\dot{\theta}_2^2 = \tau_{motor} - b_1\dot{\theta}_1$$
+$(a + b\sin^2\theta_2)\ddot{\theta}_1 + (2d\cos\theta_2)\ddot{\theta}_2 + b\sin(2\theta_2)\dot{\theta}_1\dot{\theta}_2 - 2d\sin\theta_2\dot{\theta}_2^2 = \tau_{motor} - b_1\dot{\theta}_1$
 
 **For the Pendulum (θ₂):**
 
-$$(2d\cos\theta_2)\ddot{\theta}_1 + c\ddot{\theta}_2 - \frac{b}{2}\sin(2\theta_2)\dot{\theta}_1^2 + \frac{M_3 g L_3}{2}\sin\theta_2 = -b_2\dot{\theta}_2$$
+$(2d\cos\theta_2)\ddot{\theta}_1 + c\ddot{\theta}_2 - \frac{b}{2}\sin(2\theta_2)\dot{\theta}_1^2 + \frac{M_3 g L_3}{2}\sin\theta_2 = -b_2\dot{\theta}_2$
 
 ## 5. The Exact Jacobian: The Mathematical Bridge
 
@@ -183,7 +183,7 @@ After dropping higher-order velocity terms (like $\dot{\theta}^2$), the Euler-La
 
 We represent this as $M\ddot{\theta} = F$. To isolate accelerations, we multiply by the inverse mass matrix $M^{-1}$:
 
-$$\begin{bmatrix} \ddot{\theta}_1 \\ \ddot{\theta}_2 \end{bmatrix} = \frac{1}{ac - d^2} \begin{bmatrix} c & d \\ d & a \end{bmatrix} \begin{bmatrix} \sigma_1\dot{\theta}_1 + \frac{K_t}{R}V \\ \gamma_p\Delta\theta_2 - b_2\dot{\theta}_2 \end{bmatrix}$$
+$\begin{bmatrix} \ddot{\theta}_1 \\ \ddot{\theta}_2 \end{bmatrix} = \frac{1}{ac - d^2} \begin{bmatrix} c & d \\ d & a \end{bmatrix} \begin{bmatrix} \sigma_1\dot{\theta}_1 + \frac{K_t}{R}V \\ \gamma_p\Delta\theta_2 - b_2\dot{\theta}_2 \end{bmatrix}$
 
 ### Step 5.3: State-Space Linearization (Jacobian Method)
 
@@ -193,28 +193,28 @@ To transform the nonlinear equations into the form $\dot{x} = Ax + Bu$, we compu
 
 The A matrix is defined as:
 
-$$A = \left. \frac{\partial f(x, u)}{\partial x} \right|_{eq} = \begin{bmatrix} 
+$A = \left. \frac{\partial f(x, u)}{\partial x} \right|_{eq} = \begin{bmatrix} 
 \frac{\partial \dot{\theta}_1}{\partial \theta_1} & \frac{\partial \dot{\theta}_1}{\partial \theta_2} & \frac{\partial \dot{\theta}_1}{\partial \dot{\theta}_1} & \frac{\partial \dot{\theta}_1}{\partial \dot{\theta}_2} \\
 \frac{\partial \dot{\theta}_2}{\partial \theta_1} & \frac{\partial \dot{\theta}_2}{\partial \theta_2} & \frac{\partial \dot{\theta}_2}{\partial \dot{\theta}_1} & \frac{\partial \dot{\theta}_2}{\partial \dot{\theta}_2} \\
 \frac{\partial \ddot{\theta}_1}{\partial \theta_1} & \frac{\partial \ddot{\theta}_1}{\partial \theta_2} & \frac{\partial \ddot{\theta}_1}{\partial \dot{\theta}_1} & \frac{\partial \ddot{\theta}_1}{\partial \dot{\theta}_2} \\
 \frac{\partial \ddot{\theta}_2}{\partial \theta_1} & \frac{\partial \ddot{\theta}_2}{\partial \theta_2} & \frac{\partial \ddot{\theta}_2}{\partial \dot{\theta}_1} & \frac{\partial \ddot{\theta}_2}{\partial \dot{\theta}_2}
-\end{bmatrix}$$
+\end{bmatrix}$
 
 #### Key Jacobian Entries
 
 Using the inverse mass matrix $M^{-1} = \frac{1}{\Delta} \begin{bmatrix} c & d \\ d & a \end{bmatrix}$ to uncouple the accelerations, the non-trivial Jacobians are:
 
 1. **Arm Acceleration vs Pendulum Position:**
-   $$\frac{\partial \ddot{\theta}_1}{\partial \theta_2} = \frac{1}{\Delta} [c(0) + d(\gamma_p)] = \mathbf{\frac{d\gamma_p}{\Delta}}$$
+   $\frac{\partial \ddot{\theta}_1}{\partial \theta_2} = \frac{1}{\Delta} [c(0) + d(\gamma_p)] = \mathbf{\frac{d\gamma_p}{\Delta}}$
 
 2. **Pendulum Acceleration vs Pendulum Position:**
-   $$\frac{\partial \ddot{\theta}_2}{\partial \theta_2} = \frac{1}{\Delta} [d(0) + a(\gamma_p)] = \mathbf{\frac{a\gamma_p}{\Delta}}$$
+   $\frac{\partial \ddot{\theta}_2}{\partial \theta_2} = \frac{1}{\Delta} [d(0) + a(\gamma_p)] = \mathbf{\frac{a\gamma_p}{\Delta}}$
 
 3. **Arm Acceleration vs Arm Velocity:**
-   $$\frac{\partial \ddot{\theta}_1}{\partial \dot{\theta}_1} = \frac{1}{\Delta} [c(\sigma_1) + d(0)] = \mathbf{\frac{c\sigma_1}{\Delta}}$$
+   $\frac{\partial \ddot{\theta}_1}{\partial \dot{\theta}_1} = \frac{1}{\Delta} [c(\sigma_1) + d(0)] = \mathbf{\frac{c\sigma_1}{\Delta}}$
 
 4. **Pendulum Acceleration vs Arm Velocity:**
-   $$\frac{\partial \ddot{\theta}_2}{\partial \dot{\theta}_1} = \frac{1}{\Delta} [d(\sigma_1) + a(0)] = \mathbf{\frac{d\sigma_1}{\Delta}}$$
+   $\frac{\partial \ddot{\theta}_2}{\partial \dot{\theta}_1} = \frac{1}{\Delta} [d(\sigma_1) + a(0)] = \mathbf{\frac{d\sigma_1}{\Delta}}$
 
 **Determinant** $\Delta = ac - d^2 = (0.0040105 \cdot 0.0006679) - (0.001^2) = \mathbf{1.678 \times 10^{-6}}$.
 
@@ -226,7 +226,7 @@ Using the inverse mass matrix $M^{-1} = \frac{1}{\Delta} \begin{bmatrix} c & d \
 
 - Gravity Gradient $\gamma_p = \frac{M_3 g L_3}{2} = \frac{0.05 \cdot 9.81 \cdot 0.2}{2} = \mathbf{0.04905}$
 
-$$A = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & \frac{d\gamma_p}{\Delta} & \frac{c\sigma_1}{\Delta} & -\frac{d b_2}{\Delta} \\ 0 & \frac{a\gamma_p}{\Delta} & \frac{d\sigma_1}{\Delta} & -\frac{a b_2}{\Delta} \end{bmatrix} = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 29.22 & -5.47 & -0.60 \\ 0 & 117.18 & -8.20 & -2.39 \end{bmatrix}$$
+$A = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & \frac{d\gamma_p}{\Delta} & \frac{c\sigma_1}{\Delta} & -\frac{d b_2}{\Delta} \\ 0 & \frac{a\gamma_p}{\Delta} & \frac{d\sigma_1}{\Delta} & -\frac{a b_2}{\Delta} \end{bmatrix} = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 29.22 & -5.47 & -0.60 \\ 0 & 117.18 & -8.20 & -2.39 \end{bmatrix}$
 
 #### Step 5.4: Input Jacobian: The B Matrix
 
@@ -236,21 +236,21 @@ The $B$ matrix represents how the control input (Motor Voltage $V$) directly aff
 
 The $B$ matrix is defined as the partial derivative of the dynamics with respect to the input $V$:
 
-$$B = \left. \frac{\partial f(x, V)}{\partial V} \right|_{eq} = \begin{bmatrix} 0 \\ 0 \\ \frac{\partial \ddot{\theta}_1}{\partial V} \\ \frac{\partial \ddot{\theta}_2}{\partial V} \end{bmatrix}$$
+$B = \left. \frac{\partial f(x, V)}{\partial V} \right|_{eq} = \begin{bmatrix} 0 \\ 0 \\ \frac{\partial \ddot{\theta}_1}{\partial V} \\ \frac{\partial \ddot{\theta}_2}{\partial V} \end{bmatrix}$
 
 #### Decoupling the Input
 
 Using the inverse mass matrix $M^{-1}$, we multiply it by the motor's torque-voltage constant ($\frac{K_t}{R}$). Note that the motor only acts on the arm (first row of the force vector), but because the system is coupled, it induces acceleration in both the arm and the pendulum:
 
-$$\begin{bmatrix} \frac{\partial \ddot{\theta}_1}{\partial V} \\ \frac{\partial \ddot{\theta}_2}{\partial V} \end{bmatrix} = \frac{1}{\Delta} \begin{bmatrix} c & d \\ d & a \end{bmatrix} \begin{bmatrix} \frac{K_t}{R} \\ 0 \end{bmatrix}$$
+$\begin{bmatrix} \frac{\partial \ddot{\theta}_1}{\partial V} \\ \frac{\partial \ddot{\theta}_2}{\partial V} \end{bmatrix} = \frac{1}{\Delta} \begin{bmatrix} c & d \\ d & a \end{bmatrix} \begin{bmatrix} \frac{K_t}{R} \\ 0 \end{bmatrix}$
 
 **The Resulting B Entries**
 
 1. **Arm Response to Voltage ($B_3$):**
-   $$\frac{\partial \ddot{\theta}_1}{\partial V} = \frac{1}{\Delta} \left( c \cdot \frac{K_t}{R} \right) = \mathbf{\frac{c K_t}{\Delta R}}$$
+   $\frac{\partial \ddot{\theta}_1}{\partial V} = \frac{1}{\Delta} \left( c \cdot \frac{K_t}{R} \right) = \mathbf{\frac{c K_t}{\Delta R}}$
 
 2. **Pendulum Response to Voltage ($B_4$):**
-   $$\frac{\partial \ddot{\theta}_2}{\partial V} = \frac{1}{\Delta} \left( d \cdot \frac{K_t}{R} \right) = \mathbf{\frac{d K_t}{\Delta R}}$$
+   $\frac{\partial \ddot{\theta}_2}{\partial V} = \frac{1}{\Delta} \left( d \cdot \frac{K_t}{R} \right) = \mathbf{\frac{d K_t}{\Delta R}}$
 
 #### Numerical Result
 
@@ -262,17 +262,17 @@ Using $\frac{K_t}{R} = 0.048$:
 
 ### Final B Matrix:
 
-$$B = \begin{bmatrix} 0 \\ 0 \\ 19.10 \\ 28.59 \end{bmatrix}$$
+$B = \begin{bmatrix} 0 \\ 0 \\ 19.10 \\ 28.59 \end{bmatrix}$
 
 ## 6. Numerical Implementation (Python)
 
 The LQR controller finds the optimal gain matrix $K$ by minimizing a cost function that balances error ($Q$) and control effort ($R$). The core of this optimization is solving the **Algebraic Riccati Equation**:
 
-$$A^T P + PA - PBR^{-1}B^T P + Q = 0$$
+$A^T P + PA - PBR^{-1}B^T P + Q = 0$
 
 In the provided Python script, the line `solve_continuous_are(A, B, Q, R_lqr)` performs this calculation. It computes the unique positive-definite matrix **$P$**, which is then used to find the raw gains:
 
-$$K_{raw} = R^{-1} B^T P$$
+$K_{raw} = R^{-1} B^T P$
 
 The selection of values in the $Q$ matrix for the Furuta Pendulum is a process of **weighted prioritization**. In LQR (Linear Quadratic Regulator) control, the $Q$ matrix represents the "penalty" or cost assigned to errors in each state.
 
@@ -302,7 +302,7 @@ The values in $Q$ are relative to the $R$ matrix, which you set to $0.1$.
 
 A common starting point for these values is **Bryson's Rule**, which suggests:
 
-$$Q_{ii} = \frac{1}{\text{maximum acceptable value for state } i^2}$$
+$Q_{ii} = \frac{1}{\text{maximum acceptable value for state } i^2}$
 
 In your case, the $Q$ values imply that you find a $0.1$ radian error in the pendulum ($1/0.1^2 = 100$) just as "expensive" or "bad" as a $0.31$ radian error in the arm ($1/0.31^2 \approx 10$).
 
