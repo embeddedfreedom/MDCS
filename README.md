@@ -124,6 +124,20 @@ Utilizes a **Mean Value Model**. The compensator returns a normalized duty cycl
 
 Explicitly modeled as **Discrete Quadrature Pulses (A/B)**. This forces the compensator to manage quantization error and velocity jitter. Absolute positioning is verified via **Z-Index** latching at the **0° (Down)** reference point.
 
+##### Motor Electrical Braking
+
+When PWM is set to 0 (compensator disabled with **`T`**), the DC motor model can either **coast** (motor terminals float, no electrical braking) or **electrically brake** (back-EMF drives current through motor resistance, dissipating kinetic energy quickly).
+
+Controlled via the `motor_coast_on_zero` parameter in each model's `Params` struct:
+
+| Value | Behavior | Matches |
+|-------|----------|---------|
+| `true` (default) | Motor floats when PWM=0, no back-EMF braking | Most H-bridge motor drivers; real hardware coasts |
+| `false` | Electrical braking when PWM=0 | Drives with active short-circuit braking |
+
+**Default is `true`** for all models (furuta, pendulum, flywheel) to match typical real hardware behavior where the motor coasts when power is cut. Set to `false` if your driver actively shorts the motor terminals at zero PWM.
+
+
 ### ⚠️ CRITICAL OPERATIONAL LIMITATION
 
 The `socat` configuration used in this suite creates a specific set of virtual serial bridges. This setup only accommodates **one** active control suite at a time.

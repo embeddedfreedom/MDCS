@@ -26,7 +26,8 @@ typedef struct {
 
 typedef struct { 
     float M_disc, R_disc, motor_shaft_radius, motor_shaft_mass;
-    float b1, g, kt, kb, Vmax, R, deadzone; 
+    float b1, g, kt, kb, Vmax, R, deadzone;
+    bool motor_coast_on_zero;  // true: motor floats when PWM=0 (no electrical braking)
 } FlywheelParams;
 
 #endif

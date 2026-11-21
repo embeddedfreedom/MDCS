@@ -95,7 +95,13 @@ void compute_derivatives(const FurutaState *x, float motor_pwm, int motor_dir, c
     }
 
     // Now use V_effective to calculate the actual physical torque
-    float tau_motor = (p->kt / p->R) * (V_effective - p->kb * d1);
+    // Motor off and coasting — no electrical braking when PWM=0
+    float tau_motor;
+    if (fabsf(V_effective) < 0.001f && p->motor_coast_on_zero) {
+        tau_motor = 0.0f;
+    } else {
+        tau_motor = (p->kt / p->R) * (V_effective - p->kb * d1);
+    }
 
     // 3. Inertia Calculation (Rigid Body Cylinders)
     float J_shaft = 0.5f * p->shaft_mass * p->shaft_radius * p->shaft_radius;
@@ -177,7 +183,7 @@ int main() {
     FurutaParams p = { .M1=0.12f, .M2=0.15f, .M3=0.05f, .L1=0.2f, .L2=0.4f, .L3=0.2f, 
                        .r1=0.01f, .r2=0.01f, .r3=0.01f, .shaft_radius=0.005f, .shaft_mass=0.06f,
                        .b1=0.008f, .b2=0.001f, .g=9.81f, .kt=0.12f, .kb=0.12f, .Vmax=12.0f, .R=2.5f,
-                       .deadzone=0.4f};
+                       .deadzone=0.4f, .motor_coast_on_zero=true};
     
     FurutaState s = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}; 
     

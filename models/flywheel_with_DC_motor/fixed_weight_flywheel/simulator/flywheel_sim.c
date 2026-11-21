@@ -72,7 +72,13 @@ void compute_derivatives(const FlywheelState *x, float motor_pwm, int motor_dir,
     }
 
     // Electromechanical torque calculation including Back-EMF
-    float tau_motor = (p->kt / p->R) * (V_effective - p->kb * d);
+    // Motor off and coasting — no electrical braking when PWM=0
+    float tau_motor;
+    if (fabsf(V_effective) < 0.001f && p->motor_coast_on_zero) {
+        tau_motor = 0.0f;
+    } else {
+        tau_motor = (p->kt / p->R) * (V_effective - p->kb * d);
+    }
 
     // Rigid Body Inertia Components calculated dynamically using passed parameters
     float I_shaft = 0.5f * p->motor_shaft_mass * p->motor_shaft_radius * p->motor_shaft_radius;
@@ -132,7 +138,8 @@ int main() {
         .kb = 0.12f, 
         .Vmax = 12.0f, 
         .R = 2.5f, 
-        .deadzone = 0.4f
+        .deadzone = 0.4f, 
+        .motor_coast_on_zero = true
     };
     
     FlywheelState s = {0.0f, 0.0f, 0.0f, 0.0f}; 

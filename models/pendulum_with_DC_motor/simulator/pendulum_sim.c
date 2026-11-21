@@ -65,7 +65,13 @@ void compute_derivatives(const PendulumState *x, float motor_pwm, int motor_dir,
         V_effective = (V_requested > 0) ? (V_requested - p->deadzone) : (V_requested + p->deadzone);
     }
 
-    float tau_motor = (p->kt / p->R) * (V_effective - p->kb * d);
+    // Motor off and coasting — no electrical braking when PWM=0
+    float tau_motor;
+    if (fabsf(V_effective) < 0.001f && p->motor_coast_on_zero) {
+        tau_motor = 0.0f;
+    } else {
+        tau_motor = (p->kt / p->R) * (V_effective - p->kb * d);
+    }
 
     // Rigid Body Inertia
     float I_shaft = 0.5f * p->motor_shaft_mass * p->motor_shaft_radius * p->motor_shaft_radius;
@@ -106,7 +112,8 @@ int main() {
     PendulumParams p = { .M1=0.2f, .L1=0.3f, .r3=0.01f, 
                          .motor_shaft_radius=0.005f, .motor_shaft_mass=0.06f,
                          .b1=0.008f, .g=9.81f, .kt=0.12f, .kb=0.12f, 
-                         .Vmax=12.0f, .R=2.5f, .deadzone=0.4f};
+                         .Vmax=12.0f, .R=2.5f, .deadzone=0.4f,
+                         .motor_coast_on_zero=true};
     
     PendulumState s = {0.0f, 0.0f, 0.0f, 0.0f}; 
     Encoder e_pend;

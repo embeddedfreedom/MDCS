@@ -27,7 +27,8 @@ typedef struct {
 
 typedef struct { 
     float M1, M2, M3, L1, L2, L3, r1, r2, r3, shaft_radius, shaft_mass;
-    float b1, b2, g, kt, kb, Vmax, R, deadzone; 
+    float b1, b2, g, kt, kb, Vmax, R, deadzone;
+    bool motor_coast_on_zero;  // true: motor floats when PWM=0 (no electrical braking)
 } FurutaParams;
 
 #endif
