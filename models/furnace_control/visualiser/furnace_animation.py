@@ -40,6 +40,18 @@ import threading
 import serial
 import random
 
+# --- MDCS config (socat PTY paths from framework/common/mdcs_config.h) ---
+import os
+import sys
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _ in range(8):
+    _CAND = os.path.join(_HERE, "framework", "common")
+    if os.path.isdir(_CAND):
+        sys.path.insert(0, _CAND)
+        break
+    _HERE = os.path.dirname(_HERE)
+from mdcs_config import MDCS_PTY_SIM_3D
+
 # --- PHYSICAL PARAMETERS ---
 SLAB_L = 3.0   # Length of each slab
 SLAB_W = 1.5   # Width
@@ -83,7 +95,7 @@ def temp_to_color(temp):
 def serial_worker():
     """ Handles reading streaming thermal telemetry from named pipe / serial port. """
     global T1, T2, u1, u2, q12, Tamb, serial_connected
-    port_path = '/home/dipto/sim_3d'
+    port_path = MDCS_PTY_SIM_3D
     while True:
         try:
             ser = serial.Serial(port_path, 115200, timeout=0.05)

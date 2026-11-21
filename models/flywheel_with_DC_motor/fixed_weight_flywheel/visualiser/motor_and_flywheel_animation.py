@@ -24,6 +24,18 @@ import math
 import threading
 import serial
 
+# --- MDCS config (socat PTY paths from framework/common/mdcs_config.h) ---
+import os
+import sys
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _ in range(8):
+    _CAND = os.path.join(_HERE, "framework", "common")
+    if os.path.isdir(_CAND):
+        sys.path.insert(0, _CAND)
+        break
+    _HERE = os.path.dirname(_HERE)
+from mdcs_config import MDCS_PTY_SIM_3D
+
 # --- VISUAL SCALING & DIMENSIONS ---
 MotorR, MotorL = 0.4, 1.2
 ShaftR, ShaftL = 0.08, 0.4
@@ -39,7 +51,7 @@ serial_connected = False
 
 def serial_worker():
     global theta_flywheel, omega_flywheel, serial_connected
-    port_path = '/home/dipto/sim_3d' 
+    port_path = MDCS_PTY_SIM_3D
     while True:
         try:
             ser = serial.Serial(port_path, 115200, timeout=0.05)

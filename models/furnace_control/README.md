@@ -38,7 +38,7 @@ Create the socat bridges first (see the repo-root `README.md` or `AGENTS.md`), t
 
 Keys while running: `S` = enable compensator, `T` = disable, `Q` = quit.
 
-Telemetry is the 6-value stream `<T1 T2 u1 u2 q12 Tamb>`; the 3D animation reads `/home/dipto/sim_3d` and the plotter reads `/home/dipto/sim_graph`, both at 115200 baud.
+Telemetry is the 6-value stream `<T1 T2 u1 u2 q12 Tamb>`; the 3D animation and plotter read the socat PTY links from `framework/common/mdcs_config.h` (edit there if you move machines), both at 115200 baud.
 
 ## Runtime behaviour (industrial parameters)
 

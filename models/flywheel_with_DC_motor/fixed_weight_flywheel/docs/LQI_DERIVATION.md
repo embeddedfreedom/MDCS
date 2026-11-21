@@ -1245,13 +1245,9 @@ make -f Makefile_HIL speed      # build/flywheel_control/speed/ (host + firmware
 Start the socat bridges as described in the repository-root `AGENTS.md`:
 
 ```bash
-pkill -9 socat
-rm -f /home/dipto/sim_3d /home/dipto/sim_graph \
-      /home/dipto/sim_3d_in /home/dipto/sim_graph_in
-socat PTY,raw,echo=0,link=/home/dipto/sim_3d \
-      PTY,raw,echo=0,link=/home/dipto/sim_3d_in &
-socat PTY,raw,echo=0,link=/home/dipto/sim_graph \
-      PTY,raw,echo=0,link=/home/dipto/sim_graph_in &
+# Edit framework/common/mdcs_config.h if your PTY links live elsewhere, then:
+python3 scripts/gen_mdcs_config.py
+./scripts/socat_bridges.sh
 ```
 
 Run the binary from the model directory:
@@ -1275,7 +1271,7 @@ Telemetry format:
 <theta  theta_dot  command_voltage  torque>
 ```
 
-The Python visualizers read from `/home/dipto/sim_3d` and `/home/dipto/sim_graph` at 115200 baud.
+The Python visualizers read from the socat PTY links (from `framework/common/mdcs_config.h`) at 115200 baud.
 
 ---
 

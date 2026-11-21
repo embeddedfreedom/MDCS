@@ -129,28 +129,34 @@ The `socat` configuration used in this suite creates a specific set of virtual s
 
 <div style="color: red; font-weight: bold; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin: 20px 0;">
 
-**⚠️ WARNING — Hardcoded Paths (change before building)**
+**⚠️ WARNING — Centralised path config (edit before building)**
 
-Several paths are hardcoded in this repository. **You must change them to match your machine/user before building or running anything:**
+All machine-specific paths (socat PTY links, HIL serial port, HIL test port) are now defined in a single location:
 
-| What                                     | Hardcoded value                                                                                       | Where to change                                                                                                                                                                                 |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Socat PTY links (3D + graph)             | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph_in`    | C simulator source (`simulator/*.c`)                                                                                                                                                            |
-| `run_sim.py` paths (all models)          | `/home/dipto/sim_3d`, `/home/dipto/sim_3d_in`, `/home/dipto/sim_graph`, `/home/dipto/sim_graph_in`    | `models/rotary_inverted_pendulum/run_sim.py`, `models/pendulum_with_DC_motor/run_sim.py`, `models/flywheel_with_DC_motor/fixed_weight_flywheel/run_sim.py`, `models/furnace_control/run_sim.py` |
-| HIL serial port                          | `/dev/ttyACM0`                                                                                        | `compensator/compensator_hil.c` (host-side link); the Python visualizers read the socat links, not the MCU                                                                                      |
-| Socat links inside Python files          | `/home/dipto/sim_3d`, `/home/dipto/sim_graph`                                                         | `visualiser/*_telemetry.py`, `visualiser/*_animation.py`                                                                                                                                        |
-| HIL test defaults                        | `/dev/ttyUSB0`                                                                                        | `hil/hil_STM32F4/test/Host_test_HIL.py`, `Host_test_HIL_notimeout.py`, `host_HIL_test.c`                                                                                                        |
+**`framework/common/mdcs_config.h`** — the source of truth, read by every C simulator and `compensator_hil.c`.
+
+It is mirrored (auto-generated) into:
+- **`framework/common/mdcs_config.py`** — imported by every `run_sim.py` and Python visualiser.
+- **`framework/common/mdcs_config.sh`** — sourced by `scripts/socat_bridges.sh`.
+
+**Before building/running, edit `framework/common/mdcs_config.h` to match your machine/user, then run:**
+
+```
+python3 scripts/gen_mdcs_config.py
+```
+
+This regenerates the `.py` and `.sh` so C, Python and shell stay in sync. There is nothing else to change — no more per-file path edits in `simulator/*.c`, `run_sim.py`, `compensator_hil.c` or the visualisers.
 
 **If you do not update these, the simulator will write telemetry to the wrong PTY files, the Python visualizers will read from the wrong serial ports, and nothing will appear to work.**
 
 The paths must match **exactly** between:
 
-1. The `socat` commands you run,
+1. The `socat` commands you run (use `scripts/socat_bridges.sh`),
 2. The C source files (simulator/compensator),
 3. `run_sim.py` for your chosen model, and
 4. The Python visualizer files.
 
-If you move the repo to a different user or machine, do a repo-wide search for `/home/dipto` and `/dev/ttyACM0` (and `/dev/ttyUSB0` for tests) and replace them with your own paths.
+Because all four now read from `mdcs_config.*`, editing `framework/common/mdcs_config.h` + re-running the generator keeps them in sync automatically.
 
 </div>
 
@@ -284,31 +290,31 @@ You must create virtual serial bridges to allow the C-based simulator to communi
 Bash
 
 ```
-# a. Clean up existing bridges in case of data transfer failure over the bridge
-pkill -9 socat
-rm -f /home/dipto/sim_3d /home/dipto/sim_graph /home/dipto/sim_3d_in /home/dipto/sim_graph_in
+# Use the helper script (reads paths from framework/common/mdcs_config.sh,
+# which is generated from mdcs_config.h by scripts/gen_mdcs_config.py).
+# Edit mdcs_config.h first if your PTY links live elsewhere, then:
+#     python3 scripts/gen_mdcs_config.py
+./scripts/socat_bridges.sh
 
-# b. Create bridges for Renderer and Grapher
-socat PTY,raw,echo=0,link=/home/dipto/sim_3d PTY,raw,echo=0,link=/home/dipto/sim_3d_in &
-socat PTY,raw,echo=0,link=/home/dipto/sim_graph PTY,raw,echo=0,link=/home/dipto/sim_graph_in &
-
-# c. Verify bridge creation
-ls -l /home/dipto/sim_3d /home/dipto/sim_graph
+# The script prints the four PTY links it created. Verify:
+ls -l <sim_3d> <sim_graph>    # paths as set in framework/common/mdcs_config.h
 ```
 
 In ideal situations, step b above should be run only. Steps a and c should be followed during troubleshooting. This step must be started before starting the simulator, plotter or the visualiser. If not done, and the front end appears non responsive, start the applications again. No need to redo the socat commands. 
 
 **DO NOT CLOSE THE WINDOW WHERE THE socat COMMAND IS RUN. CLOSING THE WINDOW CLOSES THE BRIDGE. SO KEEP THE WINDOW OPEN FOR THE DURATION OF THE USE**
 
-> 🔗 **See the red "Hardcoded Paths" warning box at the top of this README** — it lists every path that must be changed before building/running (socat PTY links, `run_sim.py`, HIL serial port, HIL test defaults). Read it before proceeding.
+> 🔗 **See the red "Centralised path config" warning box at the top of this README** — edit `framework/common/mdcs_config.h` and run `python3 scripts/gen_mdcs_config.py` to set the socat PTY links, HIL serial port and HIL test defaults for your machine.
 
 #### Step 2: Source Code Path Configuration
 
-The paths used in the `socat` commands above (e.g., `/home/dipto/sim_3d`) must be **exactly** matched inside your source files:
+No per-file edits are needed. All paths are centralised in `framework/common/mdcs_config.h` (and its generated mirrors `mdcs_config.py` / `mdcs_config.sh`). Edit that single header to match your machine/user, then regenerate:
 
-- Update the device paths in the **C source files** (simulator/compensator).
+```
+python3 scripts/gen_mdcs_config.py
+```
 
-- Update the serial port strings in the **Python files** (for example `furuta_telemetry.py` and `furuta_animation.py`; the names vary by model).
+Every simulator, `run_sim.py`, `compensator_hil.c`, Python visualiser, and `scripts/socat_bridges.sh` reads from it, so the socat PTY links, C source, Python visualisers and HIL serial port stay in sync automatically.
 
 #### Step 2.5: Install ARM Cross-Toolchain (for HIL Firmware)
 
@@ -512,6 +518,8 @@ Fixed **12-byte** frames with XOR checksum:
 | Furnace  | measured `T1`, `T2`                      | PWM duty 1, PWM duty 2 (both `[0, 1]`)                      |
 
 The shared adapter calls `run_compensator_cycle_HIL(v1, v2)` by default. With `-DHIL_TWO_OUTPUTS` (furnace only) it calls `run_compensator_cycle_HIL_dual(v1, v2, &out1, &out2)`; otherwise `out2 = v2`.
+
+> **Where the frame is defined.** The canonical structs, sync bytes, command values, status bits, and XOR checksum helper live in `hil/hil_STM32F4/hil_protocol.h`. The firmware transport (`core_initialisation_STM32F411xe.h`, `usb_cdc_adapter.c`), all four host-side `compensator_hil.c` files, and the C lockstep test include it. Change the protocol there once and rebuild every HIL target; the `_Static_assert`s catch size/padding mistakes. The two Python test scripts still mirror the layout and must be updated separately if the wire format changes.
 
 ### 6.2 Building HIL
 
@@ -751,6 +759,31 @@ Every reply carried `status = 0x01` (running) and a valid XOR checksum.
 
 **MCU integrator cadence:** the MCU law keeps no clock of its own. Each frame it receives advances the integral by a fixed `q += e * 0.001f`, i.e. it assumes exactly one host call per millisecond. The host calls the compensator once per 20 physics steps (1 kHz), so the two rates agree as long as the host loop meets its deadline. If the host falls behind, the integral simply advances more slowly in wall time — invisible at τ ≈ 1000 s, but do not change the host cadence without also changing that `0.001f`.
 
+### 6.4.1 Host-side link test (`host_HIL_test`)
+
+`hil/hil_STM32F4/test/host_HIL_test.c` is a standalone **transport** test, not a control-law test. It sends synthetic frames at 1 kHz for 1000 cycles and verifies each reply:
+
+| Check | Catches |
+|-------|---------|
+| Sync is `0x55 0xAA` (or raw echo `0xAA 0x55`) | byte slip / framing errors |
+| XOR checksum matches | corrupted or dropped bytes |
+| `out1` / `out2` are finite | broken float transfer |
+| `abs(out1), abs(out2) ≤ 50` | grossly implausible values |
+
+It does **not** compare outputs to inputs or validate gains — the MCU runs the real compensator, so the outputs are control efforts. The synthetic inputs are fixed sinusoids (`1.25·sin`, `-0.75·cos`), so for the furnace they look like temperatures far below setpoint and both PWMs saturate at `1.0`.
+
+Build and run:
+
+```bash
+cd hil/hil_STM32F4/test
+gcc -O2 host_HIL_test.c -o host_HIL_test -lm
+./host_HIL_test /dev/ttyACM0      # omit the argument to use MDCS_HIL_TEST_PORT
+```
+
+`MDCS_HIL_TEST_PORT` (default `/dev/ttyUSB0`) is separate from `MDCS_HIL_PORT` (default `/dev/ttyACM0`): the test can be pointed at a USB-to-serial adapter, while the simulators use the board's CDC port.
+
+**When it goes stale:** adding a model or changing gains, setpoints, or plant parameters requires no change. Changing the frame size/layout, sync bytes, checksum, or command/status bits is a single edit in `hil_protocol.h`; changing the baud rate, loop cadence, or timeout still requires editing the test itself. The two Python test scripts mirror the frame layout separately. The exit status reflects only sync and checksum errors; timeouts, NaN/Inf, and range violations are counted in the summary but do not make the process fail.
+
 ### 6.5 Bare-Metal Firmware Rules
 
 MCU code must stay fully bare-metal: no `-lm`, no newlib syscalls, single-precision FPU only.
@@ -874,7 +907,7 @@ python3 run_sim.py --help             # Show usage help
 
 1. **Builds** the model (always rebuilds — host binary for SIL, host + firmware for HIL)
 2. **Flashes firmware** to STM32 via `st-flash` (HIL mode with `--hil` only; skipped with `--hil-no-flash`)
-3. **Creates socat bridges** (`/home/dipto/sim_3d`, `/home/dipto/sim_graph`) if they don't already exist
+3. **Creates socat bridges** (PTY links from `framework/common/mdcs_config.h`) if they don't already exist
 4. **Launches the simulator binary** (SIL or HIL)
 5. **Launches both visualizers** (3D animation + telemetry plotter)
 6. **Runs in foreground** until you press `Ctrl+C`
@@ -925,8 +958,8 @@ This is **not an exhaustive list**. It covers the most common first-time issues;
 
 | Possible cause | Check / Fix |
 |----------------|-------------|
-| Socat bridges not running | `ls -l /home/dipto/sim_3d /home/dipto/sim_graph`. If missing, run the socat commands from §4 Step 1 (or let `run_sim.py` create them). |
-| Paths don't match | The PTY links in socat, C source files, `run_sim.py`, and the Python visualizers must all use the **exact same** paths. See the red "Hardcoded Paths" box in §1. |
+| Socat bridges not running | `ls -l <sim_3d> <sim_graph>` (paths from `mdcs_config.h`). If missing, run `./scripts/socat_bridges.sh` (or let `run_sim.py` create them). |
+| Paths don't match | The PTY links in socat, C source files, `run_sim.py`, and the Python visualizers must all use the **exact same** paths. They are centralised in `framework/common/mdcs_config.h` — edit it and run `python3 scripts/gen_mdcs_config.py`. See §1. |
 | Wrong model directory | Run `run_sim.py` from **inside** the model directory (e.g. `cd models/rotary_inverted_pendulum && python3 run_sim.py`). |
 | Simulator not producing output | Press **`S`** in the simulator terminal to enable the compensator. Without it, PWM is 0 and the plant may appear static. |
 
@@ -981,7 +1014,7 @@ If this is your first time setting up MDCS, work through this list in order:
 - **Use two terminals.** Run the simulator binary (or `run_sim.py`) in one terminal, and the Python visualizer in another. Running both in one terminal will block the visualizer from starting.
 - **Furnace gains live in two files.** The SIL law (`compensator/compensator.c`) and the MCU law (`compensator/compensator_hil_STM32F4.c`) must be edited identically — setpoints, `IND_KX_*`, `IND_KI_*`. Rebuild both SIL (`make`) and HIL (`make -f Makefile_HIL`) after any change.
 - **`make clean` removes everything.** It deletes the entire `build/<model>/` folder, including both SIL and HIL binaries (and both flywheel profiles). There is no undo — rebuild after cleaning.
-- **Visualizer paths are hardcoded too.** The Python files (`visualiser/*_telemetry.py`, `*_animation.py`) contain `/home/dipto/sim_3d` and `/home/dipto/sim_graph` — update them to match your socat links, not just the C source files.
+- **Visualizer paths come from config.** The Python files read PTY links from `framework/common/mdcs_config.py` (generated from `mdcs_config.h`). Edit `mdcs_config.h` and run `scripts/gen_mdcs_config.py` if you move machines — no per-file edits needed.
 - **One model at a time.** Running two models simultaneously causes socat PTY conflicts and data corruption.
 - **Linux only.** `clock_nanosleep(CLOCK_MONOTONIC, ...)` and other system calls are Linux-specific. Windows and macOS are not supported.
 

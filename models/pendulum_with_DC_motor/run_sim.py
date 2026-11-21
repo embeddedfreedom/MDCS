@@ -18,6 +18,22 @@ import os
 import time
 import shutil
 
+# Locate framework/common (robust to model nesting depth) and import the
+# central config so socat PTY paths come from mdcs_config.h, not literals.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _ in range(8):
+    _CAND = os.path.join(_HERE, "framework", "common")
+    if os.path.isdir(_CAND):
+        sys.path.insert(0, _CAND)
+        break
+    _HERE = os.path.dirname(_HERE)
+from mdcs_config import (
+    MDCS_PTY_SIM_3D,
+    MDCS_PTY_SIM_3D_IN,
+    MDCS_PTY_SIM_GRAPH,
+    MDCS_PTY_SIM_GRAPH_IN,
+)
+
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(MODEL_DIR))
 BUILD_DIR = os.path.join(ROOT_DIR, "build", "inverted_pendulum")
@@ -25,10 +41,10 @@ SIM_BINARY = os.path.join(BUILD_DIR, "inverted_pendulum_sim")
 HIL_BINARY = os.path.join(BUILD_DIR, "inverted_pendulum_sim_hil")
 HIL_BIN_PATH = os.path.join(BUILD_DIR, "MDCS_HIL.bin")
 
-SIM_3D = "/home/dipto/sim_3d"
-SIM_3D_IN = "/home/dipto/sim_3d_in"
-SIM_GRAPH = "/home/dipto/sim_graph"
-SIM_GRAPH_IN = "/home/dipto/sim_graph_in"
+SIM_3D = MDCS_PTY_SIM_3D
+SIM_3D_IN = MDCS_PTY_SIM_3D_IN
+SIM_GRAPH = MDCS_PTY_SIM_GRAPH
+SIM_GRAPH_IN = MDCS_PTY_SIM_GRAPH_IN
 
 processes = []
 

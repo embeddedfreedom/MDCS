@@ -26,6 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "flywheel_types.h"       // Swapped for updated structural definitions
 #include "compensator.h"          // Shared bus structure
 #include "get_keypress.h"
+#include "mdcs_config.h"
 
 /* All three profiles use the common 20-bit codec. HIL still sends a float
  * angle in radians to the MCU, so the wire format is unchanged. */
@@ -154,8 +155,8 @@ int main() {
     
     float dt = 0.00005f; // 20kHz Physics Step
     //Change the path values as per your directory structure, modify the socat command accordingly
-    int sim_3d_in = open("/home/dipto/sim_3d_in", O_WRONLY | O_NONBLOCK);
-    int sim_graph_in = open("/home/dipto/sim_graph_in", O_WRONLY | O_NONBLOCK);
+    int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
+    int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
     
     int i = 0, dir = 1;
     float pwm = 0;

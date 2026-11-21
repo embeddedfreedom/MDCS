@@ -20,17 +20,14 @@ bool Extract_HostToMcuPacket(const uint8_t *raw_buf, float *pos1_out, float *pos
     /* ---------------------------------------------------------------------------
      * STEP 1: Verify Frame Synchronization Magic (0xAA, 0x55)
      * --------------------------------------------------------------------------- */
-    if (pkt->sync[0] != 0xAA || pkt->sync[1] != 0x55) {
+    if (pkt->sync[0] != HIL_HOST_SYNC_BYTE0 || pkt->sync[1] != HIL_HOST_SYNC_BYTE1) {
         return false;
     }
 
     /* ---------------------------------------------------------------------------
      * STEP 2: Compute and Verify XOR Checksum (Bytes 0 through 10)
      * --------------------------------------------------------------------------- */
-    uint8_t computed_cs = 0;
-    for (int i = 0; i < 11; i++) {
-        computed_cs ^= raw_buf[i];
-    }
+    uint8_t computed_cs = hil_calculate_checksum(raw_buf, HIL_PACKET_SIZE - 1);
     if (computed_cs != pkt->checksum) {
         return false;
     }
@@ -60,8 +57,8 @@ void Write_McuToHostPacket(uint8_t *tx_buf, float out1, float out2, uint8_t stat
     /* ---------------------------------------------------------------------------
      * STEP 1: Set Frame Synchronization Magic (0x55, 0xAA)
      * --------------------------------------------------------------------------- */
-    pkt->sync[0] = 0x55;
-    pkt->sync[1] = 0xAA;
+    pkt->sync[0] = HIL_MCU_SYNC_BYTE0;
+    pkt->sync[1] = HIL_MCU_SYNC_BYTE1;
 
     /* ---------------------------------------------------------------------------
      * STEP 2: Populate Control Effort & Status Fields
@@ -73,10 +70,7 @@ void Write_McuToHostPacket(uint8_t *tx_buf, float out1, float out2, uint8_t stat
     /* ---------------------------------------------------------------------------
      * STEP 3: Compute XOR Checksum across Bytes 0 through 10
      * --------------------------------------------------------------------------- */
-    uint8_t computed_cs = 0;
-    for (int i = 0; i < 11; i++) {
-        computed_cs ^= tx_buf[i];
-    }
+    uint8_t computed_cs = hil_calculate_checksum(tx_buf, HIL_PACKET_SIZE - 1);
     
     /* Store checksum in the final byte (Offset 11) */
     pkt->checksum = computed_cs;

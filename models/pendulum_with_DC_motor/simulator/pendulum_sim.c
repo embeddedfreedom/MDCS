@@ -26,6 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "pendulum_types.h"
 #include "compensator.h" // Note: Shared bus structure from your header
 #include "get_keypress.h"
+#include "mdcs_config.h"
 
 // --- NOISE TOGGLES (1=ON, 0=OFF) ---
 #define NOISE_PWM_VIBRATION    1  // Voltage fluctuations
@@ -116,8 +117,8 @@ int main() {
     
     float dt = 0.00005f; // 20kHz
     //Change the path values as per your directory structure, modify the socat command accordingly
-    int sim_3d_in = open("/home/dipto/sim_3d_in", O_WRONLY | O_NONBLOCK);
-    int sim_graph_in = open("/home/dipto/sim_graph_in", O_WRONLY | O_NONBLOCK);
+    int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
+    int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
     
     int i = 0, dir = 1;
     float pwm = 0;

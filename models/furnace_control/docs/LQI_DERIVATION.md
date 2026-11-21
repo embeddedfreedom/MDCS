@@ -988,7 +988,7 @@ make                    # builds build/furnace_control/furnace_sim
 # Press S = enable compensator, T = disable, Q = quit
 ```
 
-Watch telemetry on `/home/dipto/sim_graph` or animation on `/home/dipto/sim_3d`.
+Watch telemetry on `sim_graph` or animation on `sim_3d` (PTY links from `framework/common/mdcs_config.h`).
 
 ---
 

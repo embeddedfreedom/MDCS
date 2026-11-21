@@ -13,10 +13,20 @@ import time
 import struct
 import termios
 
+# Locate framework/common (single source of truth for MDCS paths)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _ in range(8):
+    _CAND = os.path.join(_HERE, "framework", "common")
+    if os.path.isdir(_CAND):
+        sys.path.insert(0, _CAND)
+        break
+    _HERE = os.path.dirname(_HERE)
+from mdcs_config import MDCS_HIL_TEST_PORT
+
 # ===============================================================================
 # CONFIGURATION
 # ===============================================================================
-DEFAULT_PORT = "/dev/ttyUSB0"
+DEFAULT_PORT = MDCS_HIL_TEST_PORT
 BAUD_RATE    = 921600
 PACKET_SIZE  = 12
 

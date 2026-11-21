@@ -4,8 +4,7 @@ Licensed under the MIT License
 */
 
 #include "tusb.h"
-
-#define HIL_PACKET_SIZE 12
+#include "hil_protocol.h"
 
 /* Forward declarations from your existing codebase */
 extern bool Extract_HostToMcuPacket(const uint8_t *raw_buf, float *pos1, float *pos2, uint8_t *cmd);
@@ -67,19 +66,19 @@ void tud_cdc_rx_cb(uint8_t itf) {
 
         switch (parser_state) {
             case STATE_HUNT_SYNC0:
-                if (byte == 0xAA) {
+                if (byte == HIL_HOST_SYNC_BYTE0) {
                     rx_packet[0] = byte;
                     parser_state = STATE_HUNT_SYNC1;
                 }
                 break;
 
             case STATE_HUNT_SYNC1:
-                if (byte == 0x55) {
+                if (byte == HIL_HOST_SYNC_BYTE1) {
                     rx_packet[1] = byte;
                     rx_idx = 2; // Next byte goes to offset 2
                     parser_state = STATE_COLLECT_PAYLOAD;
-                } else if (byte == 0xAA) {
-                    rx_packet[0] = 0xAA; // Re-align if consecutive 0xAA
+                } else if (byte == HIL_HOST_SYNC_BYTE0) {
+                    rx_packet[0] = HIL_HOST_SYNC_BYTE0; // Re-align if consecutive sync byte
                 } else {
                     parser_state = STATE_HUNT_SYNC0;
                 }
@@ -112,7 +111,7 @@ void tud_cdc_rx_cb(uint8_t itf) {
 #endif
 
                         /* 3. Pack 12-byte response */
-                        Write_McuToHostPacket(tx_packet, out1, out2, 0x01);
+                        Write_McuToHostPacket(tx_packet, out1, out2, HIL_STATUS_RUNNING);
 
                         /* 4. Transmit and flush immediately to TxFIFO */
                         tud_cdc_write(tx_packet, HIL_PACKET_SIZE);

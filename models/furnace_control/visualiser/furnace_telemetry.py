@@ -40,6 +40,17 @@ import numpy as np
 from PySide6 import QtWidgets, QtCore, QtGui
 import pyqtgraph as pg
 
+# --- MDCS config (socat PTY paths from framework/common/mdcs_config.h) ---
+import os
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _ in range(8):
+    _CAND = os.path.join(_HERE, "framework", "common")
+    if os.path.isdir(_CAND):
+        sys.path.insert(0, _CAND)
+        break
+    _HERE = os.path.dirname(_HERE)
+from mdcs_config import MDCS_PTY_SIM_GRAPH
+
 # --- CONFIGURATION ---
 CHANNELS = 6         # T1, T2, u1, u2, q12, Tamb
 FS = 1000            
@@ -348,6 +359,6 @@ class TelemetryDash(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    win = TelemetryDash("/home/dipto/sim_graph") 
+    win = TelemetryDash(MDCS_PTY_SIM_GRAPH) 
     win.show()
     sys.exit(app.exec())

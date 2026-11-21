@@ -13,6 +13,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Compiled host-side HIL test binary
+/hil/hil_STM32F4/test/host_HIL_test
+
 # Documentation & Images
 .marktext/
 *.log

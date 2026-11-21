@@ -26,28 +26,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "compensator.h"
 #include "pendulum_types.h"
 #include "encoder_decoder_logic.h"
-
-#pragma pack(push, 1)
-typedef struct __attribute__((packed)) {
-    uint8_t  sync[2];
-    float    pos1;
-    float    pos2;
-    uint8_t  host_cmd;
-    uint8_t  checksum;
-} HostToMcuPacket;
-
-_Static_assert(sizeof(HostToMcuPacket) == 12, "ERROR: HostToMcuPacket is not 12 bytes!");
-
-typedef struct __attribute__((packed)) {
-    uint8_t  sync[2];
-    float    output1;
-    float    output2;
-    uint8_t  mcu_status;
-    uint8_t  checksum;
-} McuToHostPacket;
-
-_Static_assert(sizeof(McuToHostPacket) == 12, "ERROR: McuToHostPacket is not 12 bytes!");
-#pragma pack(pop)
+#include "mdcs_config.h"
+#include "hil_protocol.h"
 
 static bool initialized = false;
 static Decoder dec_pend;
@@ -86,7 +66,7 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
 
     /* 2. Lazy-open and configure the physical MCU link */
     if (serial_fd < 0) {
-        serial_fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NONBLOCK);
+        serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
         if (serial_fd < 0) {
             simulation_shutdown();
         } else {
@@ -113,18 +93,13 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
     if (serial_fd >= 0) {
         /* Build and transmit: sync(2) + theta + 0 + cmd + checksum = 12 bytes */
         HostToMcuPacket tx_pkt;
-        tx_pkt.sync[0] = 0xAA;
-        tx_pkt.sync[1] = 0x55;
+        tx_pkt.sync[0] = HIL_HOST_SYNC_BYTE0;
+        tx_pkt.sync[1] = HIL_HOST_SYNC_BYTE1;
         tx_pkt.pos1 = theta;
         tx_pkt.pos2 = 0.0f;
-        tx_pkt.host_cmd = 0x01;
-
-        uint8_t *tx_bytes = (uint8_t *)&tx_pkt;
-        uint8_t checksum = 0;
-        for (int i = 0; i < (int)sizeof(HostToMcuPacket) - 1; i++) {
-            checksum ^= tx_bytes[i];
-        }
-        tx_pkt.checksum = checksum;
+        tx_pkt.host_cmd = HIL_CMD_RUN;
+        tx_pkt.checksum = hil_calculate_checksum((const unsigned char *)&tx_pkt,
+                                                 HIL_PACKET_SIZE - 1);
 
         ssize_t written = write(serial_fd, &tx_pkt, sizeof(HostToMcuPacket));
         if (written != (ssize_t)sizeof(HostToMcuPacket)) {
@@ -155,13 +130,12 @@ float run_compensator_cycle(EncoderBus *bus, PendulumParams *p, int *motor_dir) 
         }
 
         /* Validate response: sync 0x55 0xAA, XOR checksum */
-        uint8_t *rx_bytes = (uint8_t *)&rx_pkt;
-        uint8_t rx_chk = 0;
-        for (int i = 0; i < (int)sizeof(McuToHostPacket) - 1; i++) {
-            rx_chk ^= rx_bytes[i];
-        }
+        uint8_t rx_chk = hil_calculate_checksum((const unsigned char *)&rx_pkt,
+                                                HIL_PACKET_SIZE - 1);
 
-        if (rx_pkt.sync[0] != 0x55 || rx_pkt.sync[1] != 0xAA || rx_pkt.checksum != rx_chk) {
+        if (rx_pkt.sync[0] != HIL_MCU_SYNC_BYTE0 ||
+            rx_pkt.sync[1] != HIL_MCU_SYNC_BYTE1 ||
+            rx_pkt.checksum != rx_chk) {
             simulation_shutdown();
             if (motor_dir) *motor_dir = 0;
             return 0.0f;

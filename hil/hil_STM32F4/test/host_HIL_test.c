@@ -32,57 +32,14 @@ Licensed under the MIT License
 #include <time.h>
 #include <math.h>
 
-/* ===============================================================================
- * PROTOCOL CONSTANTS & PACKET STRUCTURES
- * =============================================================================== */
-#define HIL_HOST_SYNC_BYTE0    0xAA
-#define HIL_HOST_SYNC_BYTE1    0x55
+/* MDCS central config (socat/HIL paths) — single source of truth */
+#include "../../../framework/common/mdcs_config.h"
 
-/* As per HIL spec: MCU responses are prefixed with 0x55, 0xAA */
-#define HIL_MCU_SYNC_BYTE0     0x55
-#define HIL_MCU_SYNC_BYTE1     0xAA
+/* Canonical HIL frame definition (shared with firmware and host compensators) */
+#include "../hil_protocol.h"
 
-#define HIL_PACKET_SIZE        12
-
-#define HIL_CMD_STOP           0x00
-#define HIL_CMD_RUN            0x01
-#define HIL_CMD_RESET          0x02
-
-#define HIL_STATUS_RUNNING     (1 << 0)
-#define HIL_STATUS_TIMEOUT     (1 << 1)
-
-#pragma pack(push, 1)
-typedef struct {
-    uint8_t  sync[2];       /* [0..1] 0xAA, 0x55                            */
-    float    pos1;          /* [2..5] Primary position / angle in radians   */
-    float    pos2;          /* [6..9] Secondary position / angle in radians */
-    uint8_t  host_cmd;      /* [10]   0x01 = RUN, 0x00 = STOP               */
-    uint8_t  checksum;      /* [11]   XOR of bytes 0 through 10             */
-} HostToMcuPacket;
-
-typedef struct {
-    uint8_t  sync[2];       /* [0..1] 0x55, 0xAA (or 0xAA, 0x55 if raw echo)*/
-    float    output1;       /* [2..5] Echo of pos1 / Compensator effort 1   */
-    float    output2;       /* [6..9] Echo of pos2 / Compensator effort 2   */
-    uint8_t  mcu_status;    /* [10]   Bit 0: RUNNING, Bit 1: TIMEOUT        */
-    uint8_t  checksum;      /* [11]   XOR of bytes 0 through 10             */
-} McuToHostPacket;
-#pragma pack(pop)
-
-_Static_assert(sizeof(HostToMcuPacket) == HIL_PACKET_SIZE, "ERROR: HostToMcuPacket must be 12 bytes");
-_Static_assert(sizeof(McuToHostPacket)  == HIL_PACKET_SIZE, "ERROR: McuToHostPacket must be 12 bytes");
-
-/* ===============================================================================
- * FUNCTION: calculate_checksum
- * PURPOSE : Computes XOR checksum across all packet bytes except the checksum byte.
- * =============================================================================== */
-static inline uint8_t calculate_checksum(const uint8_t *buf, size_t len) {
-    uint8_t cs = 0;
-    for (size_t i = 0; i < len; i++) {
-        cs ^= buf[i];
-    }
-    return cs;
-}
+/* Frame constants, packet structs, and the XOR checksum helper are defined
+   in hil_protocol.h (included above). */
 
 /* ===============================================================================
  * FUNCTION: configure_serial_port
@@ -176,7 +133,7 @@ static bool read_exact_bytes_with_timeout(int fd, uint8_t *buffer, size_t needed
  * MAIN
  * =============================================================================== */
 int main(int argc, char **argv) {
-    const char *port_name = (argc > 1) ? argv[1] : "/dev/ttyUSB0";
+    const char *port_name = (argc > 1) ? argv[1] : MDCS_HIL_TEST_PORT;
 
     printf("==================================================================\n");
     printf(" STM32F411 HIL Lockstep DMA Echo Verification Testbench\n");
@@ -231,7 +188,7 @@ int main(int argc, char **argv) {
         tx_pkt.pos1     = test_pos1;
         tx_pkt.pos2     = test_pos2;
         tx_pkt.host_cmd = HIL_CMD_RUN;         // 0x01
-        tx_pkt.checksum = calculate_checksum((const uint8_t *)&tx_pkt, HIL_PACKET_SIZE - 1);
+        tx_pkt.checksum = hil_calculate_checksum((const uint8_t *)&tx_pkt, HIL_PACKET_SIZE - 1);
 
         /* -------------------------------------------------------------------
          * STEP 2: Transmit Packet to MCU
@@ -272,7 +229,7 @@ int main(int argc, char **argv) {
         /* -------------------------------------------------------------------
          * STEP 5: VERIFICATION 2 — XOR Checksum Integrity
          * ------------------------------------------------------------------- */
-        uint8_t computed_cs = calculate_checksum(rx_raw, HIL_PACKET_SIZE - 1);
+        uint8_t computed_cs = hil_calculate_checksum(rx_raw, HIL_PACKET_SIZE - 1);
         uint8_t received_cs = rx_raw[11];
         if (computed_cs != received_cs) {
             checksum_errors++;
@@ -300,3 +257,29 @@ int main(int argc, char **argv) {
         if (fabsf(rx_pkt.output1) > 50.0f || fabsf(rx_pkt.output2) > 50.0f) {
             range_errors++;
             fprintf(stderr, "[Cycle %04d] RANGE FAIL: Received values out of plausible bounds\n", cycle);
+        }
+
+        if (cycle % 100 == 0) {
+            printf("[Cycle %04d] out1=%.3f out2=%.3f status=0x%02X\n",
+                   cycle, rx_pkt.output1, rx_pkt.output2, rx_pkt.mcu_status);
+        }
+    }
+
+    /* -------------------------------------------------------------------
+     * SUMMARY
+     * ------------------------------------------------------------------- */
+    printf("\n==================================================================\n");
+    printf(" HIL Lockstep Test Summary\n");
+    printf("==================================================================\n");
+    printf(" Total cycles   : %d\n", TOTAL_CYCLES);
+    printf(" Total sent     : %u\n", total_sent);
+    printf(" Total received : %u\n", total_recv);
+    printf(" Sync errors    : %u\n", sync_errors);
+    printf(" Checksum errors: %u\n", checksum_errors);
+    printf(" NaN/Inf errors : %u\n", nan_errors);
+    printf(" Range errors   : %u\n", range_errors);
+    printf("==================================================================\n");
+
+    close(fd);
+    return (sync_errors == 0 && checksum_errors == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

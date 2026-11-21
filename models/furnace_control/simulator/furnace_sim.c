@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "compensator.h"
 #include "get_keypress.h"
 #include "furnace_types.h"
+#include "mdcs_config.h"
 
 // --- NOISE TOGGLES (1=ON, 0=OFF) ---
 #define NOISE_SENSOR_JITTER          1  // Thermal sensor measurement noise
@@ -188,8 +189,8 @@ int main() {
     };
     
     const double physics_dt = 0.00005; // 20kHz Physics simulation step (50 microseconds)
-    int sim_3d_in = open("/home/dipto/sim_3d_in", O_WRONLY | O_NONBLOCK);
-    int sim_graph_in = open("/home/dipto/sim_graph_in", O_WRONLY | O_NONBLOCK);
+    int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
+    int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
     
     int i = 0;
     float pwm1 = 0.0f;
