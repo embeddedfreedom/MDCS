@@ -552,54 +552,24 @@ The shared adapter calls `run_compensator_cycle_HIL(v1, v2)` by default. With `-
 
 ### 6.2 Building HIL
 
-From the model directory:
+All HIL builds are run from inside the model directory:
 
-**Furuta:**
+| Model | Model directory | Build command | HIL host binary | HIL firmware | Notes |
+|-------|----------------|---------------|-----------------|--------------|-------|
+| Furuta | `models/rotary_inverted_pendulum/` | `make -f Makefile_HIL` | `build/furuta/furuta_sim_hil` | `build/furuta/MDCS_HIL.bin` | |
+| Pendulum | `models/pendulum_with_DC_motor/` | `make -f Makefile_HIL` | `build/inverted_pendulum/inverted_pendulum_sim_hil` | `build/inverted_pendulum/MDCS_HIL.bin` | |
+| Flywheel position | `models/flywheel_with_DC_motor/fixed_weight_flywheel/` | `make -f Makefile_HIL position` | `build/flywheel_control/position/flywheel_hil_sim` | `build/flywheel_control/position/MDCS_HIL.bin` | 3 levels deep |
+| Flywheel speed | `models/flywheel_with_DC_motor/fixed_weight_flywheel/` | `make -f Makefile_HIL speed` | `build/flywheel_control/speed/flywheel_hil_sim` | `build/flywheel_control/speed/MDCS_HIL.bin` | 3 levels deep |
+| Furnace | `models/furnace_control/` | `make -f Makefile_HIL` | `build/furnace_control/furnace_sim_hil` | `build/furnace_control/MDCS_HIL.bin` | Built with `-DHIL_TWO_OUTPUTS` |
 
-```bash
-make -f Makefile_HIL
-```
-
-Host: `build/furuta/furuta_sim_hil` | Firmware: `build/furuta/MDCS_HIL.out/.bin`
-
-**Pendulum:**
-
-```bash
-make -f Makefile_HIL
-```
-
-Host: `build/inverted_pendulum/inverted_pendulum_sim_hil` | Firmware: `build/inverted_pendulum/MDCS_HIL.out/.bin`
-
-**Flywheel (position):**
-
-```bash
-make -f Makefile_HIL position
-```
-
-Host+Firmware: `build/flywheel_control/position/flywheel_hil_sim` + `MDCS_HIL.out/.bin`
-
-**Flywheel (speed):**
-
-```bash
-make -f Makefile_HIL speed
-```
-
-Host+Firmware: `build/flywheel_control/speed/flywheel_hil_sim` + `MDCS_HIL.out/.bin`
-
-**Furnace:**
-
-```bash
-make -f Makefile_HIL
-```
-
-Host: `build/furnace_control/furnace_sim_hil` | Firmware: `build/furnace_control/MDCS_HIL.out/.bin` (built with `-DHIL_TWO_OUTPUTS`)
+Run all `make` commands from inside the listed model directory.
 
 > **⚠️ Flywheel HIL nesting:** The flywheel model lives three levels deep:
 > `models/flywheel_with_DC_motor/fixed_weight_flywheel/` — not `models/flywheel/`.
-> Run the HIL build from inside that folder:
-> `make -f Makefile_HIL position` or `make -f Makefile_HIL speed`.
-> Outputs go to `build/flywheel_control/position/` and `build/flywheel_control/speed/`
-> respectively — separate firmware images per profile.
+> Run the HIL build from inside that folder (`make -f Makefile_HIL position` or
+> `make -f Makefile_HIL speed`). Outputs go to
+> `build/flywheel_control/position/` and `build/flywheel_control/speed/` respectively —
+> separate firmware images per profile.
 
 ### 6.2.5 Makefile Hierarchy & Build Mechanism
 
