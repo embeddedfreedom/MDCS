@@ -325,15 +325,11 @@ int main() {
             double elapsed_ms = (current_time.tv_sec - last_comp_time.tv_sec) * 1000.0 +
                                 (current_time.tv_nsec - last_comp_time.tv_nsec) / 1000000.0;
             
-            // Static counter to throttle print frequency (e.g., print at most once every ~200ms)
-            static int print_throttle = 0;                    
+            // Print jitter alert immediately and flush so the stdio buffer
+            // never fills up and blocks the real-time loop.
             if (elapsed_ms > 1.05 || elapsed_ms < 0.95) {
                 printf("\rTiming Jitter Alert: Cycle took %.4f ms     \r", elapsed_ms);
-                if (++print_throttle > 200) { 
-                    printf("\rTiming Jitter Alert: Cycle took %.4f ms     \r", elapsed_ms);
-                    fflush(stdout); // Force immediate flush to prevent buffer locking
-                    print_throttle = 0;
-                }
+                fflush(stdout);
             }
             last_comp_time = current_time;
             // --- TIMING CHECK END ---
