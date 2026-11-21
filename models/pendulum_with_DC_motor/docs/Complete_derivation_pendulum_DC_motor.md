@@ -60,23 +60,23 @@ These parameters form the basis of the numerical matrices below.
 
 ### 1. Kinetic Energy ($T$):
 
-$$T = \frac{1}{2} I_{tot} \dot{\theta}^2$$
+$T = \frac{1}{2} I_{tot} \dot{\theta}^2$
 
 ### 2. Potential Energy ($V$):
 
 Using the convention where $0$ is down and $\pi$ is up:
 
-$$V = M_1 g \frac{L_1}{2} \cos(\theta)$$
+$V = M_1 g \frac{L_1}{2} \cos(\theta)$
 
 ### 3. The Lagrangian ($L = T - V$):
 
-$$L = \frac{1}{2} I_{tot} \dot{\theta}^2 - \frac{M_1 g L_1}{2} \cos(\theta)$$
+$L = \frac{1}{2} I_{tot} \dot{\theta}^2 - \frac{M_1 g L_1}{2} \cos(\theta)$
 
 ### 4. The Equation of Motion:
 
 Applying $\frac{d}{dt} \left( \frac{\partial L}{\partial \dot{\theta}} \right) - \frac{\partial L}{\partial \theta} = \tau_{motor} - \text{friction}$:
 
-$$I_{tot} \ddot{\theta} - \frac{M_1 g L_1}{2} \sin(\theta) = \frac{k_t}{R}(V_{in} - k_b \dot{\theta}) - b_1 \dot{\theta}$$
+$I_{tot} \ddot{\theta} - \frac{M_1 g L_1}{2} \sin(\theta) = \frac{k_t}{R}(V_{in} - k_b \dot{\theta}) - b_1 \dot{\theta}$
 
 ---
 
@@ -86,25 +86,25 @@ $$I_{tot} \ddot{\theta} - \frac{M_1 g L_1}{2} \sin(\theta) = \frac{k_t}{R}(V_{in
 
 Let $x_1 = \theta$ and $x_2 = \dot{\theta}$.
 
-$$\dot{x}_1 = f_1(x, u) = x_2$$
+$\dot{x}_1 = f_1(x, u) = x_2$
 
-$$\dot{x}_2 = f_2(x, u) = \frac{M_1 g L_1}{2 I_{tot}} \sin(x_1) - \frac{1}{I_{tot}}(b_1 + \frac{k_t k_b}{R})x_2 + \frac{k_t}{R I_{tot}} V_{in}$$
+$\dot{x}_2 = f_2(x, u) = \frac{M_1 g L_1}{2 I_{tot}} \sin(x_1) - \frac{1}{I_{tot}}(b_1 + \frac{k_t k_b}{R})x_2 + \frac{k_t}{R I_{tot}} V_{in}$
 
 ### 2.2 Compute the Jacobians at $x_0 = [\pi, 0]^T$:
 
 **For Matrix A:**
 
-$$A = \begin{bmatrix} \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} \\ \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} \end{bmatrix} = \begin{bmatrix} 0 & 1 \\ \frac{M_1 g L_1}{2 I_{tot}} \cos(\pi) & -\frac{1}{I_{tot}}(b_1 + \frac{k_t k_b}{R}) \end{bmatrix}$$
+$A = \begin{bmatrix} \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} \\ \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} \end{bmatrix} = \begin{bmatrix} 0 & 1 \\ \frac{M_1 g L_1}{2 I_{tot}} \cos(\pi) & -\frac{1}{I_{tot}}(b_1 + \frac{k_t k_b}{R}) \end{bmatrix}$
 
 *Since $\cos(\pi) = -1$ and we define the error as $\Delta \theta = \theta - \pi$, the sign flips to positive for the restoring force calculation.*
 
 **For Matrix B:**
 
-$$B = \begin{bmatrix} \frac{\partial f_1}{\partial u} \\ \frac{\partial f_2}{\partial u} \end{bmatrix} = \begin{bmatrix} 0 \\ \frac{k_t}{R I_{tot}} \end{bmatrix}$$
+$B = \begin{bmatrix} \frac{\partial f_1}{\partial u} \\ \frac{\partial f_2}{\partial u} \end{bmatrix} = \begin{bmatrix} 0 \\ \frac{k_t}{R I_{tot}} \end{bmatrix}$
 
 ### 2.3 Numerical Result:
 
-$$A = \begin{bmatrix} 0 & 1 \\ 49.003 & -2.291 \end{bmatrix}, \quad B = \begin{bmatrix} 0 \\ 7.992 \end{bmatrix}$$
+$A = \begin{bmatrix} 0 & 1 \\ 49.003 & -2.291 \end{bmatrix}, \quad B = \begin{bmatrix} 0 \\ 7.992 \end{bmatrix}$
 
 ---
 
@@ -114,7 +114,7 @@ $$A = \begin{bmatrix} 0 & 1 \\ 49.003 & -2.291 \end{bmatrix}, \quad B = \begin{b
 
 It solves the Algebraic Riccati Equation (ARE) to minimize total cost:
 
-$$A^T P + P A - P B R^{-1} B^T P + Q = 0$$
+$A^T P + P A - P B R^{-1} B^T P + Q = 0$
 
 Solving for $P$ gives the energy surface of the system. The optimal gains are $K = R^{-1} B^T P$.
 
@@ -162,7 +162,7 @@ $R = \frac{1}{\text{maximum acceptable value of } (u^2)}$
 
 ## 5. Final Control Law
 
-$$\text{Output Voltage }(V) = \underbrace{k_1(\theta - \pi) + k_2(\dot{\theta})}_{\text{LQR Control}} + \underbrace{k_i \int (\theta - \pi) dt}_{\text{Precision Integral}} + \text{Deadzone}$$
+$\text{Output Voltage }(V) = \underbrace{k_1(\theta - \pi) + k_2(\dot{\theta})}_{\text{LQR Control}} + \underbrace{k_i \int (\theta - \pi) dt}_{\text{Precision Integral}} + \text{Deadzone}$
 
 ---
 
@@ -170,11 +170,11 @@ $$\text{Output Voltage }(V) = \underbrace{k_1(\theta - \pi) + k_2(\dot{\theta})}
 
 The LQR controller finds the optimal gain matrix $K$ by minimizing a cost function that balances error ($Q$) and control effort ($R$). The core of this optimization is solving the **Algebraic Riccati Equation**:
 
-$$A^T P + P A - P B R^{-1} B^T P + Q = 0$$
+$A^T P + P A - P B R^{-1} B^T P + Q = 0$
 
 In the provided Python script, the line `solve_continuous_are(A, B, Q, R_lqr)` performs this calculation. It computes the unique positive-definite matrix **$P$**, which is then used to find the raw gains:
 
-$$K_{raw} = R^{-1} B^T P$$
+$K_{raw} = R^{-1} B^T P$
 
 This script handles the mapping to the C code implementation correctly. It takes the raw output $K_{raw}$ and applies the negation logic ($k = -K$) so that the final **Pendulum gains** ($k_1$ for position and $k_2$ for velocity) result in the negative values used in the compensator. This ensures that a positive angular error produces a negative corrective voltage to restore the pendulum to the upright position.
 
