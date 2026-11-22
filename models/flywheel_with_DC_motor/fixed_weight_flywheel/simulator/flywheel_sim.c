@@ -37,23 +37,24 @@ static int hil_serial_open(void) {
         close(serial_fd);
         serial_fd = -1;
     }
-    serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
-    if (serial_fd < 0) {
-        return -1;
-    }
-    {
-        struct termios tty;
-        if (tcgetattr(serial_fd, &tty) != 0) {
+    int retries = 20;
+    while (retries-- > 0) {
+        serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
+        if (serial_fd >= 0) {
+            struct termios tty;
+            if (tcgetattr(serial_fd, &tty) == 0) {
+                cfmakeraw(&tty);
+                cfsetispeed(&tty, B921600);
+                cfsetospeed(&tty, B921600);
+                tcsetattr(serial_fd, TCSANOW, &tty);
+                return 0;
+            }
             close(serial_fd);
             serial_fd = -1;
-            return -1;
         }
-        cfmakeraw(&tty);
-        cfsetispeed(&tty, B921600);
-        cfsetospeed(&tty, B921600);
-        tcsetattr(serial_fd, TCSANOW, &tty);
+        usleep(250000); /* 250 ms */
     }
-    return 0;
+    return -1;
 }
 #endif
 
@@ -194,7 +195,7 @@ int main() {
     int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
     int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
 #ifdef HIL_BUILD
-    hil_serial_open(); // non-fatal; press 'R' to retry connection
+    hil_serial_open(); // non-fatal; press 'S' to retry connection
 #endif
     
     int i = 0, dir = 1;
@@ -214,7 +215,7 @@ int main() {
         if (key == 's' || key == 'S') {
 #ifdef HIL_BUILD
             if (serial_fd < 0 && hil_serial_open() < 0) {
-                printf("\n>> CANNOT CONNECT — press 'R' to retry\n");
+                printf("\n>> CANNOT CONNECT — press 'S' to retry\n");
             } else {
                 runloop = true;
                 printf("\n>> COMPENSATOR CONNECTED\n");
