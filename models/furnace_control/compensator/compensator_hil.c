@@ -63,6 +63,13 @@ void run_thermal_compensator_cycle(float measured_T1, float measured_T2,
     tx_pkt.checksum = hil_calculate_checksum((const unsigned char *)&tx_pkt,
                                              HIL_PACKET_SIZE - 1);
 
+    if (serial_fd < 0) {
+        simulation_shutdown();
+        *u1 = 0.0f;
+        *u2 = 0.0f;
+        return;
+    }
+
     ssize_t written = write(serial_fd, &tx_pkt, sizeof(HostToMcuPacket));
     if (written != (ssize_t)sizeof(HostToMcuPacket)) {
         simulation_shutdown();
