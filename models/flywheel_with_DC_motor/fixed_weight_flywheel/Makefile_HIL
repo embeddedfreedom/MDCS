@@ -26,7 +26,7 @@ MCU_COMPENSATOR_POS = $(abspath compensator/position_control/compensator_STM32F4
 MCU_COMPENSATOR_SPD = $(abspath compensator/speed_control/compensator_STM32F411.c)
 
 CC = gcc
-CFLAGS = -Wall -O2 -I./simulator -I./compensator/hil_control -I$(CODECS) -I$(COMMON) -I$(HIL_FIRMWARE_DIR) \
+CFLAGS = -Wall -O2 -DHIL_BUILD -I./simulator -I./compensator/hil_control -I$(CODECS) -I$(COMMON) -I$(HIL_FIRMWARE_DIR) \
          -Wno-unused-variable -Wno-unused-result -DHIL_PROFILE
 
 SRCS = simulator/flywheel_sim.c \

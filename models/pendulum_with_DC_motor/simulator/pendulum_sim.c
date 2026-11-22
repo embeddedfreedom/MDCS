@@ -28,6 +28,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "get_keypress.h"
 #include "mdcs_config.h"
 
+#ifdef HIL_BUILD
+#include <termios.h>
+int serial_fd = -1;
+
+static int hil_serial_open(void) {
+    serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (serial_fd < 0) {
+        fprintf(stderr, "FATAL: Cannot open HIL port %s\n", MDCS_HIL_PORT);
+        return -1;
+    }
+    {
+        struct termios tty;
+        if (tcgetattr(serial_fd, &tty) != 0) {
+            fprintf(stderr, "FATAL: Cannot get HIL port attributes\n");
+            close(serial_fd);
+            serial_fd = -1;
+            return -1;
+        }
+        cfmakeraw(&tty);
+        cfsetispeed(&tty, B921600);
+        cfsetospeed(&tty, B921600);
+        tcsetattr(serial_fd, TCSANOW, &tty);
+    }
+    return 0;
+}
+#endif
+
 // --- NOISE TOGGLES (1=ON, 0=OFF) ---
 #define NOISE_PWM_VIBRATION    1  // Voltage fluctuations
 #define NOISE_SENSOR_JITTER    1  // Mechanical vibration (high freq)
@@ -126,6 +153,9 @@ int main() {
     //Change the path values as per your directory structure, modify the socat command accordingly
     int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
     int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
+#ifdef HIL_BUILD
+    hil_serial_open(); // non-fatal; press 'R' to retry connection
+#endif
     
     int i = 0, dir = 1;
     float pwm = 0;
@@ -148,6 +178,18 @@ int main() {
             runloop = false;
             printf("\n>> COMPENSATOR DISCONNECTED\n");
         } 
+#ifdef HIL_BUILD
+        else if (key == 'r' || key == 'R') {
+            if (serial_fd >= 0) {
+                printf("\n>> HIL ALREADY CONNECTED\n");
+            } else if (hil_serial_open() >= 0) {
+                printf("\n>> HIL RECONNECTED — port %s open\n", MDCS_HIL_PORT);
+            } else {
+                printf("\n>> HIL RECONNECT FAILED — port %s busy or board absent\n", MDCS_HIL_PORT);
+            }
+            fflush(stdout);
+        } 
+#endif
         else if (key == 'q' || key == 'Q') {
             printf("\nExiting...\n");
             break;

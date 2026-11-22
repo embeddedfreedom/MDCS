@@ -36,7 +36,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 static bool initialized = false;
 static Decoder20 dec_flywheel;
-static int serial_fd = -1;
+extern int serial_fd;
 
 /* This variable is used from the simulator to suspend the simulation on packet errors */
 extern bool runloop;
@@ -85,30 +85,6 @@ float run_compensator_cycle(EncoderBus *bus, FlywheelParams *p, int *motor_dir) 
     const float COUNT_TO_RAD = (2.0f * M_PI / (float)ENCODER20_COUNTS_PER_REV);
     float theta = (float)dec_flywheel.count * COUNT_TO_RAD;
     wrap_angle(&theta);
-
-    /* 2. Lazy-open and configure the physical MCU link */
-    if (serial_fd < 0) {
-        serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        if (serial_fd < 0) {
-            simulation_shutdown();
-        } else {
-            struct termios tty;
-            if (tcgetattr(serial_fd, &tty) != 0) {
-                close(serial_fd);
-                serial_fd = -1;
-                simulation_shutdown();
-            } else {
-                cfmakeraw(&tty);
-                cfsetispeed(&tty, B921600);
-                cfsetospeed(&tty, B921600);
-                if (tcsetattr(serial_fd, TCSANOW, &tty) != 0) {
-                    close(serial_fd);
-                    serial_fd = -1;
-                    simulation_shutdown();
-                }
-            }
-        }
-    }
 
     float rx_output = 0.0f;
 
