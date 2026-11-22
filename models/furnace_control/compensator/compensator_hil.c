@@ -56,6 +56,7 @@ void run_thermal_compensator_cycle(float measured_T1, float measured_T2,
 
     /* --- Build and send packet to MCU: sync(2) + T1 + T2 + cmd + checksum = 12 bytes --- */
     HostToMcuPacket tx_pkt;
+    tx_pkt.sync[0] = HIL_HOST_SYNC_BYTE0;
     tx_pkt.sync[1] = HIL_HOST_SYNC_BYTE1;
     tx_pkt.pos1 = measured_T1;
     tx_pkt.pos2 = measured_T2;
