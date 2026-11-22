@@ -210,25 +210,22 @@ int main() {
         char key = get_keypress();
 
         if (key == 's' || key == 'S') {
+#ifdef HIL_BUILD
+            if (serial_fd < 0 && hil_serial_open() < 0) {
+                printf("\n>> CANNOT CONNECT — press 'R' to retry\n");
+            } else {
+                runloop = true;
+                printf("\n>> COMPENSATOR CONNECTED\n");
+            }
+#else
             runloop = true;
             printf("\n>> COMPENSATOR CONNECTED\n");
+#endif
         } 
         else if (key == 't' || key == 'T') {
             runloop = false;
             printf("\n>> COMPENSATOR DISCONNECTED\n");
         } 
-#ifdef HIL_BUILD
-        else if (key == 'r' || key == 'R') {
-            if (serial_fd >= 0) {
-                printf("\n>> HIL ALREADY CONNECTED\n");
-            } else if (hil_serial_open() >= 0) {
-                printf("\n>> HIL RECONNECTED — port %s open\n", MDCS_HIL_PORT);
-            } else {
-                printf("\n>> HIL RECONNECT FAILED — port %s busy or board absent\n", MDCS_HIL_PORT);
-            }
-            fflush(stdout);
-        } 
-#endif
         else if (key == 'q' || key == 'Q') {
             printf("\nExiting...\n");
             break;
