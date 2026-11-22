@@ -35,13 +35,6 @@ static float error_sum = 0.0f;
 float run_compensator_cycle_HIL(float t1, float t2) {
     (void)t2;   /* Only one sensor: the pendulum angle */
 
-    if (!initialized) {
-        t_prev = 0.0f;
-        d_filt = 0.0f;
-        error_sum = 0.0f;
-        initialized = true;
-    }
-
     /* 1. Velocity from the angle difference (1 kHz) */
     float d_raw = (t1 - t_prev) / 0.001f;
     t_prev = t1;
