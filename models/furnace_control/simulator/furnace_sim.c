@@ -32,6 +32,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 int serial_fd = -1;
 
 static int hil_serial_open(void) {
+    if (serial_fd >= 0) {
+        close(serial_fd);
+        serial_fd = -1;
+    }
     serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (serial_fd < 0) {
         fprintf(stderr, "FATAL: Cannot open HIL port %s\n", MDCS_HIL_PORT);
