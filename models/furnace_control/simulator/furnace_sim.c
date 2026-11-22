@@ -38,13 +38,11 @@ static int hil_serial_open(void) {
     }
     serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (serial_fd < 0) {
-        fprintf(stderr, "FATAL: Cannot open HIL port %s\n", MDCS_HIL_PORT);
         return -1;
     }
     {
         struct termios tty;
         if (tcgetattr(serial_fd, &tty) != 0) {
-            fprintf(stderr, "FATAL: Cannot get HIL port attributes\n");
             close(serial_fd);
             serial_fd = -1;
             return -1;
