@@ -124,6 +124,14 @@ Utilizes a **Mean Value Model**. The compensator returns a normalized duty cycl
 
 Explicitly modeled as **Discrete Quadrature Pulses (A/B)**. This forces the compensator to manage quantization error and velocity jitter. Absolute positioning is verified via **Z-Index** latching at the **0° (Down)** reference point.
 
+| Model | Encoder | CPR | Velocity quantum (1 kHz) |
+|-------|---------|-----|--------------------------|
+| Furuta | Quadrature (4x) | 4096 | ~1.53e-3 rad |
+| Pendulum | Quadrature (4x) | 4096 | ~1.53e-3 rad |
+| Flywheel | 20-bit | 1,048,576 | ~5.99e-6 rad |
+
+The finer resolution on the flywheel gives much finer velocity resolution; the furuta/pendulum encoders have coarser quantization noise that the compensator low-pass filter must handle.
+
 ##### Motor Electrical Braking
 
 When PWM is set to 0 (compensator disabled with **`T`**), the DC motor model can either **coast** (motor terminals float, no electrical braking) or **electrically brake** (back-EMF drives current through motor resistance, dissipating kinetic energy quickly).
@@ -136,6 +144,31 @@ Controlled via the `motor_coast_on_zero` parameter in each model's `Params` stru
 | `false` | Electrical braking when PWM=0 | Drives with active short-circuit braking |
 
 **Default is `true`** for all models (furuta, pendulum, flywheel) to match typical real hardware behavior where the motor coasts when power is cut. Set to `false` if your driver actively shorts the motor terminals at zero PWM.
+
+
+#### Furnace quick mode vs bench mode
+
+The furnace simulator has two parameter sets:
+
+| Mode | C1 | C2 | Use |
+|------|-----|-----|-----|
+| Industrial | 500 | 450 | Realistic slab thermal mass; τ ≈ 1055 s. Slow heating/cooling. |
+| Bench | 5 | 4.5 | Small benchtop slab; τ ≈ 1.6 s. Fast settling (~7-8 s). |
+
+Select via `BENCH_TEST_ACCELERATED` in `furnace_sim.c` (1 = bench, 0 = industrial). The bench mode exists because the industrial plant moves so little per 50 µs RK4 step (~2.5e-6 °C) that a `float` state would round back to itself; the host plant integrates in `double` precisely to avoid this freeze.
+
+
+#### Flywheel position vs speed profiles
+
+Two separate HIL/SIL profiles:
+
+| Profile | Compensator | Setpoint | Notes |
+|---------|-------------|----------|-------|
+| Position | LQI | 23° angle | Steps to a target angle; ~8 s settle, ~8° overshoot |
+| Speed | PI + feedforward | 15 rad/s | Regulates rotational velocity; ~26 s time constant |
+
+Build/run separately: `make position` / `make speed` (SIL), `make -f Makefile_HIL position` / `speed` (HIL). Outputs go to `build/flywheel_control/position/` and `build/flywheel_control/speed/` respectively.
+
 
 
 ### ⚠️ CRITICAL OPERATIONAL LIMITATION
