@@ -30,7 +30,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 static bool initialized = false;
 static float t1_prev = 0, t2_prev = 0;
-static int serial_fd = -1;
+extern int serial_fd;
 
 /* This variable is used from the simulator to suspend the simulation on packet errors */
 extern bool runloop;
@@ -54,39 +54,6 @@ void run_thermal_compensator_cycle(float measured_T1, float measured_T2,
 
     (void)p; /* Host-side HIL: gains live on the MCU, parameters unused here */
 
-    /* --- Open serial port to MCU on first cycle --- */
-    if (serial_fd < 0) {
-        serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        if (serial_fd < 0) {
-            simulation_shutdown();
-            *u1 = 0.0f;
-            *u2 = 0.0f;
-            return;
-        } else {
-            struct termios tty;
-            if (tcgetattr(serial_fd, &tty) != 0) {
-                close(serial_fd);
-                serial_fd = -1;
-                simulation_shutdown();
-                *u1 = 0.0f;
-                *u2 = 0.0f;
-                return;
-            } else {
-                cfmakeraw(&tty);
-                cfsetispeed(&tty, B921600);
-                cfsetospeed(&tty, B921600);
-                if (tcsetattr(serial_fd, TCSANOW, &tty) != 0) {
-                    close(serial_fd);
-                    serial_fd = -1;
-                    simulation_shutdown();
-                    *u1 = 0.0f;
-                    *u2 = 0.0f;
-                    return;
-                }
-            }
-        }
-    }
-
     /* --- Build and send packet to MCU: sync(2) + T1 + T2 + cmd + checksum = 12 bytes --- */
     HostToMcuPacket tx_pkt;
     tx_pkt.sync[0] = HIL_HOST_SYNC_BYTE0;
@@ -96,6 +63,13 @@ void run_thermal_compensator_cycle(float measured_T1, float measured_T2,
     tx_pkt.host_cmd = HIL_CMD_RUN;
     tx_pkt.checksum = hil_calculate_checksum((const unsigned char *)&tx_pkt,
                                              HIL_PACKET_SIZE - 1);
+
+    if (serial_fd < 0) {
+        simulation_shutdown();
+        *u1 = 0.0f;
+        *u2 = 0.0f;
+        return;
+    }
 
     ssize_t written = write(serial_fd, &tx_pkt, sizeof(HostToMcuPacket));
     if (written != (ssize_t)sizeof(HostToMcuPacket)) {

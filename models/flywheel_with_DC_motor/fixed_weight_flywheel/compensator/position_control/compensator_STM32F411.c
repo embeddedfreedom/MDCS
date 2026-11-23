@@ -39,13 +39,6 @@ static float wrap_pi(float a) {
 float run_compensator_cycle_HIL(float t1, float t2) {
     (void)t2;   /* Only one sensor: the flywheel angle */
 
-    if (!initialized) {
-        theta_prev = t1;
-        d_filt = 0.0f;
-        integral = 0.0f;
-        initialized = true;
-    }
-
     /* 1. Velocity from the angle difference (1 kHz), unwrap ±PI */
     float d_theta = wrap_pi(t1 - theta_prev);
     theta_prev = t1;

@@ -28,6 +28,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "get_keypress.h"
 #include "mdcs_config.h"
 
+#ifdef HIL_BUILD
+#include <termios.h>
+int serial_fd = -1;
+
+static int hil_serial_open(void) {
+    if (serial_fd >= 0) {
+        close(serial_fd);
+        serial_fd = -1;
+    }
+    int retries = 20;
+    while (retries-- > 0) {
+        serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
+        if (serial_fd >= 0) {
+            struct termios tty;
+            if (tcgetattr(serial_fd, &tty) == 0) {
+                cfmakeraw(&tty);
+                cfsetispeed(&tty, B921600);
+                cfsetospeed(&tty, B921600);
+                tcsetattr(serial_fd, TCSANOW, &tty);
+                return 0;
+            }
+            close(serial_fd);
+            serial_fd = -1;
+        }
+        usleep(250000); /* 250 ms */
+    }
+    return -1;
+}
+#endif
+
 #define PI 3.14159265358979323846f
 
 // --- NOISE TOGGLES (1=ON, 0=OFF) ---
@@ -204,6 +234,11 @@ int main() {
     //Change the path values as per your directory structure, modify the socat command accordingly 
     int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
     int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
+#ifdef HIL_BUILD
+    if (hil_serial_open() < 0) {
+        return 1;
+    }
+#endif
     int i = 0;
     int dir = 1;
     float pwm = 0;
@@ -225,8 +260,17 @@ int main() {
         key = get_keypress();
 
         if (key == 's' || key == 'S') {
+#ifdef HIL_BUILD
+            if (serial_fd < 0 && hil_serial_open() < 0) {
+                printf("\n>> CANNOT CONNECT — press 'S' to retry\n");
+            } else {
+                runloop = true;
+                printf("\n>> COMPENSATOR CONNECTED\n");
+            }
+#else
             runloop = true;
             printf("\n>> COMPENSATOR CONNECTED\n");
+#endif
         } 
         else if (key == 't' || key == 'T') {
             runloop = false;

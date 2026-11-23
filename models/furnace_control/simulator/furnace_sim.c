@@ -27,6 +27,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "furnace_types.h"
 #include "mdcs_config.h"
 
+#ifdef HIL_BUILD
+#include <termios.h>
+int serial_fd = -1;
+
+static int hil_serial_open(void) {
+    if (serial_fd >= 0) {
+        close(serial_fd);
+        serial_fd = -1;
+    }
+    int retries = 20;
+    while (retries-- > 0) {
+        serial_fd = open(MDCS_HIL_PORT, O_RDWR | O_NOCTTY | O_NONBLOCK);
+        if (serial_fd >= 0) {
+            struct termios tty;
+            if (tcgetattr(serial_fd, &tty) == 0) {
+                cfmakeraw(&tty);
+                cfsetispeed(&tty, B921600);
+                cfsetospeed(&tty, B921600);
+                tcsetattr(serial_fd, TCSANOW, &tty);
+                return 0;
+            }
+            close(serial_fd);
+            serial_fd = -1;
+        }
+        usleep(250000); /* 250 ms */
+    }
+    return -1;
+}
+#endif
+
 // --- NOISE TOGGLES (1=ON, 0=OFF) ---
 #define NOISE_SENSOR_JITTER          1  // Thermal sensor measurement noise
 #define JITTER_STRENGTH              0.05f // Degrees Celsius Gaussian-like noise
@@ -191,6 +221,9 @@ int main() {
     const double physics_dt = 0.00005; // 20kHz Physics simulation step (50 microseconds)
     int sim_3d_in = open(MDCS_PTY_SIM_3D_IN, O_WRONLY | O_NONBLOCK);
     int sim_graph_in = open(MDCS_PTY_SIM_GRAPH_IN, O_WRONLY | O_NONBLOCK);
+#ifdef HIL_BUILD
+    hil_serial_open(); // non-fatal; press 'S' to retry connection
+#endif
     
     int i = 0;
     float pwm1 = 0.0f;
@@ -207,8 +240,17 @@ int main() {
         key = get_keypress();
 
         if (key == 's' || key == 'S') {
+#ifdef HIL_BUILD
+            if (serial_fd < 0 && hil_serial_open() < 0) {
+                printf("\n>> CANNOT CONNECT — press 'S' to retry\n");
+            } else {
+                runloop = true;
+                printf("\n>> COMPENSATOR CONNECTED\n");
+            }
+#else
             runloop = true;
             printf("\n>> COMPENSATOR CONNECTED\n");
+#endif
         } 
         else if (key == 't' || key == 'T') {
             runloop = false;
