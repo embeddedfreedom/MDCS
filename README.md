@@ -325,7 +325,7 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 | Model    | Gain derivation                                                                                                                                                                            |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Furuta   | Python LQR script in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_inverted_pendulum.md` §5 (Jacobian/linearization) and §6 (Numerical Implementation); reproduces all four checked-in gains |
+| Furuta   | Python LQR script in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_inverted_pendulum.md` §5 (Jacobian/linearization) and §6 (Numerical Implementation); gains approximately match C (rounded/tuned in C; e.g. k4 ≈ 7.199 → 7.33f) |
 | Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.md` §3 (LQR/Riccati) and §6 (Numerical Implementation); derives `k1`/`k2`, while `ki` is hand-tuned |
 | Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py` and `docs/LQI_DERIVATION.md`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
 | Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` and `docs/LQI_DERIVATION.md`; matches both C copies                                                                                    |
