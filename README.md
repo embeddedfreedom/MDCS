@@ -1030,7 +1030,7 @@ This is **not an exhaustive list**. It covers the most common first-time issues;
 | Possible cause                                     | Check / Fix                                                                                            |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ARM cross-toolchain not installed or not on `PATH` | Install `arm-none-eabi-gcc` (see §4 Step 2.5) and verify with `arm-none-eabi-gcc --version`.           |
-| `PATH` not exported                                | Add `export PATH=/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin:$PATH` to your `~/.bashrc`. |
+| `PATH` not exported                                | Add `export PATH=/opt/arm-gnu-toolchain-*/bin:$PATH` to your `~/.bashrc`.                            |
 
 ### Symptom: Firmware changes don't take effect (header edited, rebuild seems ignored)
 
