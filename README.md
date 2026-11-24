@@ -373,7 +373,7 @@ The HIL firmware for the STM32F411 is compiled with the ARM bare-metal cross-too
 
 See the full walkthrough: [MDCS Cross-Toolchain Install](https://youtu.be/2fNYTPCTxbg)
 
-Bash
+**Note:** The video demonstrates the build/install process on an older build. Follow the method, not the specific versions shown — toolchain versions and file names have moved on since then.
 
 ```
 # Download the latest ARM GNU Toolchain (bare-metal, Linux x86_64)
