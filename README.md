@@ -332,10 +332,6 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 ---
 
-**Errata — Pendulum derivation:** The table in `Complete_derivation_pendulum_DC_motor.md` §3.2 lists "Ideal Value" **k1 ≈ −106, k2 ≈ −13** (from Bryson's Rule with Q = diag([1010, 15.7]), R = 0.1), while the "Implementation" values are **k1 = −220.0, k2 = −26.0** (from Q = diag([4575, 64]), R = 0.1). Running the embedded Python script with the implementation weights produces **k1 ≈ −220.11, k2 ≈ −26.08**, which exactly matches the checked-in C gains (`k1 = -220.0f`, `k2 = -26.0f`). The ideal-vs-implementation difference is explained in the .md; the embedded script and the C code are consistent.
-
----
-
 ## 4. Installation & Setup
 
 #### Step 1: Initialise Serial Bridges

@@ -129,17 +129,14 @@ Solving for $P$ gives the energy surface of the system. The optimal gains are $K
 
 **3.2 Penalty Selection (The Q Matrix):**
 
-$Q = \begin{bmatrix} 1010 & 0 \\ 0 & 15.7 \end{bmatrix}, \quad R = [0.1]$
+$Q = \begin{bmatrix} 4575 & 0 \\ 0 & 64 \end{bmatrix}, \quad R = [0.1]$
 
-| **Parameter**         | **Description** | **Ideal Value** | **Implementation** | **Logic**                       |
-| --------------------- | --------------- | --------------- | ------------------ | ------------------------------- |
-| **Pendulum Position** | $k_1$           | $\approx -106$  | $-220.0$           | **Negative** (Restoring Torque) |
-| **Pendulum Velocity** | $k_2$           | $\approx -13$   | $-26.0$            | **Negative** (Damping Force)    |
+| **Parameter**         | **Description** | **Value**   | **Logic**                       |
+| --------------------- | --------------- | ----------- | ------------------------------- |
+| **Pendulum Position** | $k_1$           | $-220.0$    | **Negative** (Restoring Torque) |
+| **Pendulum Velocity** | $k_2$           | $-26.0$     | **Negative** (Damping Force)    |
 
-**Ideal Selection:** $q_{11} = 1010$, $q_{22} = 15.7$  
-**Implementation Selection:** $q_{11} = 4575$, $q_{22} = 64$  
-
-**Why the difference?** The "Ideal" values come from Bryson's Rule (moderate), while the **Implementation** values are increased to dominate hardware friction and stiction. The pendulum needs higher gains because real hardware has friction, deadzone, and noise that the ideal model doesn't account for.
+**Selection:** $q_{11} = 4575$, $q_{22} = 64$ — increased to dominate hardware friction and stiction. The pendulum needs higher gains because real hardware has friction, deadzone, and noise.
 
 ### 3.3 Bryson's Rule
 
