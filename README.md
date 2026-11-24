@@ -376,21 +376,24 @@ See the full walkthrough: [MDCS Cross-Toolchain Install](https://youtu.be/2fNYTP
 Bash
 
 ```
-# Download the ARM GNU toolchain (example: ARM GNU Toolchain 13.3.Rel1)
-wget https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz
+# Download the latest ARM GNU Toolchain (bare-metal, Linux x86_64)
+# ARM versions move over time — check https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
+# for the current file name, then substitute it here:
+
+wget <latest ARM GNU Toolchain ARM bare-metal Linux x86_64 tarball URL>
 
 # Extract to /opt
-sudo tar -xJf arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz -C /opt
+sudo tar -xJf arm-gnu-toolchain-*.tar.xz -C /opt
 
 # Add to PATH (permanent)
-echo 'export PATH=/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin:$PATH' >> ~/.bashrc
+echo 'export PATH=/opt/arm-gnu-toolchain-*/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
 # Verify installation
 arm-none-eabi-gcc --version
 ```
 
-Expected output: `arm-none-eabi-gcc (GNU Toolchain for the Arm Architecture 13.3.rel1 ...)`
+Expected output: `arm-none-eabi-gcc (GNU Toolchain for the Arm Architecture ...)`
 
 **Note:** The cross-toolchain is used by `Makefile_HIL` to compile the STM32F411 firmware (`MDCS_HIL.out/.bin`). SIL builds (`make`) use the host compiler and do not require it.
 
