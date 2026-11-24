@@ -70,7 +70,7 @@ Before setting up the local environment, you can explore the system architecture
 | **Hardware-in-the-Loop (HIL)** | STM32F411E-DISCO (Discovery kit) over USB CDC at 921600 baud. Fixed 12-byte frames with XOR checksums. See §6 for build, flash, and pin mapping. |
 | **Flywheel with DC Motor**     | Position and speed profiles, 20-bit quadrature encoder, Z-pulse drift compensation at revolution boundaries.                                     |
 | **Furnace Control**            | 2×2 coupled thermal LQI, dual PWM outputs (TIM3 CH1/PA6, CH2/PA7), industrial and bench parameter sets.                                          |
-| **Automation**                 | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model.                                                              |
+| **Automation**                 | `run_sim.py --hil` and `--hil-no-flash` for build → flash → run pipeline per model. See §9 for usage.                                               |
 
 ## Engineering notes
 
@@ -155,7 +155,7 @@ The furnace simulator has two parameter sets:
 | Industrial | 500 | 450 | Realistic slab thermal mass; τ ≈ 1055 s. Slow heating/cooling. |
 | Bench | 5 | 4.5 | Small benchtop slab; τ ≈ 1.6 s. Fast settling (~7-8 s). |
 
-Select via `BENCH_TEST_ACCELERATED` in `furnace_sim.c` (1 = bench, 0 = industrial). The bench mode exists because the industrial plant moves so little per 50 µs RK4 step (~2.5e-6 °C) that a `float` state would round back to itself; the host plant integrates in `double` precisely to avoid this freeze.
+Select via `BENCH_TEST_ACCELERATED` in `furnace_sim.c` (1 = bench, 0 = industrial). Bench mode divides `C1`/`C2` by 100 (500→5, 450→4.5) so the same thermal law settles in seconds (~7–8 s to reach 75 °C) rather than ~18 minutes — a speed-up for visualization and verification of the compensator without waiting for the slow industrial plant. The industrial plant's freeze under `float` is avoided by integrating `ThermalState` in `double`, not by bench mode; see `models/furnace_control/simulator/furnace_sim.c` above `rk4_step()`.
 
 
 #### Flywheel position vs speed profiles
@@ -549,9 +549,15 @@ The simulator uses a standard **Right-Hand Coordinate System**:
 
 ###### 5.3.3 Component Modeling:
 
-- **The Table:** Rendered as a `GL_QUADS` composite with 3D legs to provide a spatial reference point.
+Each model renders its own 3D assembly; the telemetry stream feeds the live angles/temperatures into the scene at 60 FPS:
 
-- **The Pendulum:** Modeled as a hierarchical object. It inherits the rotation of the motor shaft. The rotation is applied around the **Z-axis** using `glRotatef(math.degrees(theta_pend), 0, 0, 1)`.
+- **Furuta (rotary inverted pendulum):** Hierarchical assembly — motor base (rendered as a `GL_QUADS` composite with 3D legs), vertical motor shaft, horizontal arm, and pendulum link. The arm rotates about the vertical axis by `theta_arm`; the pendulum inherits that rotation and rotates about its own **Z-axis** by `theta_pend` using `glRotatef(math.degrees(theta_pend), 0, 0, 1)`.
+
+- **Pendulum with DC Motor:** Lab table (`GL_QUADS` top with four 3D legs), DC motor body, output shaft, and pendulum arm. The pendulum inherits the motor-shaft rotation and rotates about the **Z-axis** using `glRotatef(math.degrees(theta_pend), 0, 0, 1)`.
+
+- **Flywheel with DC Motor:** Floor grid with coordinate axes and angular reference markers (double green bar = 0° DOWN, black bar = ±180° UP, red/blue ticks at ±90°), motor base body, drive shaft, and a red flywheel disk rotating about the **Z-axis** by `theta_flywheel`. A yellow alignment arrow tracks the 0° position and a shaded lighting model gives the flywheel a metallic sheen.
+
+- **Furnace Control:** Insulated base slab (solid grey box), two coupled metal slabs (Zone 1 / Zone 2) drawn as gradient-colored boxes whose color maps to live temperature (cyan = ambient → yellow → red/white = hot), a contact line between the slabs, a heat-flux arrow over the thermal bridge proportional to `q12`, and a thermal convection particle plume that appears when either zone exceeds ambient by 10 °C. HUD shows `T1`, `T2`, `u1`, `u2`, `q12`, and `Tamb`.
 
 ###### 5.3.4. User Interface & Controls
 
