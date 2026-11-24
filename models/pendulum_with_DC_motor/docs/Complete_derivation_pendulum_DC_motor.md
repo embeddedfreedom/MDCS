@@ -138,6 +138,8 @@ $Q = \begin{bmatrix} 4575 & 0 \\ 0 & 64 \end{bmatrix}, \quad R = [0.1]$
 
 **Selection:** $q_{11} = 4575$, $q_{22} = 64$ — increased to dominate hardware friction and stiction. The pendulum needs higher gains because real hardware has friction, deadzone, and noise.
 
+**Untested Bryson's Rule alternative** (not run against hardware): $Q = \mathrm{diag}([1010, 15.7])$, $R = [0.1]$ yields $k_1 \approx -106$, $k_2 \approx -13$. These values were never validated on real hardware; they are shown only for reference.
+
 ### 3.3 Bryson's Rule
 
 $Q_{ii} = \frac{1}{\text{maximum acceptable value for state } i^2}$
