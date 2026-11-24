@@ -325,14 +325,14 @@ Design scripts and derivations for the LQR/LQI gains are kept with each model:
 
 | Model    | Gain derivation                                                                                                                                                                            |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Furuta   | Python LQR script embedded in `models/rotary_inverted_pendulum/docs/Complete_derivation_Furuta.pdf` §5 (pp. 12-13); reproduces all four checked-in gains                                   |
-| Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.pdf` §7 (p. 7); derives `k1`/`k2`, while `ki` is hand-tuned                                 |
-| Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
-| Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` (also embedded in `models/furnace_control/docs/LQI_DERIVATION.md` §16); matches both C copies                                          |
+| Furuta   | Python LQR script in `models/rotary_inverted_pendulum/docs/Complete_derivation_Rotary_inverted_pendulum.md` §5 (Jacobian/linearization) and §6 (Numerical Implementation); reproduces all four checked-in gains |
+| Pendulum | Python LQR script in `models/pendulum_with_DC_motor/docs/Complete_derivation_pendulum_DC_motor.md` §3 (LQR/Riccati) and §6 (Numerical Implementation); derives `k1`/`k2`, while `ki` is hand-tuned |
+| Flywheel | `models/flywheel_with_DC_motor/fixed_weight_flywheel/docs/flywheel_lqi_design.py` and `docs/LQI_DERIVATION.md`, plus the per-profile calculators in `compensator/` (position gains match C; the speed PI is hand-tuned) |
+| Furnace  | `models/furnace_control/docs/furnace_lqi_design.py` and `docs/LQI_DERIVATION.md`; matches both C copies                                                                                    |
 
 ---
 
-**Errata — Pendulum derivation PDF:** The prose in `Complete_derivation_pendulum_DC_motor.pdf` §3 states *"The Python solver yields k1 ≈ −106 and k2 ≈ −13"* — this refers to an older weight set. Running the embedded Python script (Q = diag([4575, 64]), R = 0.1) actually produces **k1 ≈ −220.11, k2 ≈ −26.08**, which exactly matches the checked-in C gains (`k1 = -220.0f`, `k2 = -26.0f`). The PDF prose is outdated; the embedded script and the C code are consistent.
+**Errata — Pendulum derivation:** The table in `Complete_derivation_pendulum_DC_motor.md` §3.2 lists "Ideal Value" **k1 ≈ −106, k2 ≈ −13** (from Bryson's Rule with Q = diag([1010, 15.7]), R = 0.1), while the "Implementation" values are **k1 = −220.0, k2 = −26.0** (from Q = diag([4575, 64]), R = 0.1). Running the embedded Python script with the implementation weights produces **k1 ≈ −220.11, k2 ≈ −26.08**, which exactly matches the checked-in C gains (`k1 = -220.0f`, `k2 = -26.0f`). The ideal-vs-implementation difference is explained in the .md; the embedded script and the C code are consistent.
 
 ---
 
