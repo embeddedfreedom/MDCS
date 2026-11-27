@@ -796,6 +796,13 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 • No flashing footage — but the reset test proves the flashed firmware is running.<br>
                 • No cafe:4001 enumeration shot — nice-to-have, not essential.
             </div>
+            <div style="margin-top: 8px; margin-bottom: 20px; background: rgba(8, 126, 164, 0.08); padding: 12px; border-radius: 6px; border-left: 4px solid var(--ef-blue); font-size: 0.85rem;">
+                <strong>🕒 Chapters:</strong><br>
+                • 0:00 — Hardware & Probe Setup: STM32 Discovery board connections and oscilloscope probe on pin A6.<br>
+                • 0:35 — Default State & Loop Engagement: 50% duty-cycle PWM baseline transitioning into live closed-loop modulation when the host simulator starts.<br>
+                • 1:22 — Deterministic Hardware Reset: Physical board reset forcing the PWM back to its safe 50% default and dropping the pendulum.<br>
+                • 1:55 — USB Fault & Recovery: Hot-unplugging the board to trigger a host connection error, followed by automatic recovery upon reconnection.
+            </div>
             <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 0; margin-top: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
             <iframe 
                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
