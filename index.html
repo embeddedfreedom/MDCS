@@ -637,10 +637,15 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
 
             <p style="margin-top: 25px; margin-bottom: 12px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the HIL control loop and emulated hardware interfaces.</p>
             <img src="general_architecture_hil.png" alt="HIL Architecture Diagram" class="diagram-img">
+            <div style="margin-top: 15px;">
+                <a href="#hil-timing" style="display: inline-block; background: var(--ef-blue); color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    ▶ Watch HIL Live Demo Video →
+                </a>
+            </div>
 
-            <h3 style="margin-top: 25px; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
-            <div style="overflow-x: auto; margin: 15px 0;">
-                <table class="spec-table">
+            <h3 style="margin-top: 30px; margin-bottom: 0; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
+            <div style="overflow-x: auto; margin: 0;">
+                <table class="spec-table" style="margin: 0;">
                     <thead>
                         <tr style="font-weight: bold; color: var(--ef-blue);">
                             <td>Host → MCU</td>
@@ -656,9 +661,9 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 </table>
             </div>
 
-            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">Model → Payload Mapping</h3>
-            <div style="overflow-x: auto; margin: 15px 0;">
-                <table class="spec-table">
+            <h3 style="margin-top: 20px; margin-bottom: 0; color: var(--ef-blue); font-size: 1rem;">Model → Payload Mapping</h3>
+            <div style="overflow-x: auto; margin: 0;">
+                <table class="spec-table" style="margin: 0;">
                     <thead>
                         <tr style="font-weight: bold; color: var(--ef-blue);">
                             <td>Model</td>
@@ -722,9 +727,9 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 </p>
             </div>
 
-            <h3 style="margin-top: 20px; color: var(--ef-blue); font-size: 1rem;">MCU Compensator Laws</h3>
-            <div style="overflow-x: auto; margin: 15px 0;">
-                <table class="spec-table">
+            <h3 style="margin-top: 20px; margin-bottom: 0; color: var(--ef-blue); font-size: 1rem;">MCU Compensator Laws</h3>
+            <div style="overflow-x: auto; margin: 0;">
+                <table class="spec-table" style="margin: 0;">
                     <thead>
                         <tr style="font-weight: bold; color: var(--ef-blue);">
                             <td>Model</td>
@@ -774,7 +779,7 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
         </div>
 
         <div class="glass-card">
-            <h2 style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Project Demonstration</h2>
+            <h2 id="project-demonstration" style="border-bottom: 2px solid var(--ef-blue); padding-bottom: 10px; margin-top: 0;">Project Demonstration</h2>
             <div style="margin-top: 10px; margin-bottom: 20px; background: rgba(8, 126, 164, 0.08); padding: 12px; border-radius: 6px; border-left: 4px solid var(--ef-blue); font-size: 0.85rem;">
                 <strong>📖 Note:</strong> The video below covers SIL (software simulation) setup and walkthrough.
             </div>
@@ -791,7 +796,7 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
             <div style="margin-top: 30px; margin-bottom: 20px; background: rgba(8, 126, 164, 0.08); padding: 12px; border-radius: 6px; border-left: 4px solid var(--ef-blue); font-size: 0.85rem;">
                 <strong>📖 Note:</strong> A live Hardware-in-the-Loop (HIL) demonstration on an STM32F411 Discovery board for the Furuta Pendulum, showing real PWM output on an oscilloscope, simulation start/resume via the <kbd>S</kbd> key, reset behavior, and connection-error recovery. For HIL build, flash, and run instructions for <b>all showcased models</b>, see <b>§6 Hardware-in-the-Loop (HIL)</b> in <a href="README.md" target="_blank" rel="noopener noreferrer">README.md</a>.
             </div>
-            <div style="margin-top: 8px; margin-bottom: 20px; background: rgba(255, 152, 0, 0.08); padding: 12px; border-radius: 6px; border-left: 4px solid #ff9800; font-size: 0.85rem;">
+            <div id="hil-timing" style="margin-top: 8px; margin-bottom: 20px; background: rgba(255, 152, 0, 0.08); padding: 12px; border-radius: 6px; border-left: 4px solid #ff9800; font-size: 0.85rem;">
                 <strong>⚠️ What's missing in the video:</strong><br>
                 • No flashing footage — but the reset test proves the flashed firmware is running.<br>
                 • No cafe:4001 enumeration shot — nice-to-have, not essential.
