@@ -637,11 +637,6 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
 
             <p style="margin-top: 25px; margin-bottom: 12px; font-size: 1rem; color: var(--ef-blue); font-weight: 600; text-align: left;">High-level architectural overview of the HIL control loop and emulated hardware interfaces.</p>
             <img src="general_architecture_hil.png" alt="HIL Architecture Diagram" class="diagram-img">
-            <div style="margin-top: 15px;">
-                <a href="#hil-timing" style="display: inline-block; background: var(--ef-blue); color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                    ▶ Watch HIL Live Demo Video →
-                </a>
-            </div>
 
             <h3 style="margin-top: 30px; margin-bottom: 0; color: var(--ef-blue); font-size: 1rem;">Fixed 12-Byte Frame Format</h3>
             <div style="overflow-x: auto; margin: 0;">
@@ -776,6 +771,11 @@ The <b>core physics engine</b> is optimized for single-thread execution to ensur
                 <li>Make rules list <code>.c</code> sources only — header dependencies are not tracked. After editing a header, force a rebuild with <code>make -B -f Makefile_HIL</code> or delete <code>MDCS_HIL.out</code></li>
                 <li><code>EXTRA_CFLAGS</code> is not a make dependency — changing defines (e.g. <code>-DHIL_TWO_OUTPUTS</code>) will not trigger a rebuild. Run <code>make clean</code> first, otherwise stale firmware can persist</li>
             </ul>
+            <div style="margin-top: 25px;">
+                <a href="#hil-timing" style="display: inline-block; background: var(--ef-blue); color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    ▶ Watch HIL Live Demo Video →
+                </a>
+            </div>
         </div>
 
         <div class="glass-card">
